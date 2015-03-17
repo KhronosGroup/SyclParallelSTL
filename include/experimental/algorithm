@@ -1,0 +1,153 @@
+/* Copyright (c) 2015, Codeplay Software Ltd.
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */  
+/* vim: set filetype=cpp foldmethod=indent: */
+#ifndef __EXPERIMENTAL_PARALLEL_ALGORITHM__
+#define __EXPERIMENTAL_PARALLEL_ALGORITHM__
+
+#include <type_traits>
+#include <typeinfo>
+
+#include <experimental/execution_policy>
+// Detail header
+#include <experimental/detail/sycl_buffers.hpp>
+
+#include <algorithm>
+#include <iostream>
+
+namespace std {
+namespace experimental {
+namespace parallel {
+
+template <class ExecutionPolicy, class RandomAccessIterator,
+          typename std::enable_if<
+              is_execution_policy<ExecutionPolicy>::value>::type * = nullptr>
+inline void sort(ExecutionPolicy &ep, RandomAccessIterator b,
+                 RandomAccessIterator e) {
+  if (std::is_base_of<ExecutionPolicy, sequential_execution_policy>::value) {
+    std::cout << " Execution Policy identified -> seq " << std::endl;
+    std::sort(b, e);
+  } else if (std::is_base_of<ExecutionPolicy,
+                             parallel_execution_policy>::value) {
+    std::cout << " Execution Policy identified! -> par " << std::endl;
+    std::sort(b, e);
+  } else if (std::is_base_of<ExecutionPolicy, vector_execution_policy>::value) {
+    std::cout << " Execution Policy identified! -> vec " << std::endl;
+    std::sort(b, e);
+  } else if (std::is_base_of<ExecutionPolicy, execution_policy>::value) {
+    std::cout << " Execution Policy identified! -> dynamic " << std::endl;
+    std::sort(b, e);
+  } else {
+    std::cout << " Execution Policy identified! -> unknown" << std::endl;
+  }
+}
+
+// -----------   SYCL ALGORITHM IMPLEMENTATION
+
+namespace sycl {
+
+namespace {
+
+template <typename T>
+using sycl_rw_acc = cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
+                                       cl::sycl::access::target::global_buffer>;
+
+template <typename T> class sort_kernel {
+
+  sycl_rw_acc<T> a_;
+  size_t vS_;
+
+public:
+  sort_kernel(sycl_rw_acc<T> a, size_t vectorSize) : a_(a), vS_(vectorSize) {};
+
+  // Simple sequential sort
+  void operator()() {
+    for (int i = 0; i < vS_; i++) {
+      for (int j = 1; j < vS_; j++) {
+        if (a_[j - 1] > a_[j]) {
+          T tmp = a_[j - 1];
+          a_[j - 1] = a_[j];
+          a_[j] = tmp;
+        }
+      }
+    }
+  }
+}; // class sort_kernel
+}
+
+template <class ExecutionPolicy, class RandomAccessIterator,
+          typename std::enable_if<std::is_base_of<
+              sycl_execution_policy, ExecutionPolicy>::value>::type * = nullptr>
+inline void sort(ExecutionPolicy &sep, RandomAccessIterator b,
+                 RandomAccessIterator e) {
+
+  cl::sycl::queue q(sep.get_queue());
+  typedef typename std::iterator_traits<RandomAccessIterator>::value_type type_;
+  auto buf = make_buffer(b, e);
+  auto vectorSize = buf.get_count();
+  auto f = [buf, vectorSize](cl::sycl::handler &h) mutable {
+    cl::sycl::range<3> r{ 1, 1, 1 };
+    auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
+    h.single_task(sort_kernel<type_>(a, vectorSize));
+  };
+  q.submit(f);
+}
+
+template <class ExecutionPolicy, class Iterator, class OutputIterator,
+          class UnaryOperation>
+OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
+                         OutputIterator out_b, UnaryOperation op) {
+  {
+    cl::sycl::queue q(sep.get_queue());
+    typedef typename std::iterator_traits<Iterator>::value_type type_;
+    auto bufI = make_buffer(b, e);
+    auto bufO = make_buffer(out_b, out_b + bufI.get_count());
+    auto vectorSize = bufI.get_count();
+    auto f = [vectorSize, &bufI, &bufO, op](cl::sycl::handler &h) mutable {
+      cl::sycl::range<3> r{ 1, 1, 1 };
+      auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
+      auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
+      h.single_task<typename ExecutionPolicy::kernelName>(
+          [vectorSize, aI, aO, op]() {
+            for (int i = 0; i < vectorSize; i++) {
+              aO[i] = op(aI[i]);
+            }
+          });
+    };
+    q.submit(f);
+  }
+  return out_b;
+}
+
+} // namespace sycl
+} // namespace parallel
+} // namespace experimental
+} // namespace std
+
+#endif // __EXPERIMENTAL_PARALLEL_ALGORITHM__

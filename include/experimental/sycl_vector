@@ -1,0 +1,215 @@
+/* Copyright (c) 2015, Codeplay Software Ltd.
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */  
+/* vim: set filetype=cpp foldmethod=indent: */
+#ifndef __EXPERIMENTAL_PARALLEL_SYCL_VECTOR__
+#define __EXPERIMENTAL_PARALLEL_SYCL_VECTOR__
+
+#include <type_traits>
+#include <typeinfo>
+#include <memory>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+
+#include <SYCL/sycl.hpp>
+
+namespace std {
+namespace experimental {
+namespace parallel {
+namespace sycl {
+#if 0
+using cl::sycl::access::mode::read_write;
+using cl::sycl::access::target::host_buffer;
+
+class iterator_base {
+ protected:
+  off_t m_offset;
+
+ public:
+  iterator_base() : m_offset(0) {};
+
+  iterator_base(off_t offset) : m_offset(offset) {};
+
+  off_t get_offset() const {
+    return m_offset;
+  };
+};
+
+template <typename T>
+class vector {
+ private:
+    std::vector<T> _host;
+    size_t _length;
+    cl::sycl::buffer<T, 1, cl::sycl::map_allocator<T> > _buf;
+
+ public:
+
+  class iterator : public iterator_base {
+   private:
+    vector<T> *m_d;
+
+   public:
+    typedef T m_type;
+    typedef T value_type;
+    typedef size_t difference_type;
+    typedef T* pointer;
+    typedef T& reference;
+    typedef std::random_access_iterator_tag iterator_category;
+
+    iterator() : iterator_base(), m_d(0) {};
+
+    iterator(vector<T> *dv, const off_t &off = 0)
+        : iterator_base(off), m_d(dv) {}
+
+    iterator(const iterator &i)
+        : iterator_base(i.get_offset()), m_d(i.get_vector_ptr()) {};
+
+    cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write, 
+                       cl::sycl::access::target::global_buffer> get_access() const {
+      return m_d->get_access();
+    }
+
+    vector<T> *get_vector_ptr() const { return m_d; }
+
+    const iterator operator+(const iterator &other) const {
+      iterator result(*this);
+      result.m_offset += other.get_offset();
+      return result;
+    }
+
+    difference_type operator-(const iterator &other) const {
+      return this->get_offset() - other.get_offset();
+    }
+
+    const iterator operator+(const int &value) const {
+      iterator result(*this);
+      result.m_offset += value;
+      return result;
+    }
+
+    const iterator operator-(const int &value) const {
+      iterator result(*this);
+      result.m_offset -= value;
+      return result;
+    }
+
+    // Prefix operator (Increment and return value)
+    iterator& operator++() {
+      this->m_offset++;
+      return (*this);
+    }
+
+    // Postfix operator (Return value and increment)
+    iterator operator++(int i) {
+      iterator tmp(*this);
+      this->m_offset += i;
+      return tmp;
+    }
+
+    reference operator*() const {
+      return (*m_d)[m_offset];
+    }
+
+    pointer operator->() const {
+      return m_d->data() + m_offset;
+    }
+
+  };  // Iterator
+
+  vector(size_t size)
+  : _host(size), _length(_host.size()), 
+    _buf(_host.data(), cl::sycl::range<1>(_length)) {
+  }
+
+  vector(initializer_list<T> initList)
+    : _host{initList},
+      _length(_host.size()), 
+      _buf(_host.data(), cl::sycl::range<1>(_length)) {
+  }
+
+  vector(std::vector<T> &host)
+      : _length(host.size()),  
+        _host(host), 
+        _buf(host.data(), cl::sycl::range<1>(host.size())) {}
+
+  size_t length() const { return _length; }
+
+  template<int AccessModeT, int AccessType>
+  cl::sycl::accessor<T, 1, AccessModeT, AccessType> get_access() {
+    return _buf.template get_access<AccessModeT, AccessType>();
+  }
+
+  cl::sycl::buffer<T, 1> &get_buf() { return _buf; }
+
+  iterator begin() { return iterator(this, 0); }
+
+  iterator end() { return iterator(this, _length); }
+
+  inline size_t size() {
+    return _host.size();
+  }
+  
+  T& operator[](int v)  {
+    auto h = _buf.get_access<read_write, host_buffer>();
+    // Since the buffer uses a map allocator, there is no need for a
+    // manual update of the host vector with the latest data: the pointer used
+    // by the runtime is the original pointer
+    // std::memcpy(_host.data(), &(h[0]), _buf.get_size());
+    // A map allocator may avoid this problem
+    // However note that writing to the host reference won't triger the
+    // copy back!
+    // TODO(Maria): How to implement this with current standard w/o deleting buffer?
+    // _buf.wait();
+    return _host[v];
+  } 
+};
+
+template<typename Iterator1, typename Iterator2>
+inline typename Iterator1::difference_type operator-(Iterator1 b, Iterator2 e) {
+  return e.get_offset() - b.get_offset();
+}
+
+template<typename Iterator1, typename Iterator2>
+inline bool operator==(Iterator1 a, Iterator2 b) {
+  return a.get_offset() == b.get_offset();
+}
+
+template<typename Iterator1, typename Iterator2>
+inline bool operator!=(Iterator1 a, Iterator2 b) {
+  return !(a == b);
+}
+#endif // 0
+
+} // namespace sycl
+} // namespace parallel
+} // namespace experimental
+} // namespace std
+
+#endif // __EXPERIMENTAL_PARALLEL_SYCL_VECTOR__

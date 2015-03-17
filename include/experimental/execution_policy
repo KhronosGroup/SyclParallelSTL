@@ -1,0 +1,178 @@
+/* Copyright (c) 2015, Codeplay Software Ltd.
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */  
+/* vim: set filetype=cpp foldmethod=indent: */
+#ifndef __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__
+#define __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__
+
+#include <type_traits>
+#include <typeinfo>
+#include <memory>
+
+#include <SYCL/sycl.hpp>
+
+namespace std {
+namespace experimental {
+namespace parallel {
+// 2.3, execution policy type trait
+template <class T> struct is_execution_policy;
+
+// 2.4 sequential execution policy
+class sequential_execution_policy;
+
+// 2.5 parallel execution policy
+class parallel_execution_policy;
+
+// 2.6 vector execution policy
+class vector_execution_policy;
+
+// 2.7 dynamic execution policy
+class execution_policy;
+
+template <class T>
+struct is_execution_policy
+    : integral_constant<bool,
+                        std::is_base_of<sequential_execution_policy,
+                                        typename decay<T>::type>::value ||
+                            std::is_base_of<parallel_execution_policy,
+                                            typename decay<T>::type>::value ||
+                            std::is_base_of<vector_execution_policy,
+                                            typename decay<T>::type>::value ||
+                            std::is_base_of<execution_policy,
+                                            typename decay<T>::type>::value> {};
+
+/* this is a container for execution policies */
+class execution_policy {
+public:
+  template <class T, typename std::enable_if<
+                         is_execution_policy<T>::value>::type * = nullptr>
+  execution_policy(const T &exec) {
+    static_assert(is_execution_policy<T>::value == true,
+                  "Need an execution policy");
+    m_instance = std::make_shared<T>(exec);
+    m_typeInfo = &typeid(exec);
+  }
+
+  template <class T, typename std::enable_if<
+                         is_execution_policy<T>::value>::type * = nullptr>
+  execution_policy &operator=(const T &exec) {
+    static_assert(is_execution_policy<T>::value == true,
+                  "Need an execution policy");
+    m_instance = std::make_shared<T>(exec);
+    m_typeInfo = &typeid(exec);
+    return *this;
+  }
+
+  const type_info &type() const noexcept { return *m_typeInfo; }
+
+  template <class T> T *get() noexcept {
+    if (*m_typeInfo != typeid(T))
+      return nullptr;
+    return static_cast<T *>(m_instance.get());
+  }
+
+  template <class T> const T *get() const noexcept {
+    if (*m_typeInfo != typeid(T))
+      return nullptr;
+    return static_cast<T *>(m_instance.get());
+  }
+
+private:
+  // Pointer to the instance of the execution policy
+  std::shared_ptr<void> m_instance;
+  // Type Information
+  const type_info *m_typeInfo;
+};
+
+// 2.9 standard execution policy objects
+extern const sequential_execution_policy seq;
+extern const parallel_execution_policy par;
+extern const vector_execution_policy vec;
+
+// constexpr sequential_execution_policy seq = sequential_execution_policy;
+// constexpr parallel_execution_policy par = parallel_execution_policy;
+// constexpr vector_execution_policy vec = vector_execution_policy;
+
+namespace sycl {
+
+class sycl_execution_policy {
+  cl::sycl::queue m_q;
+
+public:
+  sycl_execution_policy() = default;
+
+  sycl_execution_policy(cl::sycl::queue q) : m_q(q) {};
+
+  sycl_execution_policy(const sycl_execution_policy &sep) = default;
+
+  std::string get_name() const {
+    return std::string("Name");
+  };
+
+  cl::sycl::queue get_queue() const { return m_q; }
+
+} sycl_policy;
+
+template <typename KernelName = decltype(nullptr)>
+class sycl_execution_policy_named : public sycl_execution_policy {
+public:
+  typedef KernelName kernelName;
+
+  sycl_execution_policy_named() = default;
+
+  sycl_execution_policy_named(cl::sycl::queue q) : sycl_execution_policy(q) {};
+};
+}
+
+} // namespace parallel
+} // namespace experimental
+} // namespace std
+
+/// ----------------- DETAIL
+//
+
+namespace std {
+namespace experimental {
+namespace parallel {
+
+class sequential_execution_policy {};
+
+class parallel_execution_policy {};
+
+class vector_execution_policy {};
+
+const sequential_execution_policy seq{};
+const parallel_execution_policy par{};
+const vector_execution_policy vec{};
+
+} // parallel
+} // experimental
+} // std
+
+#endif // __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__

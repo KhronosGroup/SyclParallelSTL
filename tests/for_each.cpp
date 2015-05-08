@@ -31,41 +31,46 @@
 
 #include <experimental/algorithm>
 
-class SortAlgorithm : public testing::Test {
+class ForEachAlgorithm : public testing::Test {
 public:
 };
 
-TEST_F(SortAlgorithm, TestStdSort) {
+TEST_F(ForEachAlgorithm, TestStdForEach) {
   std::vector<int> v = { 2, 1, 3 };
+  std::vector<int> result = { 3, 2, 4 };
 
-  std::sort(v.begin(), v.end());
+  std::transform(v.begin(), v.end(), v.begin(), 
+                 [=](int val) { return val + 1; });
 
-  EXPECT_TRUE(std::is_sorted(v.begin(), v.end()));
+  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
 
 using namespace std::experimental::parallel;
 
-TEST_F(SortAlgorithm, TestSyclSort) {
-  {
-    std::vector<int> v(64);
-    std::generate(v.begin(), v.end(), std::rand); // Using the C function rand()
-    // The bitonic sort is triggered with a power of two vector size
-    sycl::sort(sycl::sycl_policy, v.begin(), v.end());
-    EXPECT_TRUE(std::is_sorted(v.begin(), v.end()));
-  }
+TEST_F(ForEachAlgorithm, TestSyclForEach) {
+  std::vector<int> v = { 2, 1, 3 };
+  std::vector<int> result = { 3, 2, 4 };
 
-  {
-    std::vector<int> v(3);
-    std::generate(v.begin(), v.end(), std::rand); // Using the C function rand()
-    // The bitonic sort is triggered with a power of two vector size
-    sycl::sort(sycl::sycl_policy, v.begin(), v.end());
-    EXPECT_TRUE(std::is_sorted(v.begin(), v.end()));
-  }
+  cl::sycl::queue q;
+  sycl::sycl_execution_policy_named<class ForEachAlgorithm> snp(q);
+  sycl::for_each(snp, v.begin(), v.end(), 
+                 [=](int& val) { 
+                        val--; 
+                    });
 
-  {
-    std::array<int, 10> a;
-    std::generate(a.begin(), a.end(), std::rand);
-    sycl::sort(sycl::sycl_policy, a.begin(), a.end());
-    EXPECT_TRUE(std::is_sorted(a.begin(), a.end()));
-  }
+
+  sycl::sycl_execution_policy_named<class ForEachAlgorithm2> snp2(q);
+  sycl::for_each(snp2, v.begin(), v.end(), 
+                 [=](int& val) { 
+                        val += 2; 
+                    });
+#if PRINT_OUTPUT
+  std::cout << " Elements " << std::endl;
+  std::for_each(v.begin(), v.end(), [=](int elem) {
+      std::cout << elem << std::endl;
+      });
+#endif  // PRINT_OUTPUT
+
+  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+
 }

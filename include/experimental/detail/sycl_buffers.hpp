@@ -1,32 +1,30 @@
-/* Copyright (c) 2015, Codeplay Software Ltd.
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- */  
+/* Copyright (c) 2015 The Khronos Group Inc.
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and/or associated documentation files (the
+   "Materials"), to deal in the Materials without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Materials, and to
+   permit persons to whom the Materials are furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Materials.
+
+   MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS
+   KHRONOS STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS
+   SPECIFICATIONS AND HEADER INFORMATION ARE LOCATED AT
+    https://www.khronos.org/registry/
+
+  THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+
+*/
 /* vim: set filetype=cpp foldmethod=indent: */
 #ifndef __EXPERIMENTAL_DETAIL_SYCL_BUFFERS__
 #define __EXPERIMENTAL_DETAIL_SYCL_BUFFERS__
@@ -43,7 +41,7 @@ namespace parallel {
 namespace sycl {
 
 // Buffer with copy-back
-template <typename Iterator>
+template <typename Iterator> //, typename std::enable_if< ! std::is_base_of< SyclIterator, Iterator >::value >::type* = nullptr >
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
   typedef typename std::iterator_traits<Iterator>::value_type type_;
@@ -64,7 +62,7 @@ make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
 }
 
 // Discard buffer
-template <typename Iterator>
+template <typename Iterator> //, typename std::enable_if< ! std::is_base_of< SyclIterator, Iterator >::value >::type* = nullptr >
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
   typedef typename std::iterator_traits<Iterator>::value_type type_;
@@ -79,17 +77,51 @@ make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
 // Iterator range from an existing SYCL buffer
 template <typename Iterator>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
-make_buffer_impl(Iterator b, Iterator e, sycl::buffer_iterator_tag) {
+reuse_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
+  // TODO: This may need to create a sub-buffer if the range does not match
+  //  the whole buffer.
+  //  TODO: Technically this can be a const buffer since it is input-only
+  return b.get_buffer();
+}
+
+
+// Iterator range from an existing SYCL buffer
+template <typename Iterator>
+cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
+reuse_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
+  // TODO: This may need to create a sub-buffer if the range does not match
+  //  the whole buffer.
   return b.get_buffer();
 }
 
 /* Creates a buffer from an iterator range */
-template <class Iterator>
+template <class Iterator, typename std::enable_if< std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer(Iterator b, Iterator e) {
-  return make_buffer_impl(
+    return reuse_buffer_impl(
       b, e, typename std::iterator_traits<Iterator>::iterator_category());
 }
+
+template <class Iterator, typename std::enable_if< ! std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
+make_buffer(Iterator b, Iterator e) {
+    return make_buffer_impl(
+      b, e, typename std::iterator_traits<Iterator>::iterator_category());
+}
+
+/* Creates a read only constant buffer from an iterator range */
+template <class Iterator, typename std::enable_if< std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
+make_const_buffer(Iterator b, Iterator e) {
+    return reuse_buffer_impl(b, e, std::input_iterator_tag());
+}
+
+template <class Iterator, typename std::enable_if< ! std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
+make_const_buffer(Iterator b, Iterator e) {
+    return make_buffer_impl(b, e, std::input_iterator_tag());
+}
+
 
 } // namespace sycl
 } // namespace parallel

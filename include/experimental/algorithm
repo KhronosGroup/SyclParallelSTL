@@ -1,32 +1,29 @@
-/* Copyright (c) 2015, Codeplay Software Ltd.
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- */  
+/* Copyright (c) 2015 The Khronos Group Inc.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and/or associated documentation files (the
+  "Materials"), to deal in the Materials without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Materials, and to
+  permit persons to whom the Materials are furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Materials.
+
+  MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS
+  KHRONOS STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS
+  SPECIFICATIONS AND HEADER INFORMATION ARE LOCATED AT
+     https://www.khronos.org/registry/
+
+  THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+*/  
 /* vim: set filetype=cpp foldmethod=indent: */
 #ifndef __EXPERIMENTAL_PARALLEL_ALGORITHM__
 #define __EXPERIMENTAL_PARALLEL_ALGORITHM__
@@ -37,6 +34,9 @@
 #include <experimental/execution_policy>
 // Detail header
 #include <experimental/detail/sycl_buffers.hpp>
+#include <experimental/detail/algorithm/sort/sort.hpp>
+#include <experimental/detail/algorithm/for_each.hpp>
+#include <experimental/detail/algorithm/transform.hpp>
 
 #include <algorithm>
 #include <iostream>
@@ -68,38 +68,9 @@ inline void sort(ExecutionPolicy &ep, RandomAccessIterator b,
   }
 }
 
-// -----------   SYCL ALGORITHM IMPLEMENTATION
+// -----------   SYCL ALGORITHM 
 
 namespace sycl {
-
-namespace {
-
-template <typename T>
-using sycl_rw_acc = cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
-                                       cl::sycl::access::target::global_buffer>;
-
-template <typename T> class sort_kernel {
-
-  sycl_rw_acc<T> a_;
-  size_t vS_;
-
-public:
-  sort_kernel(sycl_rw_acc<T> a, size_t vectorSize) : a_(a), vS_(vectorSize) {};
-
-  // Simple sequential sort
-  void operator()() {
-    for (int i = 0; i < vS_; i++) {
-      for (int j = 1; j < vS_; j++) {
-        if (a_[j - 1] > a_[j]) {
-          T tmp = a_[j - 1];
-          a_[j - 1] = a_[j];
-          a_[j] = tmp;
-        }
-      }
-    }
-  }
-}; // class sort_kernel
-}
 
 template <class ExecutionPolicy, class RandomAccessIterator,
           typename std::enable_if<std::is_base_of<
@@ -111,38 +82,25 @@ inline void sort(ExecutionPolicy &sep, RandomAccessIterator b,
   typedef typename std::iterator_traits<RandomAccessIterator>::value_type type_;
   auto buf = make_buffer(b, e);
   auto vectorSize = buf.get_count();
-  auto f = [buf, vectorSize](cl::sycl::handler &h) mutable {
-    cl::sycl::range<3> r{ 1, 1, 1 };
-    auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
-    h.single_task(sort_kernel<type_>(a, vectorSize));
-  };
-  q.submit(f);
+
+  if (detail::isPowerOfTwo(vectorSize)) {
+    detail::bitonic_sort<type_>(q, buf, vectorSize);
+  } else {
+    detail::sequential_sort<type_>(q, buf, vectorSize);
+  }
 }
 
 template <class ExecutionPolicy, class Iterator, class OutputIterator,
           class UnaryOperation>
 OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
                          OutputIterator out_b, UnaryOperation op) {
-  {
-    cl::sycl::queue q(sep.get_queue());
-    typedef typename std::iterator_traits<Iterator>::value_type type_;
-    auto bufI = make_buffer(b, e);
-    auto bufO = make_buffer(out_b, out_b + bufI.get_count());
-    auto vectorSize = bufI.get_count();
-    auto f = [vectorSize, &bufI, &bufO, op](cl::sycl::handler &h) mutable {
-      cl::sycl::range<3> r{ 1, 1, 1 };
-      auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
-      auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
-      h.single_task<typename ExecutionPolicy::kernelName>(
-          [vectorSize, aI, aO, op]() {
-            for (int i = 0; i < vectorSize; i++) {
-              aO[i] = op(aI[i]);
-            }
-          });
-    };
-    q.submit(f);
-  }
-  return out_b;
+  return detail::transform(sep, b, e, out_b, op);
+}
+
+template <class ExecutionPolicy, class Iterator,
+          class UnaryFunction>
+void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction f) {
+  detail::for_each(sep, b, e, f);
 }
 
 } // namespace sycl

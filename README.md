@@ -47,8 +47,9 @@ SyclSTL exposes a SYCL policy on the experimental::parallel namespace
 that can be passed to standard STL algorithms for them to run on SYCL.
 Currently, the following STL algorithms are implemented:
 
-* sort (simple sequential implementation on the GPU)
-* transform (simple sequential implementation on the GPU)
+* sort : Bitonic sort for ranges which size is power of two, sequential sort
+otherwise.
+* transform : Parallel iteration (one thread per element) on the device.
 
 Some optimizations are implemented, for example, the ability of passing
 iterators to buffers rather than STL containers to reduce the amount of
@@ -65,12 +66,11 @@ Simply create a build directory and run CMake as follows:
 ```
 $ mkdir build
 $ cd build
-$ cmake ../ -DSYCL_PATH=/path/to/sycl -DOPENCL_LIBRARY=/path/to/opencl/lib \
+$ cmake ../ -DSYCL_PATH=/path/to/sycl \
             -DOPENCL_ROOT_DIR=/path/to/opencl/dir
 $ make
 ```
 Usual CMake options are available (e.g. building debug or release).
 
 If Google Mock is found in external/gmock then the unit tests are build.
-
 

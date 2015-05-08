@@ -46,9 +46,9 @@ else(HEADER_ONLY)
 
   if (NOT DEFINED DEVICE_COMPILER_NAME)
     if (WIN32)
-      set(DEVICE_COMPILER_NAME "syclonecc.exe")
+      set(DEVICE_COMPILER_NAME "compute++.exe")
     else(WIN32)
-      set(DEVICE_COMPILER_NAME "syclonecc")
+      set(DEVICE_COMPILER_NAME "compute++")
     endif(WIN32)
   endif (NOT DEFINED DEVICE_COMPILER_NAME)
   set(DEVICE_COMPILER "${DEVICE_COMPILER_PATH}/${DEVICE_COMPILER_NAME}" 

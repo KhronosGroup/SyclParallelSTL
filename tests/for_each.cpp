@@ -52,14 +52,14 @@ TEST_F(ForEachAlgorithm, TestSyclForEach) {
   std::vector<int> result = { 3, 2, 4 };
 
   cl::sycl::queue q;
-  sycl::sycl_execution_policy_named<class ForEachAlgorithm> snp(q);
+  sycl::sycl_execution_policy<class ForEachAlgorithm> snp(q);
   sycl::for_each(snp, v.begin(), v.end(), 
                  [=](int& val) { 
                         val--; 
                     });
 
 
-  sycl::sycl_execution_policy_named<class ForEachAlgorithm2> snp2(q);
+  sycl::sycl_execution_policy<class ForEachAlgorithm2> snp2(q);
   sycl::for_each(snp2, v.begin(), v.end(), 
                  [=](int& val) { 
                         val += 2; 

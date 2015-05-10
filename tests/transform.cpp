@@ -53,13 +53,13 @@ TEST_F(TransformAlgorithm, TestSyclTransform) {
   std::vector<int> result = { 3, 2, 4 };
 
   cl::sycl::queue q;
-  sycl::sycl_execution_policy_named<class TransformAlgorithm> snp(q);
+  sycl::sycl_execution_policy<class TransformAlgorithm> snp(q);
   sycl::transform(snp, v.begin(), v.end(), v.begin(), 
                  [=](int val) { 
                         return val - 1; 
                     });
 
-  sycl::sycl_execution_policy_named<class TransformAlgorithm2> snp2(q);
+  sycl::sycl_execution_policy<class TransformAlgorithm2> snp2(q);
   sycl::transform(snp2, v.begin(), v.end(), o.begin(), 
                  [=](int val) { 
                         return val + 2; 

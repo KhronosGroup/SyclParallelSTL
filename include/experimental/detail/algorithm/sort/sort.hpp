@@ -114,7 +114,8 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
         h.parallel_for< sort_kernel_bitonic<T> >(cl::sycl::nd_range<1>{r}, 
             [a, stage, passOfStage](cl::sycl::item<1> it) {
               int sortIncreasing = 1;
-              size_t threadId = it.get_global_id(0);
+              cl::sycl::id<1> id = it.get();
+              int threadId = id.get(0);
 
               int pairDistance = 1 << (stage - passOfStage);
               int blockWidth = 2 * pairDistance;

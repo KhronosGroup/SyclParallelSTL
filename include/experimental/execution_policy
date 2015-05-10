@@ -114,57 +114,6 @@ private:
   const type_info *m_typeInfo;
 };
 
-// 2.9 standard execution policy objects
-extern const sequential_execution_policy seq;
-extern const parallel_execution_policy par;
-extern const vector_execution_policy vec;
-
-// constexpr sequential_execution_policy seq = sequential_execution_policy;
-// constexpr parallel_execution_policy par = parallel_execution_policy;
-// constexpr vector_execution_policy vec = vector_execution_policy;
-
-namespace sycl {
-
-class sycl_execution_policy {
-  cl::sycl::queue m_q;
-
-public:
-  sycl_execution_policy() = default;
-
-  sycl_execution_policy(cl::sycl::queue q) : m_q(q) {};
-
-  sycl_execution_policy(const sycl_execution_policy &sep) = default;
-
-  std::string get_name() const {
-    return std::string("Name");
-  };
-
-  cl::sycl::queue get_queue() const { return m_q; }
-
-} sycl_policy;
-
-template <typename KernelName = decltype(nullptr)>
-class sycl_execution_policy_named : public sycl_execution_policy {
-public:
-  typedef KernelName kernelName;
-
-  sycl_execution_policy_named() = default;
-
-  sycl_execution_policy_named(cl::sycl::queue q) : sycl_execution_policy(q) {};
-};
-}
-
-} // namespace parallel
-} // namespace experimental
-} // namespace std
-
-/// ----------------- DETAIL
-//
-
-namespace std {
-namespace experimental {
-namespace parallel {
-
 class sequential_execution_policy {};
 
 class parallel_execution_policy {};
@@ -174,6 +123,83 @@ class vector_execution_policy {};
 const sequential_execution_policy seq{};
 const parallel_execution_policy par{};
 const vector_execution_policy vec{};
+
+// 2.9 standard execution policy objects
+extern const sequential_execution_policy seq;
+extern const parallel_execution_policy par;
+extern const vector_execution_policy vec;
+
+// constexpr causes problems in some compilers
+// constexpr sequential_execution_policy seq = sequential_execution_policy;
+// constexpr parallel_execution_policy par = parallel_execution_policy;
+// constexpr vector_execution_policy vec = vector_execution_policy;
+
+namespace sycl {
+
+/** DefaultKernelName
+* Empty type uses when a kernel name is not required
+*  for generating the kernel of the algorithm
+*/
+struct DefaultKernelName {};
+
+/* sycl_executin_policy.
+* The sycl_execution_policy enables algorithms to be executed using 
+*  a SYCL implementation.
+*/
+template <class KernelName = DefaultKernelName>
+class sycl_execution_policy {
+  cl::sycl::queue m_q;
+
+public:
+
+  // The kernel name when using lambdas
+  using kernelName = KernelName;
+
+  sycl_execution_policy() = default;
+
+  sycl_execution_policy(cl::sycl::queue q) : m_q(q) {};
+
+  sycl_execution_policy(const sycl_execution_policy&) = default;
+
+  // Returns the name of the kernel as a string
+  std::string get_name() const {
+    return typeid(kernelName).name();
+  };
+
+  // Returns the queue, if any
+  cl::sycl::queue get_queue() const { return m_q; }
+
+};
+
+// The default sycl_execution_policy
+sycl_execution_policy<> sycl_policy;
+
+
+/** getNamedPolicy.
+ * If the user is using a Functor and not specifying a name, we assume it is a functor and therefore 
+ * we can use it as a name for a kernel.
+ */
+template<typename ExecutionPolicy, 
+	   typename std::enable_if< std::is_same< typename ExecutionPolicy::kernelName, DefaultKernelName >::value >::type* = nullptr,
+		typename FunctorT>
+sycl_execution_policy<FunctorT> getNamedPolicy(ExecutionPolicy ep, FunctorT func)  {
+   sycl_execution_policy<FunctorT> sep;
+	return sep;
+}
+
+
+/** getNamedPolicy.
+ * If the user is using a Lambda then it must specify a name to use for the kernel.
+ */
+template<typename ExecutionPolicy, typename Name = typename ExecutionPolicy::kernelName, 
+	   typename std::enable_if< ! std::is_same<Name, DefaultKernelName>::value >::type* = nullptr,
+		typename FunctorT>
+ExecutionPolicy getNamedPolicy(ExecutionPolicy ep, FunctorT func)  {
+	ExecutionPolicy sep;
+	return sep;
+}
+
+}  // sycl
 
 } // parallel
 } // experimental

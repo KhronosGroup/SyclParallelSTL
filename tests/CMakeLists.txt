@@ -8,7 +8,7 @@ if (MSVC)
 	set(GMOCK_LIB_PATH ${GMOCK_DIR}/msvc/2010/x64/Debug/gmock.lib)
 	set(GMOCK_MAIN_LIB_PATH ${GMOCK_DIR}/msvc/2010/x64/Debug/gmock_main.lib)
 else()
-	set(GMOCK_LIB_PATH ${GMOCK_DIR}/make/gmock.a)
+	set(GMOCK_LIB_PATH ${GMOCK_DIR}/make/gmock_main.a)
 	set(GMOCK_MAIN_LIB_PATH ${GMOCK_DIR}/make/gmock_main.a)
 endif()
 

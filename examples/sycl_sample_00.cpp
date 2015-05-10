@@ -49,6 +49,7 @@ public:
 int main() {
   std::vector<int> v = { 3, 1, 5, 6 };
   std::vector<int> v2 = { 4, 5, 2 };
+
   sycl::sort(sycl::sycl_policy, v.begin(), v.end());
 
   // Transform
@@ -56,22 +57,22 @@ int main() {
 
   {
     cl::sycl::queue q(h);
-    sycl::sycl_execution_policy_named<class transform1> sepn1(q);
+    sycl::sycl_execution_policy<class transform1> sepn1(q);
     sycl::transform(sepn1, v2.begin(), v2.end(), v2.begin(),
                     [](int num) { return num + 1; });
 
-    sycl::sycl_execution_policy_named<class transform2> sepn2(q);
+    sycl::sycl_execution_policy<class transform2> sepn2(q);
     sycl::transform(sepn2, v2.begin(), v2.end(), v2.begin(),
                     [](int num) { return num - 1; });
 
-    sycl::sycl_execution_policy_named<class transform3> sepn3(q);
-    sycl::transform(sepn3, v2.begin(), v2.end(), v2.begin(),
-                    multiply_by_factor(2));
+     sycl::sycl_execution_policy<class transform3> sepn3(q);
+     sycl::transform(sepn3, v2.begin(), v2.end(), v2.begin(),
+                     multiply_by_factor(2));
 
     // Note that we can use directly STL operations :-)
-    sycl::sycl_execution_policy_named<class transform4> sepn4(q);
+    sycl::sycl_execution_policy<class transform4> sepn4(q);
     sycl::transform(sepn4, v2.begin(), v2.end(), v2.begin(),
-                    std::negate<int>());
+                     std::negate<int>());
   } // Everything is back on the host now
 
   sycl::sort(sycl::sycl_policy, v2.begin(), v2.end());

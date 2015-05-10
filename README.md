@@ -50,6 +50,7 @@ Currently, the following STL algorithms are implemented:
 * sort : Bitonic sort for ranges which size is power of two, sequential sort
 otherwise.
 * transform : Parallel iteration (one thread per element) on the device.
+* for_each  : Parallel iteration (ohe thread per element) on the device.
 
 Some optimizations are implemented, for example, the ability of passing
 iterators to buffers rather than STL containers to reduce the amount of

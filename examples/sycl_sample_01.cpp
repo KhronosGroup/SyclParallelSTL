@@ -37,10 +37,14 @@ using namespace std::experimental::parallel;
 
 class multiply_by_factor {
 
-  int m_factor;
+  long m_factor;
 
 public:
-  multiply_by_factor(int factor) : m_factor(factor) {};
+  multiply_by_factor(long factor) : m_factor(factor) { };
+
+  multiply_by_factor(const multiply_by_factor& mp) {
+		this->m_factor = mp.m_factor;
+  };
 
   int operator()(int num) const { return num * m_factor; }
 };
@@ -61,20 +65,20 @@ int main() {
 
     {
       cl::sycl::queue q(h);
-      sycl::sycl_execution_policy_named<class transform1> sepn1(q);
+      sycl::sycl_execution_policy<class transform1> sepn1(q);
       sycl::transform(sepn1, begin(b), end(b), begin(b),
                       [](int num) { return num + 1; });
 
-      sycl::sycl_execution_policy_named<class transform2> sepn2(q);
+      sycl::sycl_execution_policy<class transform2> sepn2(q);
+      long numberone = 2;
       sycl::transform(sepn2, begin(b), end(b), begin(b),
-                      [](int num) { return num - 1; });
-
-      sycl::sycl_execution_policy_named<class transform3> sepn3(q);
-      sycl::transform(sepn3, begin(b), end(b), begin(b), multiply_by_factor(2));
+                      [=](int num) { return num * numberone; });
+      sycl::transform(sycl::sycl_policy, begin(b), end(b), begin(b), multiply_by_factor(2));
+      sycl::transform(sycl::sycl_policy, begin(b), end(b), begin(b), multiply_by_factor(4));
 
       // Note that we can use directly STL operations :-)
-      sycl::sycl_execution_policy_named<class transform4> sepn4(q);
-      sycl::transform(sepn4, begin(b), end(b), begin(b), std::negate<int>());
+      sycl::sycl_execution_policy< std::negate<long> > sepn4(q);
+      sycl::transform(sepn4, begin(b), end(b), begin(b), std::negate<long>()); 
     } // All the kernels will finish at this point */
   }   // The buffer destructor guarantees host syncrhonization
   std::sort(v.begin(), v.end());

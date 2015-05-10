@@ -72,9 +72,11 @@ inline void sort(ExecutionPolicy &ep, RandomAccessIterator b,
 
 namespace sycl {
 
+/***** ALGORITHMS
+ */
 template <class ExecutionPolicy, class RandomAccessIterator,
           typename std::enable_if<std::is_base_of<
-              sycl_execution_policy, ExecutionPolicy>::value>::type * = nullptr>
+              sycl_execution_policy<>, ExecutionPolicy>::value>::type * = nullptr>
 inline void sort(ExecutionPolicy &sep, RandomAccessIterator b,
                  RandomAccessIterator e) {
 
@@ -94,7 +96,8 @@ template <class ExecutionPolicy, class Iterator, class OutputIterator,
           class UnaryOperation>
 OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
                          OutputIterator out_b, UnaryOperation op) {
-  return detail::transform(sep, b, e, out_b, op);
+  auto named_sep = getNamedPolicy(sep, op);
+  return detail::transform(named_sep, b, e, out_b, op);
 }
 
 template <class ExecutionPolicy, class Iterator,

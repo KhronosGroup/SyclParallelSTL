@@ -23,7 +23,7 @@ For example,
 
 ```c++
 std::vector<int> v = ...
-// Tratidional sequential sort
+// Traditional sequential sort
 std::sort(vec.begin(), vec.end());
 // Explicit sequential sort
 std::sort(seq, vec.begin(), vec.end());

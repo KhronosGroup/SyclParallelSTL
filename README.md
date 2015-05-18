@@ -14,7 +14,7 @@ This technical specification describes __a set of requirements for
 implementations of an interface that computer programs written in
 C++ programming language may use to invoke algorithms with parallel
 execution __.
-In practise, this specification aimed at the next C++ standard,
+In practice, this specification aimed at the next C++ standard,
 offers the opportunity to users to specify _execution policies_ to
 traditional STL algorithms, which will enable the execution of
 those algorithms in parallel.
@@ -23,7 +23,7 @@ For example,
 
 ```c++
 std::vector<int> v = ...
-// Tratidional sequential sort
+// Traditional sequential sort
 std::sort(vec.begin(), vec.end());
 // Explicit sequential sort
 std::sort(seq, vec.begin(), vec.end());
@@ -50,7 +50,7 @@ Currently, the following STL algorithms are implemented:
 * sort : Bitonic sort for ranges which size is power of two, sequential sort
 otherwise.
 * transform : Parallel iteration (one thread per element) on the device.
-* for_each  : Parallel iteration (ohe thread per element) on the device.
+* for_each  : Parallel iteration (one thread per element) on the device.
 
 Some optimizations are implemented, for example, the ability of passing
 iterators to buffers rather than STL containers to reduce the amount of

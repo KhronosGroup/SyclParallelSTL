@@ -31,13 +31,12 @@
 
 #include <type_traits>
 #include <typeinfo>
+#include <algorithm>
+#include <iostream>
 
 #include <experimental/execution_policy>
 // Detail header
 #include <experimental/detail/sycl_buffers.hpp>
-
-#include <algorithm>
-#include <iostream>
 
 namespace std {
 namespace experimental {
@@ -45,15 +44,29 @@ namespace parallel {
 namespace sycl {
 namespace detail {
 
+/* Aliases for SYCL accessors */
+template <typename T>
+using sycl_rw_acc = cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
+                                       cl::sycl::access::target::global_buffer>;
+
+/* isPowerOfTwo.
+ * Quick check to ensure num is a power of two. 
+ * Will only work with integers.
+ * @return true if num is power of two
+ */
 template <typename T>
 inline bool isPowerOfTwo(T num) {
   return (num != 0) && !(num & (num - 1));
 }
 
-template <typename T>
-using sycl_rw_acc = cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
-                                       cl::sycl::access::target::global_buffer>;
+template<>
+inline bool isPowerOfTwo<float>(float num) = delete;
+template<>
+inline bool isPowerOfTwo<double>(double num) = delete;
 
+/* sort_swap.
+ * Basic simple swap used inside the sort functions.
+ */
 template <typename T>
 void sort_swap (T &lhs, T &rhs) {
   auto temp = rhs;
@@ -61,6 +74,9 @@ void sort_swap (T &lhs, T &rhs) {
   lhs = temp;
 }
 
+/* sort_kernel_sequential.
+ * Simple kernel to sequentially sort a vector
+ */
 template <typename T> 
 class sort_kernel_sequential
 {
@@ -68,7 +84,8 @@ class sort_kernel_sequential
   size_t vS_;
 
   public:
-    sort_kernel_sequential(sycl_rw_acc<T> a, size_t vectorSize) : a_(a), vS_(vectorSize) {};
+    sort_kernel_sequential(sycl_rw_acc<T> a, size_t vectorSize) : 
+        a_(a), vS_(vectorSize) {};
 
     // Simple sequential sort
     void operator()() {
@@ -80,8 +97,10 @@ class sort_kernel_sequential
         }
       }
     }
-}; // class sort_kernel
+};  // class sort_kernel
 
+/* sequential_sort
+ * Command group to call the sequential sort kernel */
 template<typename T>
 void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf, 
     size_t vectorSize) {
@@ -93,9 +112,15 @@ void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
   q.submit(f);
 }
 
+/** sort_kernel_bitonic.
+ * Class used to name the bitonic kernel sort per type.
+ */
 template<typename T>
 class sort_kernel_bitonic;
 
+/* bitonic_sort.
+ * Performs a bitonic sort on the given buffer
+ */
 template<typename T>
 void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf, 
     size_t vectorSize) {

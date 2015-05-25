@@ -30,14 +30,13 @@
 #define __EXPERIMENTAL_DETAIL_ALGORITHM_FOR_EACH__
 
 #include <type_traits>
-#include <typeinfo>
+#include <algorithm>
+#include <iostream>
 
 #include <experimental/execution_policy>
 // Detail header
 #include <experimental/detail/sycl_buffers.hpp>
 
-#include <algorithm>
-#include <iostream>
 
 namespace std {
 namespace experimental {
@@ -45,6 +44,10 @@ namespace parallel {
 namespace sycl {
 namespace detail {
 
+/* for_each.
+ * Implementation of the command group that submits a for_each kernel.
+ * The kernel is implemented as a lambda.
+ */
 template <class ExecutionPolicy, class Iterator,
           class UnaryFunction>
 void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, 
@@ -60,7 +63,6 @@ void for_each(ExecutionPolicy &sep, Iterator b, Iterator e,
       h.parallel_for<typename ExecutionPolicy::kernelName>(r,
           [aI, op](cl::sycl::id<3> id) {
               op(aI[id.get(0)]);
-//              aI[id.get(0)] = 3;
             });
     };
     q.submit(f);

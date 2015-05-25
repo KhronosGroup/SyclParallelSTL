@@ -24,17 +24,20 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */  
-#include <experimental/execution_policy>
-#include <experimental/algorithm>
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
-using namespace std::experimental::parallel;
 
 #include <experimental/detail/sycl_iterator>
-#include <string>
+#include <experimental/execution_policy>
+#include <experimental/algorithm>
 
+using namespace std::experimental::parallel;
+
+/* Simple functor that multiplies a number
+ * by a factor.
+ */
 class multiply_by_factor {
 
   long m_factor;
@@ -52,6 +55,13 @@ public:
 using std::experimental::parallel::sycl::begin;
 using std::experimental::parallel::sycl::end;
 
+/* This sample shows the basic usage of the SYCL execution
+ * policies on the different algorithms. 
+ * In this case we use a sycl buffer to perform all operations on 
+ * the device.
+ * Note that for the moment the sycl variants of the algorithm
+ *   are on the sycl namespace and not in std::experimental.
+ */
 int main() {
   std::vector<int> v = { 3, 1, 5, 6 };
   {
@@ -60,7 +70,6 @@ int main() {
 
     sycl::sort(sycl::sycl_policy, begin(b), end(b));
 
-    // Transform
     cl::sycl::default_selector h;
 
     {
@@ -70,20 +79,21 @@ int main() {
                       [](int num) { return num + 1; });
 
       sycl::sycl_execution_policy<class transform2> sepn2(q);
+
       long numberone = 2;
       sycl::transform(sepn2, begin(b), end(b), begin(b),
                       [=](int num) { return num * numberone; });
-      sycl::transform(sycl::sycl_policy, begin(b), end(b), begin(b), multiply_by_factor(2));
-      sycl::transform(sycl::sycl_policy, begin(b), end(b), begin(b), multiply_by_factor(4));
 
-      // Note that we can use directly STL operations :-)
-      sycl::sycl_execution_policy< std::negate<long> > sepn4(q);
-      sycl::transform(sepn4, begin(b), end(b), begin(b), std::negate<long>()); 
-    } // All the kernels will finish at this point */
-  }   // The buffer destructor guarantees host syncrhonization
+      sycl::transform(sycl::sycl_policy, begin(b), end(b), 
+                      begin(b), multiply_by_factor(2));
+
+      sycl::sycl_execution_policy< std::negate<int> > sepn4(q);
+      sycl::transform(sepn4, begin(b), end(b), begin(b), std::negate<int>()); 
+    } // All the kernels will finish at this point 
+  }  // The buffer destructor guarantees host syncrhonization
   std::sort(v.begin(), v.end());
 
-  for (auto i = 0; i < v.size(); i++) {
+  for (size_t i = 0; i < v.size(); i++) {
     std::cout << v[i] << " , " << std::endl;
   }
 

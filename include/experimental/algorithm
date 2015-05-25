@@ -30,16 +30,16 @@
 
 #include <type_traits>
 #include <typeinfo>
+#include <algorithm>
+#include <iostream>
 
 #include <experimental/execution_policy>
-// Detail header
+// Detail headers
 #include <experimental/detail/sycl_buffers.hpp>
 #include <experimental/detail/algorithm/sort/sort.hpp>
 #include <experimental/detail/algorithm/for_each.hpp>
 #include <experimental/detail/algorithm/transform.hpp>
 
-#include <algorithm>
-#include <iostream>
 
 namespace std {
 namespace experimental {
@@ -72,7 +72,7 @@ inline void sort(ExecutionPolicy &ep, RandomAccessIterator b,
 
 namespace sycl {
 
-/***** ALGORITHMS
+/* sort
  */
 template <class ExecutionPolicy, class RandomAccessIterator,
           typename std::enable_if<std::is_base_of<
@@ -92,6 +92,8 @@ inline void sort(ExecutionPolicy &sep, RandomAccessIterator b,
   }
 }
 
+/* transform
+ */
 template <class ExecutionPolicy, class Iterator, class OutputIterator,
           class UnaryOperation>
 OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
@@ -100,6 +102,8 @@ OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
   return detail::transform(named_sep, b, e, out_b, op);
 }
 
+/* for_each
+ */
 template <class ExecutionPolicy, class Iterator,
           class UnaryFunction>
 void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction f) {

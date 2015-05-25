@@ -30,14 +30,12 @@
 #define __EXPERIMENTAL_DETAIL_ALGORITHM_TRANSFORM__
 
 #include <type_traits>
-#include <typeinfo>
+#include <algorithm>
+#include <iostream>
 
 #include <experimental/execution_policy>
 // Detail header
 #include <experimental/detail/sycl_buffers.hpp>
-
-#include <algorithm>
-#include <iostream>
 
 namespace std {
 namespace experimental {
@@ -45,6 +43,10 @@ namespace parallel {
 namespace sycl {
 namespace detail {
 
+/* transform.
+ * Implementation of the command group that submits a transform kernel.
+ * The kernel is implemented as a lambda.
+ */
 template <class ExecutionPolicy, class Iterator, class OutputIterator,
           class UnaryOperation>
 OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,

@@ -24,18 +24,17 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */  
-#include <experimental/execution_policy>
-#include <experimental/algorithm>
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
-#include <experimental/sycl_vector>
+#include <experimental/execution_policy>
+#include <experimental/algorithm>
 
 using namespace std::experimental::parallel;
 
-#include <string>
-
+/* Basic policy example from the original proposal 
+ */
 int main() {
   std::vector<int> v = { 3, 1, 5, 6 };
   using namespace std::experimental::parallel;

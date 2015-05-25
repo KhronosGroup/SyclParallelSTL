@@ -41,7 +41,9 @@ namespace parallel {
 namespace sycl {
 
 // Buffer with copy-back
-template <typename Iterator> //, typename std::enable_if< ! std::is_base_of< SyclIterator, Iterator >::value >::type* = nullptr >
+template <typename Iterator,
+          typename std::enable_if<
+              !std::is_base_of<SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
   typedef typename std::iterator_traits<Iterator>::value_type type_;
@@ -50,11 +52,10 @@ make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
   // destroyed,
   // however there is temporary data midway so we have to somehow force the copy
   // back to the host.
-  std::shared_ptr<type_> up{ new type_[bufferSize],
-                             [b, bufferSize](type_ *ptr) {
+  std::shared_ptr<type_> up{new type_[bufferSize], [b, bufferSize](type_* ptr) {
     std::copy(ptr, ptr + bufferSize, b);
     delete[] ptr;
-  } };
+  }};
   std::copy(b, e, up.get());
   cl::sycl::buffer<type_, 1> buf(up, cl::sycl::range<1>(bufferSize));
   buf.set_final_data(up);
@@ -62,12 +63,14 @@ make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
 }
 
 // Discard buffer
-template <typename Iterator> //, typename std::enable_if< ! std::is_base_of< SyclIterator, Iterator >::value >::type* = nullptr >
+template <typename Iterator,
+          typename std::enable_if<
+              !std::is_base_of<SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
   typedef typename std::iterator_traits<Iterator>::value_type type_;
   size_t bufferSize = std::distance(b, e);
-  std::unique_ptr<type_> up{ new type_[bufferSize] };
+  std::unique_ptr<type_> up{new type_[bufferSize]};
   std::copy(b, e, up.get());
   cl::sycl::buffer<type_, 1> buf(std::move(up), cl::sycl::range<1>(bufferSize));
   buf.set_final_data(nullptr);
@@ -84,7 +87,6 @@ reuse_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
   return b.get_buffer();
 }
 
-
 // Iterator range from an existing SYCL buffer
 template <typename Iterator>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
@@ -95,37 +97,42 @@ reuse_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
 }
 
 /* Creates a buffer from an iterator range */
-template <class Iterator, typename std::enable_if< std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+template <class Iterator, typename std::enable_if<std::is_base_of<
+                              SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer(Iterator b, Iterator e) {
-    return reuse_buffer_impl(
+  return reuse_buffer_impl(
       b, e, typename std::iterator_traits<Iterator>::iterator_category());
 }
 
-template <class Iterator, typename std::enable_if< ! std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+template <class Iterator,
+          typename std::enable_if<
+              !std::is_base_of<SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer(Iterator b, Iterator e) {
-    return make_buffer_impl(
+  return make_buffer_impl(
       b, e, typename std::iterator_traits<Iterator>::iterator_category());
 }
 
 /* Creates a read only constant buffer from an iterator range */
-template <class Iterator, typename std::enable_if< std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+template <class Iterator, typename std::enable_if<std::is_base_of<
+                              SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_const_buffer(Iterator b, Iterator e) {
-    return reuse_buffer_impl(b, e, std::input_iterator_tag());
+  return reuse_buffer_impl(b, e, std::input_iterator_tag());
 }
 
-template <class Iterator, typename std::enable_if< ! std::is_base_of<SyclIterator, Iterator>::value >::type* = nullptr>
+template <class Iterator,
+          typename std::enable_if<
+              !std::is_base_of<SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_const_buffer(Iterator b, Iterator e) {
-    return make_buffer_impl(b, e, std::input_iterator_tag());
+  return make_buffer_impl(b, e, std::input_iterator_tag());
 }
 
+}  // namespace sycl
+}  // namespace parallel
+}  // namespace experimental
+}  // namespace std
 
-} // namespace sycl
-} // namespace parallel
-} // namespace experimental
-} // namespace std
-
-#endif // __EXPERIMENTAL_DETAIL_SYCL_BUFFERS__
+#endif  // __EXPERIMENTAL_DETAIL_SYCL_BUFFERS__

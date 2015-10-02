@@ -23,23 +23,22 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/  
+*/
 #include "gmock/gmock.h"
 
 #include <vector>
 #include <algorithm>
 
-#include <experimental/detail/sycl_iterator>
+#include <sycl/helpers/sycl_iterator.hpp>
 
 class SyclHostIteratorTest : public testing::Test {
-public:
+ public:
 };
 
-using std::experimental::parallel::sycl::begin;
-using std::experimental::parallel::sycl::end;
+using namespace sycl::helpers;
 
 TEST_F(SyclHostIteratorTest, TestIteratorsOnHostAccessor) {
-  std::vector<float> v = { 1, 3, 5, 7, 9 };
+  std::vector<float> v = {1, 3, 5, 7, 9};
   // TODO(Ruyman) : Workaround for #5327
   // cl::sycl::buffer<float> sv(cl::sycl::range<1>(v.size()));
   cl::sycl::buffer<float> sv(v.begin(), v.end());
@@ -73,7 +72,7 @@ TEST_F(SyclHostIteratorTest, TestIteratorsOnHostAccessor) {
 }
 
 TEST_F(SyclHostIteratorTest, TestUsingStlAlgorithm) {
-  std::vector<float> v = { 1, 3, 5, 7, 9 };
+  std::vector<float> v = {1, 3, 5, 7, 9};
   // TODO(Ruyman) : Workaround for #5327
   // cl::sycl::buffer<float> sv(cl::sycl::range<1>(v.size()));
   cl::sycl::buffer<float> sv(v.begin(), v.end());
@@ -92,7 +91,7 @@ TEST_F(SyclHostIteratorTest, TestUsingStlAlgorithm) {
     // printf("[%d] %g == %g (%p == %p) \n",
     //          count, *i,
     //          hostAcc[count], &hostAcc[0], &(*i));
-    ASSERT_EQ(*(vI) * 2, *i);
+    ASSERT_EQ(*(vI)*2, *i);
     count++;
   }
 }

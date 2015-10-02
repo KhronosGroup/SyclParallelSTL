@@ -23,54 +23,46 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/  
+*/
 #include "gmock/gmock.h"
 
 #include <vector>
 #include <algorithm>
 
+#include <sycl/execution_policy>
 #include <experimental/algorithm>
 
+using namespace std::experimental::parallel;
+
 class ForEachAlgorithm : public testing::Test {
-public:
+ public:
 };
 
 TEST_F(ForEachAlgorithm, TestStdForEach) {
-  std::vector<int> v = { 2, 1, 3 };
-  std::vector<int> result = { 3, 2, 4 };
+  std::vector<int> v = {2, 1, 3};
+  std::vector<int> result = {3, 2, 4};
 
-  std::transform(v.begin(), v.end(), v.begin(), 
+  std::transform(v.begin(), v.end(), v.begin(),
                  [=](int val) { return val + 1; });
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
 
-using namespace std::experimental::parallel;
-
 TEST_F(ForEachAlgorithm, TestSyclForEach) {
-  std::vector<int> v = { 2, 1, 3 };
-  std::vector<int> result = { 3, 2, 4 };
+  std::vector<int> v = {2, 1, 3};
+  std::vector<int> result = {3, 2, 4};
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ForEachAlgorithm> snp(q);
-  sycl::for_each(snp, v.begin(), v.end(), 
-                 [=](int& val) { 
-                        val--; 
-                    });
-
+  for_each(snp, v.begin(), v.end(), [=](int& val) { val--; });
 
   sycl::sycl_execution_policy<class ForEachAlgorithm2> snp2(q);
-  sycl::for_each(snp2, v.begin(), v.end(), 
-                 [=](int& val) { 
-                        val += 2; 
-                    });
+  for_each(snp2, v.begin(), v.end(), [=](int& val) { val += 2; });
 #if PRINT_OUTPUT
   std::cout << " Elements " << std::endl;
-  std::for_each(v.begin(), v.end(), [=](int elem) {
-      std::cout << elem << std::endl;
-      });
+  std::for_each(v.begin(), v.end(),
+                [=](int elem) { std::cout << elem << std::endl; });
 #endif  // PRINT_OUTPUT
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
-
 }

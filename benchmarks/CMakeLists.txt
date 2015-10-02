@@ -1,5 +1,3 @@
-
-
 file(GLOB EXAMPLE_FILES ./*.cpp)
 
 foreach(file ${EXAMPLE_FILES})

@@ -23,74 +23,70 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/  
+*/
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
-
-#include <experimental/detail/sycl_iterator>
-#include <experimental/execution_policy>
+#include <sycl/execution_policy>
 #include <experimental/algorithm>
+#include <sycl/helpers/sycl_buffers.hpp>
 
 using namespace std::experimental::parallel;
+using namespace sycl::helpers;
 
 /* Simple functor that multiplies a number
  * by a factor.
  */
 class multiply_by_factor {
-
   long m_factor;
 
-public:
-  multiply_by_factor(long factor) : m_factor(factor) { };
+ public:
+  multiply_by_factor(long factor) : m_factor(factor){};
 
   multiply_by_factor(const multiply_by_factor& mp) {
-		this->m_factor = mp.m_factor;
+    this->m_factor = mp.m_factor;
   };
 
   int operator()(int num) const { return num * m_factor; }
 };
 
-using std::experimental::parallel::sycl::begin;
-using std::experimental::parallel::sycl::end;
-
 /* This sample shows the basic usage of the SYCL execution
- * policies on the different algorithms. 
- * In this case we use a sycl buffer to perform all operations on 
+ * policies on the different algorithms.
+ * In this case we use a sycl buffer to perform all operations on
  * the device.
  * Note that for the moment the sycl variants of the algorithm
  *   are on the sycl namespace and not in std::experimental.
  */
 int main() {
-  std::vector<int> v = { 3, 1, 5, 6 };
+  std::vector<int> v = {3, 1, 5, 6};
   {
     cl::sycl::buffer<int> b(v.begin(), v.end());
     b.set_final_data(v.data());
 
-    sycl::sort(sycl::sycl_policy, begin(b), end(b));
+    sort(sycl::sycl_policy, begin(b), end(b));
 
     cl::sycl::default_selector h;
 
     {
       cl::sycl::queue q(h);
       sycl::sycl_execution_policy<class transform1> sepn1(q);
-      sycl::transform(sepn1, begin(b), end(b), begin(b),
-                      [](int num) { return num + 1; });
+      transform(sepn1, begin(b), end(b), begin(b),
+                [](int num) { return num + 1; });
 
       sycl::sycl_execution_policy<class transform2> sepn2(q);
 
       long numberone = 2;
-      sycl::transform(sepn2, begin(b), end(b), begin(b),
-                      [=](int num) { return num * numberone; });
+      transform(sepn2, begin(b), end(b), begin(b),
+                [=](int num) { return num * numberone; });
 
-      sycl::transform(sycl::sycl_policy, begin(b), end(b), 
-                      begin(b), multiply_by_factor(2));
+      transform(sycl::sycl_policy, begin(b), end(b), begin(b),
+                multiply_by_factor(2));
 
-      sycl::sycl_execution_policy< std::negate<int> > sepn4(q);
-      sycl::transform(sepn4, begin(b), end(b), begin(b), std::negate<int>()); 
-    } // All the kernels will finish at this point 
-  }  // The buffer destructor guarantees host syncrhonization
+      sycl::sycl_execution_policy<std::negate<int> > sepn4(q);
+      transform(sepn4, begin(b), end(b), begin(b), std::negate<int>());
+    }  // All the kernels will finish at this point
+  }    // The buffer destructor guarantees host syncrhonization
   std::sort(v.begin(), v.end());
 
   for (size_t i = 0; i < v.size(); i++) {

@@ -23,12 +23,12 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/  
+*/
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
-#include <experimental/execution_policy>
+#include <sycl/execution_policy>
 #include <experimental/algorithm>
 
 using namespace std::experimental::parallel;
@@ -37,11 +37,10 @@ using namespace std::experimental::parallel;
  * by a factor.
  */
 class multiply_by_factor {
-
   int m_factor;
 
-public:
-  multiply_by_factor(int factor) : m_factor(factor) {};
+ public:
+  multiply_by_factor(int factor) : m_factor(factor){};
 
   int operator()(int num) const { return num * m_factor; }
 };
@@ -52,27 +51,25 @@ public:
  *   are on the sycl namespace and not in std::experimental.
  */
 int main() {
-  std::vector<int> v = { 3, 1, 5, 6 };
-  std::vector<int> v2 = { 4, 5, 2 };
+  std::vector<int> v = {3, 1, 5, 6};
+  std::vector<int> v2 = {4, 5, 2};
 
-  sycl::sort(sycl::sycl_policy, v.begin(), v.end());
+  sort(sycl::sycl_policy, v.begin(), v.end());
 
   sycl::sycl_execution_policy<class transform1> sepn1;
-  sycl::transform(sepn1, v2.begin(), v2.end(), v2.begin(),
-      [](int num) { return num + 1; });
+  transform(sepn1, v2.begin(), v2.end(), v2.begin(),
+            [](int num) { return num + 1; });
 
   sycl::sycl_execution_policy<class transform2> sepn2;
-  sycl::transform(sepn2, v2.begin(), v2.end(), v2.begin(),
-      [](int num) { return num - 1; });
+  transform(sepn2, v2.begin(), v2.end(), v2.begin(),
+            [](int num) { return num - 1; });
 
   sycl::sycl_execution_policy<class transform3> sepn3;
-  sycl::transform(sepn3, v2.begin(), v2.end(), v2.begin(),
-      multiply_by_factor(2));
+  transform(sepn3, v2.begin(), v2.end(), v2.begin(), multiply_by_factor(2));
 
   // Note that we can use directly STL operations :-)
   sycl::sycl_execution_policy<class transform4> sepn4;
-  sycl::transform(sepn4, v2.begin(), v2.end(), v2.begin(),
-      std::negate<int>());
+  transform(sepn4, v2.begin(), v2.end(), v2.begin(), std::negate<int>());
 
   std::sort(v2.begin(), v2.end());
 

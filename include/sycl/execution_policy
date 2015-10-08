@@ -1,0 +1,183 @@
+/* Copyright (c) 2015 The Khronos Group Inc.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and/or associated documentation files (the
+  "Materials"), to deal in the Materials without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Materials, and to
+  permit persons to whom the Materials are furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Materials.
+
+  MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS
+  KHRONOS STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS
+  SPECIFICATIONS AND HEADER INFORMATION ARE LOCATED AT
+     https://www.khronos.org/registry/
+
+  THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+*/
+
+#ifndef __SYCL_EXECUTION_POLICY__
+#define __SYCL_EXECUTION_POLICY__
+
+#include <type_traits>
+#include <typeinfo>
+#include <memory>
+
+#include <SYCL/sycl.hpp>
+#include <sycl/algorithm/for_each.hpp>
+#include <sycl/algorithm/for_each_n.hpp>
+#include <sycl/algorithm/sort.hpp>
+#include <sycl/algorithm/transform.hpp>
+
+namespace sycl {
+
+/** DefaultKernelName
+* Empty type uses when a kernel name is not required
+*  for generating the kernel of the algorithm
+*/
+struct DefaultKernelName {};
+
+/* sycl_executin_policy.
+* The sycl_execution_policy enables algorithms to be executed using
+*  a SYCL implementation.
+*/
+template <class KernelName = DefaultKernelName>
+class sycl_execution_policy {
+  cl::sycl::queue m_q;
+
+ public:
+  // The kernel name when using lambdas
+  using kernelName = KernelName;
+
+  sycl_execution_policy() = default;
+
+  sycl_execution_policy(cl::sycl::queue q) : m_q(q){};
+
+  sycl_execution_policy(const sycl_execution_policy&) = default;
+
+  // Returns the name of the kernel as a string
+  std::string get_name() const { return typeid(kernelName).name(); };
+
+  // Returns the queue, if any
+  cl::sycl::queue get_queue() const { return m_q; }
+
+  /** sort
+   * @brief Function that sorts the given range
+   * @param first : Start of the range
+   * @param last  : End of the range
+   */
+  template <class RandomAccessIterator>
+  inline void sort(RandomAccessIterator b, RandomAccessIterator e) {
+    cl::sycl::queue q(get_queue());
+    typedef typename std::iterator_traits<RandomAccessIterator>::value_type
+        type_;
+    auto buf = std::move(sycl::helpers::make_buffer(b, e));
+    auto vectorSize = buf.get_count();
+
+    if (impl::isPowerOfTwo(vectorSize)) {
+      sycl::impl::bitonic_sort<type_>(q, buf, vectorSize);
+    } else {
+      sycl::impl::sequential_sort<type_>(q, buf, vectorSize);
+    }
+  }
+
+  /** sort
+   * @brief Function that takes a Comp Operator and applies it to the given
+   * range
+   * @param first : Start of the range
+   * @param last  : End of the range
+   * @param comp  : Comp Operator
+   */
+  template <class RandomIt, class Compare>
+  void sort(RandomIt first, RandomIt last, Compare comp) {
+    auto named_sep = getNamedPolicy(*this, comp);
+    impl::sort(named_sep, first, last, comp);
+  }
+
+  /* transform.
+  * @brief Applies an Unary Operator across the range [b, e).
+  * Implementation of the command group that submits a transform kernel,
+  * According to Parallelism TS
+  */
+  template <class Iterator, class OutputIterator, class UnaryOperation>
+  OutputIterator transform(Iterator b, Iterator e, OutputIterator out_b,
+                           UnaryOperation op) {
+    auto named_sep = getNamedPolicy(*this, op);
+    return impl::transform(named_sep, b, e, out_b, op);
+  }
+
+  /* transform.
+  * @brief Applies a Binary Operator across the range [first1, last1).
+  * Implementation of the command group that submits a transform kernel,
+  * According to Parallelism TS
+  */
+  template <class InputIt1, class InputIt2, class OutputIt,
+            class BinaryOperation>
+  OutputIt transform(InputIt1 first1, InputIt1 last1, InputIt2 first2,
+                     OutputIt result, BinaryOperation binary_op) {
+    return impl::transform(*this, first1, last1, first2, result, binary_op);
+  }
+
+  /* for_each
+   */
+  template <class Iterator, class UnaryFunction>
+  void for_each(Iterator b, Iterator e, UnaryFunction f) {
+    impl::for_each(*this, b, e, f);
+  }
+
+  /* for_each_n.
+  * @brief Applies a Function across the range [first, first + n).
+  * Implementation of the command group that submits a for_each_n kernel,
+  * According to Parallelism TS version n4507. Section 4.3.2
+  */
+  template <class InputIterator, class Size, class Function>
+  InputIterator for_each_n(InputIterator first, Size n, Function f) {
+    return impl::for_each_n(*this, first, n, f);
+  }
+};
+
+// The default sycl_execution_policy
+sycl_execution_policy<> sycl_policy;
+
+/** getNamedPolicy.
+ * If the user is using a Functor and not specifying a name, we assume it is a
+ * functor and therefore
+ * we can use it as a name for a kernel.
+ */
+template <typename ExecutionPolicy,
+          typename std::enable_if<
+              std::is_same<typename ExecutionPolicy::kernelName,
+                           DefaultKernelName>::value>::type* = nullptr,
+          typename FunctorT>
+sycl_execution_policy<FunctorT> getNamedPolicy(ExecutionPolicy& ep,
+                                               FunctorT func) {
+  sycl_execution_policy<FunctorT> sep;
+  return sep;
+}
+
+/** getNamedPolicy.
+ * If the user is using a Lambda then it must specify a name to use for the
+ * kernel.
+ */
+template <typename ExecutionPolicy,
+          typename Name = typename ExecutionPolicy::kernelName,
+          typename std::enable_if<
+              !std::is_same<Name, DefaultKernelName>::value>::type* = nullptr,
+          typename FunctorT>
+ExecutionPolicy getNamedPolicy(ExecutionPolicy& ep, FunctorT func) {
+  ExecutionPolicy sep;
+  return sep;
+}
+
+}  // sycl
+
+#endif  // __SYCL_EXECUTION_POLICY__

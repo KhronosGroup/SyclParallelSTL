@@ -23,7 +23,7 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/  
+*/
 /* vim: set filetype=cpp foldmethod=indent: */
 #ifndef __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__
 #define __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__
@@ -31,11 +31,10 @@
 #include <type_traits>
 #include <typeinfo>
 #include <memory>
-
-#include <SYCL/sycl.hpp>
+#include <algorithm>
 
 #ifdef _MSC_VER
-#define NOEXCEPT 
+#define NOEXCEPT
 #else
 #define NOEXCEPT noexcept
 #endif
@@ -44,7 +43,8 @@ namespace std {
 namespace experimental {
 namespace parallel {
 // 2.3, execution policy type trait
-template <class T> struct is_execution_policy;
+template <class T>
+struct is_execution_policy;
 
 // 2.4 sequential execution policy
 class sequential_execution_policy;
@@ -73,7 +73,7 @@ struct is_execution_policy
 /* execution_policy.
  * Dynamically handle different policies */
 class execution_policy {
-public:
+ public:
   template <class T, typename std::enable_if<
                          is_execution_policy<T>::value>::type * = nullptr>
   execution_policy(const T &exec) {
@@ -95,30 +95,61 @@ public:
 
   const type_info &type() const NOEXCEPT { return *m_typeInfo; }
 
-  template <class T> T *get() NOEXCEPT {
-    if (*m_typeInfo != typeid(T))
-      return nullptr;
+  template <class T>
+  T *get() NOEXCEPT {
+    if (*m_typeInfo != typeid(T)) return nullptr;
     return static_cast<T *>(m_instance.get());
   }
 
-  template <class T> const T *get() const NOEXCEPT {
-    if (*m_typeInfo != typeid(T))
-      return nullptr;
+  template <class T>
+  const T *get() const NOEXCEPT {
+    if (*m_typeInfo != typeid(T)) return nullptr;
     return static_cast<T *>(m_instance.get());
   }
 
-private:
+  /* sort
+   */
+  template <class RandomAccessIterator>
+  inline void sort(RandomAccessIterator b, RandomAccessIterator e) const {
+    std::sort(b, e);
+  }
+
+ private:
   // Pointer to the instance of the execution policy
   std::shared_ptr<void> m_instance;
   // Type Information
   const type_info *m_typeInfo;
 };
 
-class sequential_execution_policy {};
+class sequential_execution_policy {
+ public:
+  /* sort
+   */
+  template <class RandomAccessIterator>
+  inline void sort(RandomAccessIterator b, RandomAccessIterator e) const {
+    std::sort(b, e);
+  }
+};
 
-class parallel_execution_policy {};
+class parallel_execution_policy {
+ public:
+  /* sort
+   */
+  template <class RandomAccessIterator>
+  inline void sort(RandomAccessIterator b, RandomAccessIterator e) const {
+    std::sort(b, e);
+  }
+};
 
-class vector_execution_policy {};
+class vector_execution_policy {
+ public:
+  /* sort
+   */
+  template <class RandomAccessIterator>
+  inline void sort(RandomAccessIterator b, RandomAccessIterator e) const {
+    std::sort(b, e);
+  }
+};
 
 const sequential_execution_policy seq{};
 const parallel_execution_policy par{};
@@ -129,80 +160,8 @@ extern const sequential_execution_policy seq;
 extern const parallel_execution_policy par;
 extern const vector_execution_policy vec;
 
-// constexpr causes problems in some compilers
-// constexpr sequential_execution_policy seq = sequential_execution_policy;
-// constexpr parallel_execution_policy par = parallel_execution_policy;
-// constexpr vector_execution_policy vec = vector_execution_policy;
+}  // namespace parallel
+}  // namespace experimental
+}  // namepsace std
 
-namespace sycl {
-
-/** DefaultKernelName
-* Empty type uses when a kernel name is not required
-*  for generating the kernel of the algorithm
-*/
-struct DefaultKernelName {};
-
-/* sycl_executin_policy.
-* The sycl_execution_policy enables algorithms to be executed using 
-*  a SYCL implementation.
-*/
-template <class KernelName = DefaultKernelName>
-class sycl_execution_policy {
-  cl::sycl::queue m_q;
-
-public:
-
-  // The kernel name when using lambdas
-  using kernelName = KernelName;
-
-  sycl_execution_policy() = default;
-
-  sycl_execution_policy(cl::sycl::queue q) : m_q(q) {};
-
-  sycl_execution_policy(const sycl_execution_policy&) = default;
-
-  // Returns the name of the kernel as a string
-  std::string get_name() const {
-    return typeid(kernelName).name();
-  };
-
-  // Returns the queue, if any
-  cl::sycl::queue get_queue() const { return m_q; }
-
-};
-
-// The default sycl_execution_policy
-sycl_execution_policy<> sycl_policy;
-
-
-/** getNamedPolicy.
- * If the user is using a Functor and not specifying a name, we assume it is a functor and therefore 
- * we can use it as a name for a kernel.
- */
-template<typename ExecutionPolicy, 
-	   typename std::enable_if< std::is_same< typename ExecutionPolicy::kernelName, DefaultKernelName >::value >::type* = nullptr,
-		typename FunctorT>
-sycl_execution_policy<FunctorT> getNamedPolicy(ExecutionPolicy ep, FunctorT func)  {
-   sycl_execution_policy<FunctorT> sep;
-	return sep;
-}
-
-
-/** getNamedPolicy.
- * If the user is using a Lambda then it must specify a name to use for the kernel.
- */
-template<typename ExecutionPolicy, typename Name = typename ExecutionPolicy::kernelName, 
-	   typename std::enable_if< ! std::is_same<Name, DefaultKernelName>::value >::type* = nullptr,
-		typename FunctorT>
-ExecutionPolicy getNamedPolicy(ExecutionPolicy ep, FunctorT func)  {
-	ExecutionPolicy sep;
-	return sep;
-}
-
-}  // sycl
-
-} // parallel
-} // experimental
-} // std
-
-#endif // __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__
+#endif  // __EXPERIMENTAL_PARALLEL_EXECUTION_POLICY__

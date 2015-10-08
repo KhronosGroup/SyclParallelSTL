@@ -23,7 +23,7 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-*/  
+*/
 /* vim: set filetype=cpp foldmethod=indent: */
 #ifndef __EXPERIMENTAL_PARALLEL_ALGORITHM__
 #define __EXPERIMENTAL_PARALLEL_ALGORITHM__
@@ -33,86 +33,107 @@
 #include <algorithm>
 #include <iostream>
 
-#include <experimental/execution_policy>
-// Detail headers
-#include <experimental/detail/sycl_buffers.hpp>
-#include <experimental/detail/algorithm/sort/sort.hpp>
-#include <experimental/detail/algorithm/for_each.hpp>
-#include <experimental/detail/algorithm/transform.hpp>
-
-
 namespace std {
 namespace experimental {
 namespace parallel {
 
-template <class ExecutionPolicy, class RandomAccessIterator,
-          typename std::enable_if<
-              is_execution_policy<ExecutionPolicy>::value>::type * = nullptr>
-inline void sort(ExecutionPolicy &ep, RandomAccessIterator b,
-                 RandomAccessIterator e) {
-  if (std::is_base_of<ExecutionPolicy, sequential_execution_policy>::value) {
-    std::cout << " Execution Policy identified -> seq " << std::endl;
-    std::sort(b, e);
-  } else if (std::is_base_of<ExecutionPolicy,
-                             parallel_execution_policy>::value) {
-    std::cout << " Execution Policy identified! -> par " << std::endl;
-    std::sort(b, e);
-  } else if (std::is_base_of<ExecutionPolicy, vector_execution_policy>::value) {
-    std::cout << " Execution Policy identified! -> vec " << std::endl;
-    std::sort(b, e);
-  } else if (std::is_base_of<ExecutionPolicy, execution_policy>::value) {
-    std::cout << " Execution Policy identified! -> dynamic " << std::endl;
-    std::sort(b, e);
-  } else {
-    std::cout << " Execution Policy identified! -> unknown" << std::endl;
-  }
-}
-
-// -----------   SYCL ALGORITHM 
-
-namespace sycl {
-
-/* sort
+/** sort
+ * @brief Function that sorts the given range
+ * @param sep   : Execution Policy
+ * @param first : Start of the range
+ * @param last  : End of the range
  */
-template <class ExecutionPolicy, class RandomAccessIterator,
-          typename std::enable_if<std::is_base_of<
-              sycl_execution_policy<>, ExecutionPolicy>::value>::type * = nullptr>
-inline void sort(ExecutionPolicy &sep, RandomAccessIterator b,
-                 RandomAccessIterator e) {
-
-  cl::sycl::queue q(sep.get_queue());
-  typedef typename std::iterator_traits<RandomAccessIterator>::value_type type_;
-  auto buf = make_buffer(b, e);
-  auto vectorSize = buf.get_count();
-
-  if (detail::isPowerOfTwo(vectorSize)) {
-    detail::bitonic_sort<type_>(q, buf, vectorSize);
-  } else {
-    detail::sequential_sort<type_>(q, buf, vectorSize);
-  }
+template <class ExecutionPolicy, class RandomAccessIterator>
+void sort(ExecutionPolicy &sep, RandomAccessIterator b,
+          RandomAccessIterator e) {
+  sep.sort(b, e);
 }
 
-/* transform
+/** sort
+ * @brief Function that takes a Comp Operator and applies it to the given range
+ * @param sep   : Execution Policy
+ * @param first : Start of the range
+ * @param last  : End of the range
+ * @param comp  : Comp Operator
+ */
+template <class ExecutionPolicy, class RandomIt, class Compare>
+void sort(ExecutionPolicy &sep, RandomIt first, RandomIt last, Compare comp) {
+  sep.sort(first, last, comp);
+}
+
+/** transform
+ * @brief Function that takes a Unary Operator and applies to the given range
+ * @param sep : Execution Policy
+ * @param b   : Start of the range
+ * @param e   : End of the range
+ * @param out : Output iterator
+ * @param op  : Unary Operator
+ * @return  An iterator pointing to the last element
  */
 template <class ExecutionPolicy, class Iterator, class OutputIterator,
           class UnaryOperation>
 OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
-                         OutputIterator out_b, UnaryOperation op) {
-  auto named_sep = getNamedPolicy(sep, op);
-  return detail::transform(named_sep, b, e, out_b, op);
+                         OutputIterator out, UnaryOperation op) {
+  return sep.transform(b, e, out, op);
+}
+
+/** transform
+ * @brief Function that takes a Binary Operator and applies to the given range
+ * @param sep    : Execution Policy
+ * @param first1 : Start of the range of buffer 1
+ * @param last1  : End of the range of buffer 1
+ * @param first2 : Start of the range of buffer 2
+ * @param result : Output iterator
+ * @param op     : Binary Operator
+ * @return  An iterator pointing to the last element
+ */
+template <class ExecutionPolicy, class InputIt1, class InputIt2, class OutputIt,
+          class BinaryOperation>
+OutputIt transform(ExecutionPolicy &sep, InputIt1 first1, InputIt1 last1,
+                   InputIt2 first2, OutputIt result, BinaryOperation op) {
+  return sep.transform(first1, last1, first2, result, op);
 }
 
 /* for_each
  */
-template <class ExecutionPolicy, class Iterator,
-          class UnaryFunction>
+template <class ExecutionPolicy, class Iterator, class UnaryFunction>
 void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction f) {
-  detail::for_each(sep, b, e, f);
+  sep.for_each(b, e, f);
 }
 
-} // namespace sycl
-} // namespace parallel
-} // namespace experimental
-} // namespace std
+/* for_each_n.
+ * @brief Applies a Function across the range [first, first + n).
+ * Implementation of the sequential version.
+ * According to  ParallelismTS version n4507. Section 4.3.2
+ * @param InputIterator first : Start of the range via a forward iterator
+ * @param Size n : Specifies the number of valid elements
+ * @param Function  f : No restrictions
+ */
+template <class InputIterator, class Size, class Function>
+InputIterator for_each_n(InputIterator first, Size n, Function f) {
+  if (n > 0) {
+    InputIterator last(first + n);
+    std::for_each(first, last, f);
+    return last;
+  } else {
+    return first;
+  }
+}
 
-#endif // __EXPERIMENTAL_PARALLEL_ALGORITHM__
+/* for_each_n.
+* @brief Applies a Function across the range [first, first + n).
+* Implementation of the command group that submits a for_each_n kernel,
+* According to Parallelism TS version n4507. Section 4.3.2
+*/
+template <class ExecutionPolicy, class InputIterator, class Size,
+          class Function>
+InputIterator for_each_n(ExecutionPolicy &&exec, InputIterator first, Size n,
+                         Function f) {
+  return exec.for_each_n(first, n, f);
+}
+
+}  // namespace parallel
+}  // namespace experimental
+}  // namespace std
+
+#endif  // __EXPERIMENTAL_PARALLEL_ALGORITHM__

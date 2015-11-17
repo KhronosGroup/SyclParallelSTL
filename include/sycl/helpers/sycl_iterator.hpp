@@ -24,11 +24,11 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
+
 /**
  * @file
  * @brief Definition of SYCL iterator classes and functions
  */
-/* vim: set filetype=cpp foldmethod=indent: */
 #ifndef __EXPERIMENTAL_PARALLEL_SYCL_ITERATOR___
 #define __EXPERIMENTAL_PARALLEL_SYCL_ITERATOR___
 
@@ -39,7 +39,7 @@
 #include <cstring>
 #include <algorithm>
 
-#include <SYCL/sycl.hpp>
+#include <CL/sycl.hpp>
 
 namespace sycl {
 namespace helpers {

@@ -25,7 +25,7 @@
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 */
-/* vim: set filetype=cpp foldmethod=indent: */
+
 #ifndef __SYCL_IMPL_ALGORITHM_SORT__
 #define __SYCL_IMPL_ALGORITHM_SORT__
 
@@ -192,7 +192,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
       auto f = [=](cl::sycl::handler &h) mutable {
         auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
         h.parallel_for<sort_kernel_bitonic<T>>(
-            cl::sycl::nd_range<1>{r},
+            cl::sycl::range<1>{r},
             [a, stage, passOfStage](cl::sycl::item<1> it) {
               int sortIncreasing = 1;
               cl::sycl::id<1> id = it.get();

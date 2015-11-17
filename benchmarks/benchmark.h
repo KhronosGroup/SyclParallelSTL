@@ -122,7 +122,7 @@ struct benchmark {
   static TimeT duration(unsigned numReps, F func, Args&&... args) {
     TimeT dur = TimeT::zero();
     unsigned reps = 0;
-    for (; reps <= numReps; reps++) {
+    for (; reps < numReps; reps++) {
       auto start = ClockT::now();
 
       func(std::forward<Args>(args)...);
@@ -132,6 +132,9 @@ struct benchmark {
     return dur / reps;
   }
 
+  /* output_data.
+   * Prints to the stderr Bench name, input size and execution time.
+   */
   static void output_data(const std::string& short_name, int num_elems,
                           TimeT dur, output_type output = output_type::STDOUT) {
     if (output == output_type::STDOUT) {
@@ -140,6 +143,24 @@ struct benchmark {
     } else if (output == output_type::CSV) {
       std::cerr << short_name << "," << num_elems << "," << dur.count()
                 << std::endl;
+    } else {
+      std::cerr << " Incorrect output " << std::endl;
+    }
+  }
+
+  /* output_data.
+   * Prints to the stderr Bench name, input size and execution time.
+   * It works with the heterogeneous static policy.
+   */
+  static void output_data(const std::string& short_name, int nelems,
+                          float ratio, TimeT dur,
+                          output_type output = output_type::STDOUT) {
+    if (output == output_type::STDOUT) {
+      std::cerr << short_name << " " << nelems << " " << ratio << " "
+                << dur.count() << std::endl;
+    } else if (output == output_type::CSV) {
+      std::cerr << short_name << "," << nelems << "," << ratio << ","
+                << dur.count() << std::endl;
     } else {
       std::cerr << " Incorrect output " << std::endl;
     }
@@ -163,4 +184,23 @@ struct benchmark {
       auto time = FUNCTION(NUM_REPS, nelems);                                 \
       benchmark<>::output_data(short_name, nelems, time, ba.requestedOutput); \
     }                                                                         \
+  }
+
+/** BENCHMARK_HETEROGENEOUS_MAIN.
+ * The main entry point of a benchmark
+ */
+#define BENCHMARK_HETEROGENEOUS_MAIN(NAME, FUNCTION, RATIO_STEP, NELEMS, REPS) \
+  int main(int argc, char* argv[]) {                                           \
+    benchmark_arguments ba(argc, argv);                                        \
+    if (!ba.validProgramOptions) {                                             \
+      return 1;                                                                \
+    }                                                                          \
+    const float BEGIN = 0.0f;                                                  \
+    const float END = 1.1f;                                                    \
+    for (float ratio = BEGIN; ratio < END; ratio += RATIO_STEP) {              \
+      const std::string short_name = NAME;                                     \
+      auto time = FUNCTION(ratio, NELEMS, REPS);                               \
+      benchmark<>::output_data(short_name, NELEMS, ratio, time,                \
+                               ba.requestedOutput);                            \
+    }                                                                          \
   }

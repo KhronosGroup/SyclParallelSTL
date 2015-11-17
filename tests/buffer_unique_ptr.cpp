@@ -25,38 +25,53 @@
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
-#include <vector>
 #include <iostream>
+#include "gmock/gmock.h"
+
+#include <vector>
 #include <algorithm>
 
-#include <experimental/execution_policy>
+#include <sycl/execution_policy>
 #include <experimental/algorithm>
 
 using namespace std::experimental::parallel;
 
-/* Basic policy example from the original proposal
- */
-int main() {
-  std::vector<int> v = { 3, 1, 5, 6 };
-  using namespace std::experimental::parallel;
+class UniquePTRAlgorithm : public testing::Test {
+ public:
+};
 
-  // explicitly sequential sort
-  sort(seq, v.begin(), v.end());
+struct foo {
+  int memberA;
+  float memberB;
+  foo() : memberA(0), memberB(0){};
 
-  // permitting parallel execution
-  sort(par, v.begin(), v.end());
+  foo(int n, float f) : memberA(n), memberB(f){};
+};
 
-  // permitting vectorization as well
-  sort(vec, v.begin(), v.end());
+TEST_F(UniquePTRAlgorithm, TestSyclUniquePTR) {
+  constexpr size_t N = 16;
 
-  // sort with dynamically-selected execution
-  size_t threshold = 1;
-  execution_policy exec = seq;
-  if (v.size() > threshold) {
-    exec = par;
+  std::unique_ptr<foo> p(new foo(16, 3.0f));
+  cl::sycl::buffer<foo, 1> a{std::move(p), cl::sycl::range<1>(N)};
+
+  // After buffer construction, init has been deallocated
+  EXPECT_TRUE(!p);
+
+  cl::sycl::buffer<int> b{cl::sycl::range<1>(N)};
+
+  cl::sycl::queue{}.submit([&](cl::sycl::handler &cgh) {
+    auto ka = a.get_access<cl::sycl::access::mode::read>(cgh);
+    auto kb = b.get_access<cl::sycl::access::mode::write>(cgh);
+
+    cgh.parallel_for<class update>(cl::sycl::range<1>{N},
+                                   [=](cl::sycl::id<1> index) {
+      kb[index] = ka[0].memberA * ka[0].memberB * 2;
+    });
+  });
+
+  auto result = b.get_access<cl::sycl::access::mode::read,
+                             cl::sycl::access::target::host_buffer>();
+  for (int i = 0; i != N; ++i) {
+    EXPECT_TRUE(result[i] == 2 * 16 * 3.0f);
   }
-
-  sort(exec, v.begin(), v.end());
-
-  return 0;
 }

@@ -32,11 +32,15 @@
 #include <typeinfo>
 #include <memory>
 
-#include <SYCL/sycl.hpp>
+#include <CL/sycl.hpp>
 #include <sycl/algorithm/for_each.hpp>
 #include <sycl/algorithm/for_each_n.hpp>
 #include <sycl/algorithm/sort.hpp>
 #include <sycl/algorithm/transform.hpp>
+#include <sycl/algorithm/inner_product.hpp>
+#include <sycl/algorithm/reduce.hpp>
+#include <sycl/algorithm/transform_reduce.hpp>
+#include <sycl/algorithm/count_if.hpp>
 
 namespace sycl {
 
@@ -46,7 +50,7 @@ namespace sycl {
 */
 struct DefaultKernelName {};
 
-/* sycl_executin_policy.
+/* sycl_execution_policy.
 * The sycl_execution_policy enables algorithms to be executed using
 *  a SYCL implementation.
 */
@@ -69,6 +73,65 @@ class sycl_execution_policy {
 
   // Returns the queue, if any
   cl::sycl::queue get_queue() const { return m_q; }
+
+  /* Calculate GlobalSize.
+  * @brief Calculates a divisible global size
+  * @param global : The problem size
+  * @param local  : The local size
+  */
+  int calculateGlobalSize(int global, int local) {
+    size_t newGlobal = 0;
+
+    if (global % local == 0) {
+      newGlobal = global;
+    } else {
+      newGlobal = global / local;
+      newGlobal = newGlobal * (1 + local);
+    }
+
+    return newGlobal;
+  }
+
+  /** reduce
+   * @brief Function that sorts the given range
+   * @param exec  : Execution Policy
+   * @param first : Start of the range
+   * @param last  : End of the range
+   */
+  template <class InputIterator>
+  typename std::iterator_traits<InputIterator>::value_type reduce(
+      InputIterator first, InputIterator last) {
+    typedef typename std::iterator_traits<InputIterator>::value_type type_;
+    return sycl::impl::reduce(*this, first, last, 0,
+                              [=](type_ v1, type_ v2) { return v1 + v2; });
+  }
+
+  /** reduce
+   * @brief Function that sorts the given range
+   * @param exec  : Execution Policy
+   * @param first : Start of the range
+   * @param last  : End of the range
+   * @param init  : Initial value
+   */
+  template <class InputIterator, class T>
+  T reduce(InputIterator first, InputIterator last, T init) {
+    return sycl::impl::reduce(*this, first, last, init,
+                              [=](T v1, T v2) { return v1 + v2; });
+  }
+
+  /** reduce
+   * @brief Function that sorts the given range
+   * @param exec   : Execution Policy
+   * @param first  : Start of the range
+   * @param last   : End of the range
+   * @param init   : Initial value
+   * @param binop  : Binary operator
+   */
+  template <class InputIterator, class T, class BinaryOperation>
+  T reduce(InputIterator first, InputIterator last, T init,
+           BinaryOperation binop) {
+    return sycl::impl::reduce(*this, first, last, init, binop);
+  }
 
   /** sort
    * @brief Function that sorts the given range
@@ -143,10 +206,72 @@ class sycl_execution_policy {
   InputIterator for_each_n(InputIterator first, Size n, Function f) {
     return impl::for_each_n(*this, first, n, f);
   }
-};
 
-// The default sycl_execution_policy
-sycl_execution_policy<> sycl_policy;
+  /* inner_product.
+  * @brief Returns the inner product of two vectors across the range [first1,
+  * last1). Implementation of the command group that submits an inner_product
+  * kernel.
+  */
+  template <class InputIt1, class InputIt2, class T>
+  T inner_product(InputIt1 first1, InputIt1 last1, InputIt2 first2, T value) {
+    auto vectorSize = std::distance(first1, last1);
+    if (impl::isPowerOfTwo(vectorSize)) {
+      return impl::inner_product(*this, first1, last1, first2, value,
+                                 [=](T v1, T v2) { return v1 + v2; },
+                                 [=](T v1, T v2) { return v1 * v2; });
+    } else {
+      return impl::inner_product_sequential(*this, first1, last1, first2,
+                                            value);
+    }
+  }
+
+  /* inner_product.
+  * @brief Returns the inner product of two vectors across the range [first1,
+  * last1) by applying Functions op1 and op2. Implementation of the command
+  * group
+  * that submits an inner_product kernel.
+  */
+  template <class InputIt1, class InputIt2, class T, class BinaryOperation1,
+            class BinaryOperation2>
+  T inner_product(InputIt1 first1, InputIt1 last1, InputIt2 first2, T value,
+                  BinaryOperation1 op1, BinaryOperation2 op2) {
+    auto vectorSize = std::distance(first1, last1);
+    if (impl::isPowerOfTwo(vectorSize)) {
+      return impl::inner_product(*this, first1, last1, first2, value, op1, op2);
+    } else {
+      return impl::inner_product_sequential(*this, first1, last1, first2, value,
+                                            op1, op2);
+    }
+  }
+
+  /* transform_reduce.
+  * @brief Returns the transform_reduce of one vector across the range [first1,
+  * last1) by applying Functions op1 and op2. Implementation of the command
+  * group
+  * that submits a transform_reduce kernel.
+  */
+  template <class InputIterator, class UnaryOperation, class T,
+            class BinaryOperation>
+  T transform_reduce(InputIterator first, InputIterator last,
+                     UnaryOperation unary_op, T init,
+                     BinaryOperation binary_op) {
+    return impl::transform_reduce(*this, first, last, unary_op, init,
+                                  binary_op);
+  }
+
+  /* count_if.
+  * @brief Returns the count_if of one vector across the range [first,
+  * last) by applying UnaryPredicate p. Implementation of the command group
+  * that submits a count_if kernel.
+  */
+  template <class InputIt, class UnaryPredicate>
+  typename std::iterator_traits<InputIt>::difference_type count_if(
+      InputIt first, InputIt last, UnaryPredicate p) {
+    typedef typename std::iterator_traits<InputIt>::value_type type_;
+    return impl::count_if(*this, first, last, p,
+                          [=](type_ v1, type_ v2) { return v1 + v2; });
+  }
+};
 
 /** getNamedPolicy.
  * If the user is using a Functor and not specifying a name, we assume it is a
@@ -174,8 +299,7 @@ template <typename ExecutionPolicy,
               !std::is_same<Name, DefaultKernelName>::value>::type* = nullptr,
           typename FunctorT>
 ExecutionPolicy getNamedPolicy(ExecutionPolicy& ep, FunctorT func) {
-  ExecutionPolicy sep;
-  return sep;
+  return ep;
 }
 
 }  // sycl

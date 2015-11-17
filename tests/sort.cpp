@@ -35,8 +35,16 @@
 
 using namespace std::experimental::parallel;
 
-class SortAlgorithm : public testing::Test {
- public:
+struct SortAlgorithm : public testing::Test {
+  sycl::sycl_execution_policy<> * sycl_policy;
+
+  void SetUp() {
+    sycl_policy = new sycl::sycl_execution_policy<>();
+  }
+
+  void TearDown() {
+    delete sycl_policy;
+  }
 };
 
 TEST_F(SortAlgorithm, TestStdSort) {
@@ -53,7 +61,7 @@ TEST_F(SortAlgorithm, TestSyclSort) {
     std::generate(v.begin(), v.end(),
                   std::rand);  // Using the C function rand()
     // The bitonic sort is triggered with a power of two vector size
-    sort(sycl::sycl_policy, v.begin(), v.end());
+    sort(*sycl_policy, v.begin(), v.end());
     EXPECT_TRUE(std::is_sorted(v.begin(), v.end()));
   }
 
@@ -62,14 +70,14 @@ TEST_F(SortAlgorithm, TestSyclSort) {
     std::generate(v.begin(), v.end(),
                   std::rand);  // Using the C function rand()
     // The bitonic sort is triggered with a power of two vector size
-    sort(sycl::sycl_policy, v.begin(), v.end());
+    sort(*sycl_policy, v.begin(), v.end());
     EXPECT_TRUE(std::is_sorted(v.begin(), v.end()));
   }
 
   {
     std::array<int, 10> a;
     std::generate(a.begin(), a.end(), std::rand);
-    sort(sycl::sycl_policy, a.begin(), a.end());
+    sort(*sycl_policy, a.begin(), a.end());
     EXPECT_TRUE(std::is_sorted(a.begin(), a.end()));
   }
 }

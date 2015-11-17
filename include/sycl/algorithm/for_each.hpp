@@ -25,7 +25,7 @@
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 */
-/* vim: set filetype=cpp foldmethod=indent: */
+
 #ifndef __SYCL_IMPL_ALGORITHM_FOR_EACH__
 #define __SYCL_IMPL_ALGORITHM_FOR_EACH__
 
@@ -47,19 +47,23 @@ template <class ExecutionPolicy, class Iterator, class UnaryFunction>
 void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction op) {
   {
     cl::sycl::queue q(sep.get_queue());
+    auto device = q.get_device();
+    size_t localRange =
+        device.get_info<cl::sycl::info::device::max_work_group_size>();
     typedef typename std::iterator_traits<Iterator>::value_type type_;
     auto bufI = sycl::helpers::make_buffer(b, e);
     auto vectorSize = bufI.get_count();
-    auto f = [vectorSize, &bufI, op](cl::sycl::handler &h) mutable {
-      const size_t localRange = 128;
+    size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+    auto f = [vectorSize, localRange, globalRange, &bufI, op](
+        cl::sycl::handler &h) mutable {
       cl::sycl::nd_range<3> r{
-          cl::sycl::range<3>{std::max(vectorSize, localRange), 1, 1},
+          cl::sycl::range<3>{std::max(globalRange, localRange), 1, 1},
           cl::sycl::range<3>{localRange, 1, 1}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           r, [aI, op, vectorSize](cl::sycl::nd_item<3> id) {
-            if (id.get_global_id(0) < vectorSize) {
-              op(aI[id.get_global_id(0)]);
+            if (id.get_global(0) < vectorSize) {
+              op(aI[id.get_global(0)]);
             }
           });
     };

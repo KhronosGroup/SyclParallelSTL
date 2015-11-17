@@ -34,8 +34,7 @@
 
 using namespace std::experimental::parallel;
 
-class ForEachAlgorithm : public testing::Test {
- public:
+struct ForEachAlgorithm : public testing::Test {
 };
 
 TEST_F(ForEachAlgorithm, TestStdForEach) {

@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cstdlib>
 
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
@@ -38,24 +39,40 @@
 
 using namespace sycl::helpers;
 
-benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
-                                         const unsigned num_elems) {
-  std::vector<int> v1;
+int isInsideCircleFunctor(cl::sycl::float2 p) {
+  float t = cl::sycl::sqrt((p.x() * p.x()) + (p.y() * p.y()));
+  return (t <= 1.0) ? 1 : 0;
+}
 
-  for (int i = num_elems; i > 0; i--) {
-    v1.push_back(i);
+benchmark<>::time_units_t benchmark_montecarlo(const unsigned numReps,
+                                               const unsigned num_elems) {
+  // Container for the random points
+  std::vector<cl::sycl::float2> pointset;
+  std::srand((unsigned int)std::time(0));
+  // scatter some random points in the unit circle
+  int count = 0;
+  for (int i = 0; i < num_elems; i++) {
+    float x = ((float)std::rand()) / RAND_MAX;
+    float y = ((float)std::rand()) / RAND_MAX;
+    cl::sycl::float2 p(x, y);
+    pointset.push_back(p);
   }
 
-  auto mysort = [&]() {
+  auto myMontecarlo = [&]() {
     cl::sycl::queue q;
-    sycl::sycl_execution_policy<class SortAlgorithm1> snp(q);
-    std::experimental::parallel::sort(snp, begin(v1), end(v1));
+    sycl::sycl_execution_policy<class MontecarloAlgorithm1> snp(q);
+    count = std::experimental::parallel::transform_reduce(
+        snp, pointset.begin(), pointset.end(),
+        [=](cl::sycl::float2 p) { return isInsideCircleFunctor(p); }, 0,
+        [=](int v1, int v2) { return v1 + v2; });
+
+    float pi = count * 4.0f / pointset.size();
+    std::cerr << "Aproximate value of PI: " << pi << std::endl;
   };
 
-  auto time = benchmark<>::duration(
-      numReps, mysort);
+  auto time = benchmark<>::duration(numReps, myMontecarlo);
 
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_SYCL_SORT", benchmark_sort, 2u, 33554432u, 1);
+BENCHMARK_MAIN("BENCH_MONTECARLO", benchmark_montecarlo, 2u, 16777216u, 1);

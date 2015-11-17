@@ -37,7 +37,7 @@
  *    Enable-if is used to differentiate the case of SYCL-enabled iterators from
  *    the standard STL iterators.
  */
-/* vim: set filetype=cpp foldmethod=indent: */
+
 #ifndef __EXPERIMENTAL_DETAIL_SYCL_BUFFERS__
 #define __EXPERIMENTAL_DETAIL_SYCL_BUFFERS__
 

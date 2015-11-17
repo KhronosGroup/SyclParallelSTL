@@ -31,8 +31,7 @@
 
 #include <sycl/helpers/sycl_iterator.hpp>
 
-class SyclHostIteratorTest : public testing::Test {
- public:
+struct SyclHostIteratorTest : public testing::Test {
 };
 
 using namespace sycl::helpers;

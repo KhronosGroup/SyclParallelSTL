@@ -25,7 +25,7 @@
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 */
-/* vim: set filetype=cpp foldmethod=indent: */
+
 #ifndef __EXPERIMENTAL_DETAIL_ALGORITHM_FOR_EACH_N__
 #define __EXPERIMENTAL_DETAIL_ALGORITHM_FOR_EACH_N__
 
@@ -53,13 +53,23 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
   cl::sycl::queue q(exec.get_queue());
   if (n > 0) {
     auto last(first + n);
+    auto device = q.get_device();
+    size_t local =
+        device.get_info<cl::sycl::info::device::max_work_group_size>();
     auto bufI = sycl::helpers::make_buffer(first, last);
     auto vectorSize = bufI.get_count();
-    auto cg = [vectorSize, &bufI, f](cl::sycl::handler &h) mutable {
-      cl::sycl::range<3> r{vectorSize, 1, 1};
+    size_t global = exec.calculateGlobalSize(vectorSize, local);
+    auto cg =
+        [vectorSize, local, global, &bufI, f](cl::sycl::handler &h) mutable {
+      cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
+                              cl::sycl::range<3>{local, 1, 1}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, f](cl::sycl::id<3> id) { f(aI[id.get(0)]); });
+          r, [vectorSize, aI, f](cl::sycl::nd_item<3> id) {
+            if (id.get_global(0) < vectorSize) {
+              f(aI[id.get_global(0)]);
+            }
+          });
     };
     q.submit(cg);
     return last;

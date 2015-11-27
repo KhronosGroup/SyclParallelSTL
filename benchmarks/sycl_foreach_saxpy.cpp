@@ -56,8 +56,6 @@ benchmark<>::time_units_t benchmark_foreach(const unsigned numReps,
 
   auto time = benchmark<>::duration(numReps, myforeach);
 
-  escape(v1.data());
-
   return time;
 }
 

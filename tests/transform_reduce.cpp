@@ -24,39 +24,45 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
+#include "gmock/gmock.h"
 
 #include <vector>
-#include <iostream>
 #include <algorithm>
+#include <cstdlib>
+#include <iostream>
 
-#include <experimental/execution_policy>
+#include <sycl/execution_policy>
 #include <experimental/algorithm>
 
 using namespace std::experimental::parallel;
 
-/* Basic policy example from the original proposal
- */
-int main() {
-  std::vector<int> v = { 3, 1, 5, 6 };
-  using namespace std::experimental::parallel;
+struct TransformReduceAlgorithm : public testing::Test {};
 
-  // explicitly sequential sort
-  sort(seq, v.begin(), v.end());
+TEST_F(TransformReduceAlgorithm, TestSyclTransformReduce) {
+  std::vector<int> v = {2, 1, 3, 4};
 
-  // permitting parallel execution
-  sort(par, v.begin(), v.end());
+  cl::sycl::queue q;
+  sycl::sycl_execution_policy<class TransformAlgorithm> snp(q);
+  int result = transform_reduce(snp, v.begin(), v.end(),
+                                [=](int val) { return val * 2; }, 0,
+                                [=](int v1, int v2) { return v1 + v2; });
 
-  // permitting vectorization as well
-  sort(vec, v.begin(), v.end());
+  EXPECT_TRUE(20 == result);
+}
 
-  // sort with dynamically-selected execution
-  size_t threshold = 1;
-  execution_policy exec = seq;
-  if (v.size() > threshold) {
-    exec = par;
+TEST_F(TransformReduceAlgorithm, TestSyclTransformReduce2) {
+  std::vector<int> v;
+  int n = 4096;
+
+  for (int i = 0; i < n; i++) {
+    v.push_back(1);
   }
 
-  sort(exec, v.begin(), v.end());
+  cl::sycl::queue q;
+  sycl::sycl_execution_policy<class TransformReduce2Algorithm> snp(q);
+  int ressycl = transform_reduce(snp, v.begin(), v.end(),
+                                 [=](int val) { return val * 2; }, 0,
+                                 [=](int v1, int v2) { return v1 + v2; });
 
-  return 0;
+  EXPECT_TRUE(8192 == ressycl);
 }

@@ -56,4 +56,4 @@ benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_STD_TRANSFORM", benchmark_transform, 2, 33554432, 10);
+BENCHMARK_MAIN("BENCH_STL_TRANSFORM", benchmark_transform, 2, 33554432, 10);

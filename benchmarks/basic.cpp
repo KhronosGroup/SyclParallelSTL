@@ -46,13 +46,13 @@ benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
     v1.push_back(i);
   }
 
-  cl::sycl::queue q;
-  sycl::sycl_execution_policy<class SortAlgorithm1> snp(q);
+  auto mysort = [&]() {
+    cl::sycl::queue q;
+    sycl::sycl_execution_policy<class SortAlgorithm1> snp(q);
+    std::experimental::parallel::sort(snp, begin(v1), end(v1));
+  };
 
-  auto time = benchmark<>::duration(
-      numReps,
-      std::experimental::parallel::sort<decltype(snp), decltype(begin(v1))>,
-      snp, begin(v1), end(v1));
+  auto time = benchmark<>::duration(numReps, mysort);
 
   return time;
 }

@@ -33,14 +33,18 @@
 #include <cmath>
 
 #include <experimental/algorithm>
-#include <sycl/execution_policy>
+#include <sycl/heterogeneous_execution_policy.hpp>
+#include "amd_cpu_selector.hpp"
 
 #include "benchmark.h"
 
 using namespace sycl::helpers;
 
-benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
-                                              const unsigned num_elems) {
+/** benchmark_transform heterogeneous
+ * @brief Body Function that executes the SYCL CG of the heterogeneous transform
+ */
+benchmark<>::time_units_t benchmark_transform_heterogeneous(
+    float ratio, const unsigned num_elems, const unsigned numReps) {
   std::vector<int> v1;
   std::vector<int> v2;
   std::vector<int> res;
@@ -51,7 +55,10 @@ benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
     res.push_back(i);
   }
   cl::sycl::queue q;
-  sycl::sycl_execution_policy<class TransformAlgorithm1> snp(q);
+  amd_cpu_selector cpu_sel;
+  cl::sycl::queue q2(cpu_sel);
+  sycl::sycl_heterogeneous_execution_policy<class TransformAlgorithm1> snp(
+      q, q2, ratio);
 
   auto mytransform = [&]() {
     float pi = 3.14;
@@ -64,5 +71,21 @@ benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
 
   return time;
 }
+template <typename TimeT = std::chrono::milliseconds,
+          typename ClockT = std::chrono::system_clock>
+void output_data(const std::string& short_name, int num_elems, float ratio,
+                 TimeT dur, output_type output = output_type::STDOUT) {
+  if (output == output_type::STDOUT) {
+    std::cerr << short_name << " " << num_elems << " " << ratio << " "
+              << dur.count() << std::endl;
+  } else if (output == output_type::CSV) {
+    std::cerr << short_name << "," << num_elems << "," << ratio << ","
+              << dur.count() << std::endl;
+  } else {
+    std::cerr << " Incorrect output " << std::endl;
+  }
+}
 
-BENCHMARK_MAIN("BENCH_SYCL_TRANSFORM", benchmark_transform, 2u, 33554432u, 10);
+BENCHMARK_HETEROGENEOUS_MAIN("BENCH_SYCL_HET_TRANSFORM",
+                             benchmark_transform_heterogeneous, 0.1f, 33554432,
+                             7);

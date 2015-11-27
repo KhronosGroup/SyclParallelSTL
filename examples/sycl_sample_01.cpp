@@ -24,6 +24,7 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
+
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -60,11 +61,13 @@ class multiply_by_factor {
  */
 int main() {
   std::vector<int> v = {3, 1, 5, 6};
+  sycl::sycl_execution_policy<> sycl_policy;
+
   {
     cl::sycl::buffer<int> b(v.begin(), v.end());
     b.set_final_data(v.data());
 
-    sort(sycl::sycl_policy, begin(b), end(b));
+    sort(sycl_policy, begin(b), end(b));
 
     cl::sycl::default_selector h;
 
@@ -80,7 +83,7 @@ int main() {
       transform(sepn2, begin(b), end(b), begin(b),
                 [=](int num) { return num * numberone; });
 
-      transform(sycl::sycl_policy, begin(b), end(b), begin(b),
+      transform(sycl_policy, begin(b), end(b), begin(b),
                 multiply_by_factor(2));
 
       sycl::sycl_execution_policy<std::negate<int> > sepn4(q);

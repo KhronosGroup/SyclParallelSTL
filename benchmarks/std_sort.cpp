@@ -47,4 +47,4 @@ benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_STD_SORT", benchmark_sort, 2, 33554432, 10);
+BENCHMARK_MAIN("BENCH_STL_SORT", benchmark_sort, 2, 33554432, 10);

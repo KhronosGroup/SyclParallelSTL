@@ -5,9 +5,10 @@ enable_testing()
 
 option(PARALLEL_STL_BENCHMARKS "Build the internal benchmarks" OFF)
 
-if(HEADER_ONLY)
-  message(WARNING "The SYCL implementation is header-only")
-else(HEADER_ONLY)
+if(SYCL_NO_DEVICE_COMPILER)
+  message(NOTE "The SYCL implementation has no device compiler")
+  add_definitions(-DSYCL_NO_DEVICE_COMPILER=1)
+else(SYCL_NO_DEVICE_COMPILER)
   #####  Find the SYCL implementation
 
   find_library(SYCL_LIBRARY
@@ -64,7 +65,7 @@ else(HEADER_ONLY)
   add_library(SYCL_LIBRARY SHARED IMPORTED)
   add_library(OPENCL_LIBRARY SHARED IMPORTED)
 
-endif(HEADER_ONLY)
+endif(SYCL_NO_DEVICE_COMPILER)
 
 include_directories("${SYCL_PATH}/include")
 include_directories("${SYCL_PATH}/include/image_library")
@@ -84,11 +85,11 @@ function(add_sycl_target exe_name file binary_dir)
   add_executable (${exe_name} ${file})
   target_link_libraries(${exe_name} SyclSTL)
 
-  set_property(TARGET ${exe_name} PROPERTY CXX_STANDARD "11")
+  set_property(TARGET ${exe_name} PROPERTY CXX_STANDARD "14")
   set_property(TARGET ${exe_name} PROPERTY CXX_STANDARD_REQUIRED True)
 
 
-  if (NOT HEADER_ONLY)
+  if (NOT SYCL_NO_DEVICE_COMPILER)
     build_spir(${exe_name} ${file} ${binary_dir})
     if (MSVC)
      set_property(TARGET ${exe_name} PROPERTY COMPILE_FLAGS
@@ -97,7 +98,7 @@ function(add_sycl_target exe_name file binary_dir)
              set_property(TARGET ${exe_name} PROPERTY COMPILE_FLAGS
       "-std=c++11 -include ${CMAKE_CURRENT_BINARY_DIR}/${filename}.sycl ${CMAKE_CXX_FLAGS}")
     endif(MSVC)
-  endif (NOT HEADER_ONLY)
+  endif (NOT SYCL_NO_DEVICE_COMPILER)
 
 endfunction(add_sycl_target)
 

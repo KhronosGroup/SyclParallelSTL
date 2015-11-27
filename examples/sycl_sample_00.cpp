@@ -53,8 +53,9 @@ class multiply_by_factor {
 int main() {
   std::vector<int> v = {3, 1, 5, 6};
   std::vector<int> v2 = {4, 5, 2};
+  sycl::sycl_execution_policy<> sycl_policy;
 
-  sort(sycl::sycl_policy, v.begin(), v.end());
+  sort(sycl_policy, v.begin(), v.end());
 
   sycl::sycl_execution_policy<class transform1> sepn1;
   transform(sepn1, v2.begin(), v2.end(), v2.begin(),

@@ -24,39 +24,36 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
+#include "gmock/gmock.h"
 
 #include <vector>
-#include <iostream>
 #include <algorithm>
 
-#include <experimental/execution_policy>
+#include <sycl/execution_policy>
 #include <experimental/algorithm>
 
 using namespace std::experimental::parallel;
 
-/* Basic policy example from the original proposal
- */
-int main() {
-  std::vector<int> v = { 3, 1, 5, 6 };
-  using namespace std::experimental::parallel;
+class CountIfAlgorithm : public testing::Test {
+ public:
+};
 
-  // explicitly sequential sort
-  sort(seq, v.begin(), v.end());
+TEST_F(CountIfAlgorithm, TestSyclCountIf) {
+  std::vector<float> v;
+  int n_elems = 4096;
 
-  // permitting parallel execution
-  sort(par, v.begin(), v.end());
-
-  // permitting vectorization as well
-  sort(vec, v.begin(), v.end());
-
-  // sort with dynamically-selected execution
-  size_t threshold = 1;
-  execution_policy exec = seq;
-  if (v.size() > threshold) {
-    exec = par;
+  for (int i = 0; i < n_elems; i++) {
+    float x = ((float)std::rand()) / RAND_MAX;
+    v.push_back(x);
   }
 
-  sort(exec, v.begin(), v.end());
+  int res_std =
+      std::count_if(v.begin(), v.end(), [=](float v1) { return v1 < 0.5; });
 
-  return 0;
+  cl::sycl::queue q;
+  sycl::sycl_execution_policy<class CountIfAlgorithm2> snp(q);
+  int res_sycl =
+      count_if(snp, v.begin(), v.end(), [=](float v1) { return v1 < 0.5; });
+
+  EXPECT_TRUE(res_std == res_sycl);
 }

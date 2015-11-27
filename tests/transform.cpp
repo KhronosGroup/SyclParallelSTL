@@ -36,9 +36,7 @@
 
 using namespace std::experimental::parallel;
 
-class TransformAlgorithm : public testing::Test {
- public:
-};
+struct TransformAlgorithm : public testing::Test {};
 
 TEST_F(TransformAlgorithm, TestStdTransform) {
   std::vector<int> v = {2, 1, 3};
@@ -78,4 +76,27 @@ TEST_F(TransformAlgorithm, TestSycl2Transform) {
   transform(snp, v1.begin(), v1.end(), v2.begin(), o.begin(),
             [=](int val1, int val2) { return val1 + val2 + 1; });
   EXPECT_TRUE(std::equal(o.begin(), o.end(), result.begin()));
+}
+
+TEST_F(TransformAlgorithm, TestSycl4Transform) {
+  std::vector<int> v;
+  std::vector<int> res_std;
+  std::vector<int> res_sycl;
+  int n = 4096;
+
+  for (int i = 0; i < n; i++) {
+    int x = 10 * (((float)std::rand()) / RAND_MAX);
+    v.push_back(x);
+    res_std.push_back(0);
+    res_sycl.push_back(0);
+  }
+
+  std::transform(v.begin(), v.end(), res_std.begin(),
+                 [=](int val) { return val + 1; });
+
+  cl::sycl::queue q;
+  sycl::sycl_execution_policy<class TransformAlgorithm4> snp(q);
+  transform(snp, v.begin(), v.end(), res_sycl.begin(),
+            [=](int val1) { return val1 + 1; });
+  EXPECT_TRUE(std::equal(res_std.begin(), res_std.end(), res_sycl.begin()));
 }

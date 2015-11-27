@@ -32,8 +32,7 @@
 #include <sycl/execution_policy>
 #include <experimental/algorithm>
 
-class ForEachNAlgorithm : public testing::Test {
- public:
+struct ForEachNAlgorithm : public testing::Test {
 };
 
 using namespace std::experimental::parallel;

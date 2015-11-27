@@ -50,4 +50,4 @@ benchmark<>::time_units_t benchmark_foreach(const unsigned numReps,
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_STD_FOR_EACH", benchmark_foreach, 2, 33554432, 10);
+BENCHMARK_MAIN("BENCH_STL_FOR_EACH", benchmark_foreach, 2, 33554432, 10);

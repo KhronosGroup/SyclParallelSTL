@@ -26,36 +26,38 @@
 
 */
 
-#include <algorithm>
-#include <vector>
+#ifndef __INTEL_CPU_SELECTOR__
+#define __INTEL_CPU_SELECTOR__
+
+#include <SYCL/sycl.hpp>
 #include <string>
 #include <iostream>
 
-#include <experimental/algorithm>
-#include <sycl/execution_policy>
+/** class intel_cpu_selector.
+* @brief Looks for an INTEL cpu among the available CPUs.
+* if it finds an INTEL CPU it will return an 1, otherwise it returns a -1.
+*/
+class intel_cpu_selector : public cl::sycl::device_selector {
+ public:
+  intel_cpu_selector() : cl::sycl::device_selector() {}
 
-#include "benchmark.h"
-
-using namespace sycl::helpers;
-
-benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
-                                         const unsigned num_elems) {
-  std::vector<int> v1;
-
-  for (int i = num_elems; i > 0; i--) {
-    v1.push_back(i);
+  int operator()(const cl::sycl::device &device) const {
+    int res = -1;
+    if (device.is_host()) {
+      res = -1;
+    } else {
+      cl::sycl::info::device_type type =
+          device.get_info<cl::sycl::info::device::device_type>();
+      if (type == cl::sycl::info::device_type::cpu) {
+        cl::sycl::platform plat = device.get_platform();
+        std::string name = plat.get_info<cl::sycl::info::platform::name>();
+        if (name.find("Intel") != std::string::npos) {
+          res = 1;
+        }
+      }
+    }
+    return res;
   }
+};
 
-  auto mysort = [&]() {
-    cl::sycl::queue q;
-    sycl::sycl_execution_policy<class SortAlgorithm1> snp(q);
-    std::experimental::parallel::sort(snp, begin(v1), end(v1));
-  };
-
-  auto time = benchmark<>::duration(
-      numReps, mysort);
-
-  return time;
-}
-
-BENCHMARK_MAIN("BENCH_SYCL_SORT", benchmark_sort, 2u, 33554432u, 1);
+#endif  // __INTEL_CPU_SELECTOR__

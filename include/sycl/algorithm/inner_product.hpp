@@ -34,6 +34,7 @@
 #include <iostream>
 
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
+#include <sycl/helpers/sycl_differences.hpp>
 
 namespace sycl {
 namespace impl {
@@ -89,13 +90,14 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
                 BinaryOperation2 op2) {
   cl::sycl::queue q(exec.get_queue());
 
-  size_t vectorSize = std::distance(first1, last1);
+  auto vectorSize = sycl::helpers::distance(first1, last1);
   if (vectorSize < 1) {
     return value;
   } else {
     auto device = q.get_device();
-    size_t local =
-        device.get_info<cl::sycl::info::device::max_work_group_size>();
+    auto local =
+        std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
+                 vectorSize);
 
     InputIt2 last2(first2);
     std::advance(last2, vectorSize);

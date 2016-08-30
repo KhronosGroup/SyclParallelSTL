@@ -62,7 +62,7 @@ OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
     auto vectorSize = bufI.get_count();
     size_t global = sep.calculateGlobalSize(vectorSize, local);
     auto f = [vectorSize, local, global, &bufI, &bufO, op](
-        cl::sycl::handler &h) mutable {
+        cl::sycl::handler &h) {
       cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
                               cl::sycl::range<3>{local, 1, 1}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
@@ -102,8 +102,8 @@ OutputIterator transform(ExecutionPolicy &sep, InputIterator first1,
   auto buf2 = sycl::helpers::make_const_buffer(first2, first2 + n);
   auto res = sycl::helpers::make_buffer(result, result + n);
   size_t global = sep.calculateGlobalSize(n, local);
-  auto f =
-      [n, local, global, &buf1, &buf2, &res, op](cl::sycl::handler &h) mutable {
+  auto f = [n, local, global, &buf1, &buf2, &res, op](
+      cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
                             cl::sycl::range<3>{local, 1, 1}};
     auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
@@ -145,8 +145,8 @@ OutputIterator transform(ExecutionPolicy &sep, cl::sycl::queue &q,
   auto buf2 = sycl::helpers::make_const_buffer(first2, first2 + n);
   auto res = sycl::helpers::make_buffer(result, result + n);
   size_t global = sep.calculateGlobalSize(n, local);
-  auto f =
-      [n, local, global, &buf1, &buf2, &res, op](cl::sycl::handler &h) mutable {
+  auto f = [n, local, global, &buf1, &buf2, &res, op](
+      cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
                             cl::sycl::range<3>{local, 1, 1}};
     auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
@@ -181,8 +181,8 @@ void transform(ExecutionPolicy &sep, cl::sycl::queue &q, Buffer &buf1,
   size_t local = device.get_info<cl::sycl::info::device::max_work_group_size>();
   auto n = buf1.get_count();
   size_t global = sep.calculateGlobalSize(n, local);
-  auto f =
-      [n, local, global, &buf1, &buf2, &res, op](cl::sycl::handler &h) mutable {
+  auto f = [n, local, global, &buf1, &buf2, &res, op](
+      cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
                             cl::sycl::range<3>{local, 1, 1}};
     auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);

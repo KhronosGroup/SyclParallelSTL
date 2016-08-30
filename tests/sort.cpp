@@ -36,15 +36,11 @@
 using namespace std::experimental::parallel;
 
 struct SortAlgorithm : public testing::Test {
-  sycl::sycl_execution_policy<> * sycl_policy;
+  sycl::sycl_execution_policy<>* sycl_policy;
 
-  void SetUp() {
-    sycl_policy = new sycl::sycl_execution_policy<>();
-  }
+  void SetUp() { sycl_policy = new sycl::sycl_execution_policy<>(); }
 
-  void TearDown() {
-    delete sycl_policy;
-  }
+  void TearDown() { delete sycl_policy; }
 };
 
 TEST_F(SortAlgorithm, TestStdSort) {

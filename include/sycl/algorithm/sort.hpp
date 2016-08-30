@@ -150,8 +150,8 @@ inline bool isPowerOfTwo<double>(double num) = delete;
 
 /** sequential_sort.
  * Command group to call the sequential sort kernel */
-template <typename T>
-void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
+template <typename T, typename Alloc>
+void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
                      size_t vectorSize) {
   auto f = [buf, vectorSize](cl::sycl::handler &h) mutable {
     auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
@@ -162,8 +162,8 @@ void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
 
 /** sequential_sort.
  * Command group to call the sequential sort kernel */
-template <typename T, class ComparableOperator, typename Name>
-void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
+template <typename T, typename Alloc, class ComparableOperator, typename Name>
+void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
                      size_t vectorSize, ComparableOperator comp) {
   auto f = [buf, vectorSize, comp](cl::sycl::handler &h) mutable {
     auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
@@ -176,8 +176,8 @@ void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
 /* bitonic_sort.
  * Performs a bitonic sort on the given buffer
  */
-template <typename T>
-void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
+template <typename T, typename Alloc>
+void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
                   size_t vectorSize) {
   int numStages = 0;
   // 2^numStages should be equal to length
@@ -237,8 +237,8 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
 /* bitonic_sort.
  * Performs a bitonic sort on the given buffer
  */
-template <typename T, class ComparableOperator, typename Name>
-void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
+template <typename T, typename Alloc, class ComparableOperator, typename Name>
+void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
                   size_t vectorSize, ComparableOperator comp) {
   int numStages = 0;
   // 2^numStages should be equal to length
@@ -253,7 +253,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
       auto f = [=](cl::sycl::handler &h) mutable {
         auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
         h.parallel_for<Name>(
-            cl::sycl::nd_range<1>{r},
+            cl::sycl::range<1>{r},
             [a, stage, passOfStage, comp](cl::sycl::item<1> it) {
               int sortIncreasing = 1;
               cl::sycl::id<1> id = it.get();
@@ -295,6 +295,14 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1> buf,
   }    // stage
 }  // bitonic_sort
 
+template<typename T>
+struct buffer_traits;
+
+template<typename T, typename Alloc>
+struct buffer_traits<cl::sycl::buffer<T, 1, Alloc>> {
+  typedef Alloc allocator_type;
+};
+
 /** sort
  * @brief Function that takes a Comp Operator and applies it to the given range
  * @param sep   : Execution Policy
@@ -309,14 +317,16 @@ void sort(ExecutionPolicy &sep, RandomIt first, RandomIt last, CompareOp comp) {
   auto buf = std::move(sycl::helpers::make_buffer(first, last));
   auto vectorSize = buf.get_count();
 
+  typedef typename buffer_traits<decltype(buf)>::allocator_type allocator_;
+  
   if (impl::isPowerOfTwo(vectorSize)) {
     sycl::impl::bitonic_sort<
-        type_, CompareOp,
+        type_, allocator_, CompareOp,
         bitonic_sort_name<typename ExecutionPolicy::kernelName>>(
         q, buf, vectorSize, comp);
   } else {
     sycl::impl::sequential_sort<
-        type_, CompareOp,
+        type_, allocator_, CompareOp,
         sequential_sort_name<typename ExecutionPolicy::kernelName>>(
         q, buf, vectorSize, comp);
   }

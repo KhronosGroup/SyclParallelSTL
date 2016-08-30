@@ -1,9 +1,11 @@
-cmake_minimum_required (VERSION 2.8.12.2)
+cmake_minimum_required (VERSION 3.2.2)
 project (SyclSTL)
 
 enable_testing()
 
 option(PARALLEL_STL_BENCHMARKS "Build the internal benchmarks" OFF)
+
+message(STATUS " Path to SYCL implementation: ${COMPUTECPP_PACKAGE_ROOT_DIR} ")
 
 if(SYCL_NO_DEVICE_COMPILER)
   message(NOTE "The SYCL implementation has no device compiler")
@@ -13,7 +15,7 @@ else(SYCL_NO_DEVICE_COMPILER)
 
   find_library(SYCL_LIBRARY
     NAMES SYCL SYCL_d
-    HINTS ${SYCL_PATH}
+    HINTS ${COMPUTECPP_PACKAGE_ROOT_DIR}
     PATH_SUFFIXES lib
     )
 
@@ -29,17 +31,17 @@ else(SYCL_NO_DEVICE_COMPILER)
 
   message(STATUS "${SYCL_LIBRARY}")
   if (${SYCL_LIBRARY} MATCHES "NOTFOUND")
-    message(FATAL_ERROR "Cannot find SYCL implementation (${SYCL_PATH})")
+    message(FATAL_ERROR "Cannot find SYCL implementation (${COMPUTECPP_PACKAGE_ROOT_DIR})")
   else()
-    message(STATUS "The path to SYCL is: ${SYCL_PATH}")
+    message(STATUS "The path to SYCL is: ${COMPUTECPP_PACKAGE_ROOT_DIR}")
   endif()
 
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SYCL_PATH}/cmake/Modules/")
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 
-  set(DEVICE_COMPILER_PATH "${SYCL_PATH}/bin/")
-  set(DEVICE_COMPILER_INCLUDE_PATH "${SYCL_PATH}/include/device_compiler")
-  set(RUNTIME_INCLUDES "${SYCL_PATH}/include")
+  set(DEVICE_COMPILER_PATH "${COMPUTECPP_PACKAGE_ROOT_DIR}/bin/")
+  set(DEVICE_COMPILER_INCLUDE_PATH "${COMPUTECPP_PACKAGE_ROOT_DIR}/include/device_compiler")
+  set(RUNTIME_INCLUDES "${COMPUTECPP_PACKAGE_ROOT_DIR}/include")
 
   if (UNIX)
       # TODO(Ruyman) Figure out the linux distribution
@@ -58,49 +60,21 @@ else(SYCL_NO_DEVICE_COMPILER)
   endif (NOT DEFINED DEVICE_COMPILER_NAME)
   set(DEVICE_COMPILER "${DEVICE_COMPILER_PATH}/${DEVICE_COMPILER_NAME}"
     CACHE FILEPATH "device compiler")
+  message(STATUS "### Device Compiler ${DEVICE_COMPILER}")
   add_custom_target(compiler)
 
-  include(${SYCL_PATH}/cmake/common.cmake)
+  # set(COMPUTECPP_PACKAGE_ROOT_DIR ${COMPUTECPP_PACKAGE_ROOT_DIR})
+  set(OpenCL_INCLUDE_DIR ${COMPUTECPP_PACKAGE_ROOT_DIR}/include/CL/)
+  include(FindComputeCpp)
+  set(HOST_COMPILER_OPTIONS -O3 -std=c++11)
 
   add_library(SYCL_LIBRARY SHARED IMPORTED)
   add_library(OPENCL_LIBRARY SHARED IMPORTED)
 
 endif(SYCL_NO_DEVICE_COMPILER)
 
-include_directories("${SYCL_PATH}/include")
-include_directories("${SYCL_PATH}/include/image_library")
-
-#####################
-# add_sycl_target
-#
-#  Adds a file containing sycl code as a cmake target
-#  Creates the dependency to the device compiler.
-#
-#  exe_name : Final name of the executable
-#  file : Name of the source file
-#  binary_dir : Binary directory to output the .sycl files
-#
-function(add_sycl_target exe_name file binary_dir)
-  get_filename_component(filename ${file} NAME)
-  add_executable (${exe_name} ${file})
-  target_link_libraries(${exe_name} SyclSTL)
-
-  set_property(TARGET ${exe_name} PROPERTY CXX_STANDARD "14")
-  set_property(TARGET ${exe_name} PROPERTY CXX_STANDARD_REQUIRED True)
-
-
-  if (NOT SYCL_NO_DEVICE_COMPILER)
-    build_spir(${exe_name} ${file} ${binary_dir})
-    if (MSVC)
-     set_property(TARGET ${exe_name} PROPERTY COMPILE_FLAGS
-       "-std=c++11 /FI ${CMAKE_CURRENT_BINARY_DIR}/${filename}.sycl ${CMAKE_CXX_FLAGS}")
-     else(MSVC)
-             set_property(TARGET ${exe_name} PROPERTY COMPILE_FLAGS
-      "-std=c++11 -include ${CMAKE_CURRENT_BINARY_DIR}/${filename}.sycl ${CMAKE_CXX_FLAGS}")
-    endif(MSVC)
-  endif (NOT SYCL_NO_DEVICE_COMPILER)
-
-endfunction(add_sycl_target)
+include_directories("${COMPUTECPP_PACKAGE_ROOT_DIR}/include")
+include_directories("${COMPUTECPP_PACKAGE_ROOT_DIR}/include/image_library")
 
 # Build the parallel stl
 

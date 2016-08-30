@@ -59,8 +59,8 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
     auto bufI = sycl::helpers::make_buffer(first, last);
     auto vectorSize = bufI.get_count();
     size_t global = exec.calculateGlobalSize(vectorSize, local);
-    auto cg =
-        [vectorSize, local, global, &bufI, f](cl::sycl::handler &h) mutable {
+    auto cg = [vectorSize, local, global, &bufI, f](
+        cl::sycl::handler &h) mutable {
       cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
                               cl::sycl::range<3>{local, 1, 1}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);

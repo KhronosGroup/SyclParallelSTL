@@ -41,6 +41,10 @@
 #include <sycl/algorithm/reduce.hpp>
 #include <sycl/algorithm/transform_reduce.hpp>
 #include <sycl/algorithm/count_if.hpp>
+#include <sycl/algorithm/exclusive_scan.hpp>
+#include <sycl/algorithm/inclusive_scan.hpp>
+#include <sycl/algorithm/find.hpp>
+#include <sycl/algorithm/fill.hpp>
 
 namespace sycl {
 
@@ -86,7 +90,7 @@ class sycl_execution_policy {
       newGlobal = global;
     } else {
       newGlobal = global / local;
-      newGlobal = newGlobal * (1 + local);
+      newGlobal = (newGlobal + 1) * local;
     }
 
     return newGlobal;
@@ -102,7 +106,7 @@ class sycl_execution_policy {
   typename std::iterator_traits<InputIterator>::value_type reduce(
       InputIterator first, InputIterator last) {
     typedef typename std::iterator_traits<InputIterator>::value_type type_;
-    return sycl::impl::reduce(*this, first, last, 0,
+    return sycl::impl::reduce(*this, first, last, type_(0),
                               [=](type_ v1, type_ v2) { return v1 + v2; });
   }
 
@@ -141,8 +145,8 @@ class sycl_execution_policy {
   template <class RandomAccessIterator>
   inline void sort(RandomAccessIterator b, RandomAccessIterator e) {
     cl::sycl::queue q(get_queue());
-    typedef typename std::iterator_traits<RandomAccessIterator>::value_type
-        type_;
+    typedef
+        typename std::iterator_traits<RandomAccessIterator>::value_type type_;
     auto buf = std::move(sycl::helpers::make_buffer(b, e));
     auto vectorSize = buf.get_count();
 
@@ -270,6 +274,114 @@ class sycl_execution_policy {
     typedef typename std::iterator_traits<InputIt>::value_type type_;
     return impl::count_if(*this, first, last, p,
                           [=](type_ v1, type_ v2) { return v1 + v2; });
+  }
+
+  /** exclusive_scan.
+  * @brief Returns the exclusive scan (prefix sum) of the vector across the
+  * range [First, last) plus the initial value T init. Implementation
+  * of the command group that submits an exclusive_scan kernel.
+  */
+  template <class InputIterator, class OutputIterator, class T>
+  OutputIterator exclusive_scan(InputIterator first, InputIterator last,
+                                OutputIterator output, T init) {
+    // get the type from the iterator to build a default addition lambda
+    typedef typename std::iterator_traits<InputIterator>::value_type type_;
+    return impl::exclusive_scan(*this, first, last, output, init,
+                                [=](type_ v1, type_ v2) { return v1 + v2; });
+  }
+
+  /** exclusive_scan.
+  * @brief Returns the exclusive scan (prefix sum) of the vector across the
+  * range [First, last) plus the initial value T init by applying the binary
+  * operation binary_op. Implementation of the command group that submits an
+  * exclusive_scan kernel.
+  */
+  template <class InputIterator, class OutputIterator, class T,
+            class BinaryOperation>
+  OutputIterator exclusive_scan(InputIterator first, InputIterator last,
+                                OutputIterator output, T init,
+                                BinaryOperation binary_op) {
+    return impl::exclusive_scan(*this, first, last, output, init, binary_op);
+  }
+
+  /** inclusive_scan.
+  * @brief Returns the inclusive scan (prefix sum) of the vector across the
+  * range [First, last) by applying a default addition. Implementation
+  * of the command group that submits an inclusive_scan kernel.
+  */
+  template <class InputIterator, class OutputIterator>
+  OutputIterator inclusive_scan(InputIterator first, InputIterator last,
+                                OutputIterator d_first) {
+    typedef typename std::iterator_traits<InputIterator>::value_type type_;
+    return impl::inclusive_scan(*this, first, last, d_first, 0,
+                                [=](type_ v1, type_ v2) { return v1 + v2; });
+  }
+
+  /** inclusive_scan.
+  * @brief Returns the inclusive scan (prefix sum) of the vector across the
+  * range [First, last) by applying the BinaryOperation binary_op.
+  * Implementation
+  * of the command group that submits an inclusive_scan kernel.
+  */
+  template <class InputIterator, class OutputIterator, class BinaryOperation>
+  OutputIterator inclusive_scan(InputIterator first, InputIterator last,
+                                OutputIterator d_first,
+                                BinaryOperation binary_op) {
+    return impl::inclusive_scan(*this, first, last, d_first, 0, binary_op);
+  }
+
+  /* inclusive_scan.
+  * @brief Returns the inclusive scan (prefix sum) of the vector across the
+  * range [First, last) and an initial value init, of type T, by applying the
+  * BinaryOperation binary_op.
+  * Implementation of the command group that submits an inclusive_scan kernel.
+  */
+  template <class InputIterator, class OutputIterator, class BinaryOperation,
+            class T>
+  OutputIterator inclusive_scan(InputIterator first, InputIterator last,
+                                OutputIterator d_first,
+                                BinaryOperation binary_op, T init) {
+    return impl::inclusive_scan(*this, first, last, d_first, init, binary_op);
+  }
+
+  /** find
+  * @brief Returns an iterator to the first position at which value can be found
+  * in the range [first, last)
+  */
+  template <class InputIt, class T>
+  InputIt find(InputIt first, InputIt last, T value) {
+    return impl::find_impl(*this, first, last,
+                           [=](T other) { return value == other; });
+  }
+
+  /** find_if
+  * @brief Returns an iterator to the first position at which the predicate P
+  * is true in the range [first, last)
+  */
+  template <class InputIt, class UnaryPredicate>
+  InputIt find_if(InputIt first, InputIt last, UnaryPredicate P) {
+    return impl::find_impl(*this, first, last, P);
+  }
+
+  /** find_if_not
+  * @brief Returns an iterator to the first position at which the predicate P
+  * is false in the range [first, last)
+  */
+  template <class InputIt, class UnaryPredicate>
+  InputIt find_if_not(InputIt first, InputIt last, UnaryPredicate P) {
+    typedef typename std::iterator_traits<InputIt>::value_type type_;
+    return impl::find_impl(*this, first, last,
+                           [=](type_ other) { return !P(other); });
+  }
+
+  /** fill
+  * @brief Fills container described by the ForwardIt iterators first, last
+  * with the value given in "T value". Implementation of the command group that
+  * submits a fill kernel
+  */
+  template <class ForwardIt, class T>
+  void fill(ForwardIt first, ForwardIt last, const T& value) {
+    return impl::fill(*this, first, last, value);
   }
 };
 

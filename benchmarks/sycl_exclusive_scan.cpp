@@ -30,7 +30,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <cmath>
 
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
@@ -39,24 +38,28 @@
 
 using namespace sycl::helpers;
 
-benchmark<>::time_units_t benchmark_foreach(const unsigned numReps,
-                                            const unsigned num_elems) {
+/** benchmark_inclusive_scan
+ * @brief Body Function that executes the SYCL CG of exclusive_scan
+ */
+benchmark<>::time_units_t benchmark_exclusive_scan(const unsigned numReps,
+                                         const unsigned num_elems) {
   std::vector<int> v1;
 
   for (int i = num_elems; i > 0; i--) {
     v1.push_back(i);
   }
 
-  cl::sycl::queue q;
-  auto myforeach = [&]() {  
-    sycl::sycl_execution_policy<class ForEachAlgorithm1> snp(q);
-    std::experimental::parallel::for_each(
-        snp, begin(v1), end(v1), [=](float val) { return val + val * val; });
+  auto exclusive_scan = [&]() {
+    cl::sycl::queue q;
+    sycl::sycl_execution_policy<class ExclusiveScanAlgorithm1> snp(q);
+    std::experimental::parallel::exclusive_scan(snp, begin(v1), end(v1), 
+      begin(v1), 0, [=](int x, int y){ return x + y; });
   };
 
-  auto time = benchmark<>::duration(numReps, myforeach);
+  auto time = benchmark<>::duration(
+      numReps, exclusive_scan);
 
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_SYCL_FOREACH", benchmark_foreach, 2u, 33554432u, 10);
+BENCHMARK_MAIN("BENCH_SYCL_EXCLUSIVE_SCAN", benchmark_exclusive_scan, 2u, 33554432u, 1);

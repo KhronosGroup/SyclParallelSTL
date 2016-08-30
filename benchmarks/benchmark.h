@@ -109,7 +109,7 @@ struct benchmark_arguments {
   }
 };
 
-template <typename TimeT = std::chrono::milliseconds,
+template <typename TimeT = std::chrono::microseconds,
           typename ClockT = std::chrono::system_clock>
 struct benchmark {
   typedef TimeT time_units_t;

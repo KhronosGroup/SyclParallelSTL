@@ -34,33 +34,24 @@
 
 using namespace std::experimental::parallel;
 
-struct ForEachAlgorithm : public testing::Test {};
+struct FillAlgorithm : public testing::Test {};
 
-TEST_F(ForEachAlgorithm, TestStdForEach) {
-  std::vector<int> v = {2, 1, 3};
-  std::vector<int> result = {3, 2, 4};
+TEST_F(FillAlgorithm, TestStdFill) {
+  std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
+  std::vector<int> result = {1, 1, 1, 1, 1, 1, 1, 1};
 
-  std::transform(v.begin(), v.end(), v.begin(),
-                 [=](int val) { return val + 1; });
+  std::fill(v.begin(), v.end(), 1);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
 
-TEST_F(ForEachAlgorithm, TestSyclForEach) {
-  std::vector<int> v = {2, 1, 3};
-  std::vector<int> result = {3, 2, 4};
+TEST_F(FillAlgorithm, TestSyclFill) {
+  std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
+  std::vector<int> result = {1, 1, 1, 1, 1, 1, 1, 1};
 
   cl::sycl::queue q;
-  sycl::sycl_execution_policy<class ForEachAlgorithm> snp(q);
-  for_each(snp, v.begin(), v.end(), [=](int& val) { val--; });
-
-  sycl::sycl_execution_policy<class ForEachAlgorithm2> snp2(q);
-  for_each(snp2, v.begin(), v.end(), [=](int& val) { val += 2; });
-#if PRINT_OUTPUT
-  std::cout << " Elements " << std::endl;
-  std::for_each(v.begin(), v.end(),
-                [=](int elem) { std::cout << elem << std::endl; });
-#endif  // PRINT_OUTPUT
+  sycl::sycl_execution_policy<class FillAlgorithm> snp(q);
+  fill(snp, v.begin(), v.end(), 1);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }

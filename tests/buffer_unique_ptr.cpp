@@ -63,10 +63,10 @@ TEST_F(UniquePTRAlgorithm, TestSyclUniquePTR) {
     auto ka = a.get_access<cl::sycl::access::mode::read>(cgh);
     auto kb = b.get_access<cl::sycl::access::mode::write>(cgh);
 
-    cgh.parallel_for<class update>(cl::sycl::range<1>{N},
-                                   [=](cl::sycl::id<1> index) {
-      kb[index] = ka[0].memberA * ka[0].memberB * 2;
-    });
+    cgh.parallel_for<class update>(
+        cl::sycl::range<1>{N}, [=](cl::sycl::id<1> index) {
+          kb[index] = ka[0].memberA * ka[0].memberB * 2;
+        });
   });
 
   auto result = b.get_access<cl::sycl::access::mode::read,

@@ -76,14 +76,14 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
               if (globalid < length) {
                 scratch[localid] = aI[globalid];
               }
-              id.barrier(cl::sycl::access::fence_space::local);
+              id.barrier(cl::sycl::access::fence_space::local_space);
 
               int min = (length < local) ? length : local;
               for (int offset = min >> 1; offset > 0; offset = offset >> 1) {
                 if (localid < offset) {
                   scratch[localid] += scratch[localid + offset];
                 }
-                id.barrier(cl::sycl::access::fence_space::local);
+                id.barrier(cl::sycl::access::fence_space::local_space);
               }
 
               if (localid == 0) {

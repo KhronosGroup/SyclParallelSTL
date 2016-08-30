@@ -47,8 +47,8 @@ namespace helpers {
 template <typename T, cl::sycl::access::mode Mode>
 using sycl_host_acc =
     cl::sycl::accessor<T, 1, Mode, cl::sycl::access::target::host_buffer>;
-template <typename T>
-using sycl_buffer_1d = cl::sycl::buffer<T, 1>;
+template <typename T, typename Alloc>
+using sycl_buffer_1d = cl::sycl::buffer<T, 1, Alloc>;
 
 class SyclIterator {
  protected:
@@ -136,59 +136,60 @@ class HostAccessorIterator : public SyclIterator {
  * Parallel STL calls. Cannot access the buffer from the
  * host, that requires a host accessor.
  */
-template <typename T>
+template <typename T, typename Alloc>
 class BufferIterator : public SyclIterator {
  private:
-  sycl_buffer_1d<T> b_;
+  sycl_buffer_1d<T, Alloc> b_;
 
  public:
   typedef T m_type;
   typedef T value_type;
   typedef size_t difference_type;
+  typedef Alloc allocator_type;
   typedef T *pointer;
   typedef T &reference;
   typedef std::random_access_iterator_tag iterator_category;
   typedef buffer_iterator_tag sycl_iterator_category;
 
-  BufferIterator(sycl_buffer_1d<T> &h, size_t pos) : SyclIterator(pos), b_(h) {}
+  BufferIterator(sycl_buffer_1d<T, Alloc> &h, size_t pos) : SyclIterator(pos), b_(h) {}
 
   template <typename U>
-  BufferIterator(const BufferIterator<U> &hI)
+  BufferIterator(const BufferIterator<U, Alloc> &hI)
       : SyclIterator(hI.get_pos()), b_(hI.h_) {}
 
-  inline sycl_buffer_1d<T> get_buffer() const { return b_; }
+  inline sycl_buffer_1d<T, Alloc> get_buffer() const { return b_; }
 
-  const BufferIterator<T> operator+(const BufferIterator<T> &other) const {
-    BufferIterator<T> result(*this);
+  const BufferIterator<T, Alloc> operator+(const BufferIterator<T, Alloc> &other) const {
+    BufferIterator<T, Alloc> result(*this);
     result.pos_ += other.get_pos();
     return result;
   }
 
-  difference_type operator-(const BufferIterator<T> &other) const {
+  difference_type operator-(const BufferIterator<T, Alloc> &other) const {
     return this->get_pos() - other.get_pos();
   }
 
-  const BufferIterator<T> operator+(const int &value) const {
-    BufferIterator<T> result(*this);
+  const BufferIterator<T, Alloc> operator+(const int &value) const {
+    BufferIterator<T, Alloc> result(*this);
     result.pos_ += value;
     return result;
   }
 
-  const BufferIterator<T> operator-(const int &value) const {
-    BufferIterator<T> result(*this);
+  const BufferIterator<T, Alloc> operator-(const int &value) const {
+    BufferIterator<T, Alloc> result(*this);
     result.pos_ -= value;
     return result;
   }
 
   // Prefix operator (Increment and return value)
-  BufferIterator<T> &operator++() {
+  BufferIterator<T, Alloc> &operator++() {
     this->pos_++;
     return (*this);
   }
 
   // Postfix operator (Return value and increment)
-  BufferIterator<T> operator++(int i) {
-    BufferIterator<T> tmp(*this);
+  BufferIterator<T, Alloc> operator++(int i) {
+    BufferIterator<T, Alloc> tmp(*this);
     this->pos_ += 1;
     return tmp;
   }
@@ -201,8 +202,8 @@ class BufferIterator : public SyclIterator {
 /* InputBufferIterator.
  * Read-only variant of a BufferIterator.
  */
-template <typename T>
-class InputBufferIterator : public BufferIterator<T> {
+template <typename T, typename Alloc>
+class InputBufferIterator : public BufferIterator<T, Alloc> {
  public:
   typedef T m_type;
   typedef T value_type;
@@ -212,16 +213,16 @@ class InputBufferIterator : public BufferIterator<T> {
   typedef std::input_iterator_tag iterator_category;
   typedef buffer_iterator_tag sycl_iterator_category;
 
-  InputBufferIterator(sycl_buffer_1d<T> &h, size_t pos)
-      : BufferIterator<T>(h, pos) {}
+  InputBufferIterator(sycl_buffer_1d<T, Alloc> &h, size_t pos)
+      : BufferIterator<T, Alloc>(h, pos) {}
 
   template <typename U>
-  InputBufferIterator(const InputBufferIterator<U> &hI)
-      : BufferIterator<T>(hI.get_pos(), hI.h_) {}
+  InputBufferIterator(const InputBufferIterator<U, Alloc> &hI)
+      : BufferIterator<T, Alloc>(hI.get_pos(), hI.h_) {}
 
   template <typename U>
-  InputBufferIterator(const BufferIterator<U> &hI)
-      : BufferIterator<T>(hI.get_pos(), hI.h_) {}
+  InputBufferIterator(const BufferIterator<U, Alloc> &hI)
+      : BufferIterator<T, Alloc>(hI.get_pos(), hI.h_) {}
 };
 
 template <typename Iterator1, typename Iterator2>
@@ -244,14 +245,14 @@ HostAccessorIterator<T, Mode> end(sycl_host_acc<T, Mode> &h) {
   return HostAccessorIterator<T, Mode>(h, h.get_count());
 }
 
-template <typename T>
-BufferIterator<T> begin(sycl_buffer_1d<T> &h) {
-  return BufferIterator<T>(h, 0);
+template <typename T, typename Alloc>
+BufferIterator<T, Alloc> begin(sycl_buffer_1d<T, Alloc> &h) {
+  return BufferIterator<T, Alloc>(h, 0);
 }
 
-template <typename T>
-BufferIterator<T> end(sycl_buffer_1d<T> &h) {
-  return BufferIterator<T>(h, h.get_count());
+template <typename T, typename Alloc>
+BufferIterator<T, Alloc> end(sycl_buffer_1d<T, Alloc> &h) {
+  return BufferIterator<T, Alloc>(h, h.get_count());
 }
 
 }  // namespace helpers

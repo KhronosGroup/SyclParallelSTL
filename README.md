@@ -85,7 +85,7 @@ SDK is included verbatim in this package within the `cmake/Modules/` directory.
 
 If Google Mock is found in external/gmock, a set of unit tests is built.
 Unit tests can be run by running Ctest in the binary directory. To install
-gmock, run the following commands from the root directory of the Sycl parallel
+gmock, run the following commands from the root directory of the SYCL parallel
 stl project:
 
     $ mkdir external

@@ -25,56 +25,54 @@
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 */
-/* vim: set filetype=cpp foldmethod=indent: */
-#ifndef __EXPERIMENTAL_DETAIL_ALGORITHM_TRANSFORM__
-#define __EXPERIMENTAL_DETAIL_ALGORITHM_TRANSFORM__
+
+#ifndef __SYCL_IMPL_ALGORITHM_FILL__
+#define __SYCL_IMPL_ALGORITHM_FILL__
 
 #include <type_traits>
 #include <algorithm>
 #include <iostream>
 
-#include <experimental/execution_policy>
-// Detail header
-#include <experimental/detail/sycl_buffers.hpp>
+// SYCL helpers header
+#include <sycl/helpers/sycl_buffers.hpp>
 
-namespace std {
-namespace experimental {
-namespace parallel {
 namespace sycl {
-namespace detail {
+namespace impl {
 
-/* transform.
- * Implementation of the command group that submits a transform kernel.
+/* fill.
+ * Implementation of the command group that submits a fill kernel.
  * The kernel is implemented as a lambda.
  */
-template <class ExecutionPolicy, class Iterator, class OutputIterator,
-          class UnaryOperation>
-OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
-                         OutputIterator out_b, UnaryOperation op) {
+template <class ExecutionPolicy, class ForwardIt, class T>
+void fill(ExecutionPolicy &sep, ForwardIt b, ForwardIt e, const T &value) {
   {
     cl::sycl::queue q(sep.get_queue());
-    typedef typename std::iterator_traits<Iterator>::value_type type_;
-    auto bufI = make_const_buffer(b, e);
-    auto bufO = make_buffer(out_b, out_b + bufI.get_count());
+    auto device = q.get_device();
+    size_t localRange =
+        device.get_info<cl::sycl::info::device::max_work_group_size>();
+    auto bufI = sycl::helpers::make_buffer(b, e);
+    // copy value into a local variable, as we cannot capture it by reference
+    T val = value;
     auto vectorSize = bufI.get_count();
-    auto f = [vectorSize, &bufI, &bufO, op](cl::sycl::handler &h) mutable {
-      cl::sycl::range<3> r{ vectorSize, 1, 1 };
-      auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
-      auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
-      h.parallel_for<typename ExecutionPolicy::kernelName>(r,
-          [aI, aO, op](cl::sycl::id<3> id) {
-              aO[id.get(0)] = op(aI[id.get(0)]);
-            });
+    size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+    auto f = [vectorSize, localRange, globalRange, &bufI, val](
+        cl::sycl::handler &h) mutable {
+      cl::sycl::nd_range<3> r{
+          cl::sycl::range<3>{std::max(globalRange, localRange), 1, 1},
+          cl::sycl::range<3>{localRange, 1, 1}};
+      auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
+      h.parallel_for<typename ExecutionPolicy::kernelName>(
+          r, [aI, val, vectorSize](cl::sycl::nd_item<3> id) {
+            if (id.get_global(0) < vectorSize) {
+              aI[id.get_global(0)] = val;
+            }
+          });
     };
     q.submit(f);
   }
-  return out_b;
 }
 
-}  // namespace detail 
+}  // namespace impl
 }  // namespace sycl
-} // namespace parallel
-} // namespace experimental
-} // namespace std
 
-#endif  // __EXPERIMENTAL_DETAIL_ALGORITHM_TRANSFORM__
+#endif  // __SYCL_IMPL_ALGORITHM_FILL__

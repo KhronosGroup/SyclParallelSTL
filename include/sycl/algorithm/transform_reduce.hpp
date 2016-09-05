@@ -35,6 +35,7 @@
 
 // SYCL helpers header
 #include <sycl/helpers/sycl_buffers.hpp>
+#include <sycl/helpers/sycl_differences.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
 
 namespace sycl {
@@ -52,14 +53,16 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
                    InputIterator last, UnaryOperation unary_op, T init,
                    BinaryOperation binary_op) {
   cl::sycl::queue q(exec.get_queue());
-  auto vectorSize = std::distance(first, last);
+  auto vectorSize = sycl::helpers::distance(first, last);
   cl::sycl::buffer<T, 1> bufR((cl::sycl::range<1>(vectorSize)));
   if (vectorSize < 1) {
     return init;
   }
 
   auto device = q.get_device();
-  size_t local = device.get_info<cl::sycl::info::device::max_work_group_size>();
+  auto local =
+      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
+               vectorSize);
   typedef typename std::iterator_traits<InputIterator>::value_type type_;
   auto bufI = sycl::helpers::make_const_buffer(first, last);
   size_t length = vectorSize;

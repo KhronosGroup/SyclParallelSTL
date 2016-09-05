@@ -1,5 +1,7 @@
 
-set(GMOCK_DIR "${CMAKE_SOURCE_DIR}/external/gmock/")
+find_package(Threads)
+
+set(GMOCK_DIR "${CMAKE_SOURCE_DIR}/external/googletest/googlemock/")
 
 if (MSVC)
 	set(GMOCK_LIB_PATH ${GMOCK_DIR}/msvc/2010/x64/Debug/gmock.lib)
@@ -13,29 +15,34 @@ if (EXISTS ${GMOCK_LIB_PATH})
   message(STATUS " GoogleMock found in ${GMOCK_DIR} , building tests ")
   include_directories(${GMOCK_DIR}/include)
   include_directories(${GMOCK_DIR}/gtest/include)
+  include_directories(${GMOCK_DIR}/../googletest/include)
 
   file(GLOB SRC_FILES "*.cpp")
 
   if (SRC_FILES)
     add_library(gmock STATIC IMPORTED)
-	 add_library(gmock_main STATIC IMPORTED)
+	  add_library(gmock_main STATIC IMPORTED)
     set_property(TARGET gmock PROPERTY IMPORTED_LOCATION ${GMOCK_LIB_PATH})
-	 set_property(TARGET gmock_main PROPERTY IMPORTED_LOCATION ${GMOCK_MAIN_LIB_PATH})
+	  set_property(TARGET gmock_main PROPERTY IMPORTED_LOCATION ${GMOCK_MAIN_LIB_PATH})
 	
     foreach(file ${SRC_FILES})
-            get_filename_component(filename ${file} NAME)
-            set(exe_name "${filename}.exe")
-            message(STATUS "File ${file} Filename ${filename} Exename ${exe_name} ")
+            get_filename_component(SOURCE_NAME ${file} NAME_WE)
+            set(TEST_NAME "test_${SOURCE_NAME}")
+            message(STATUS " Adding ${SOURCE_NAME} ")
 
-            add_sycl_target(${exe_name} ${file} ${CMAKE_CURRENT_BINARY_DIR})
-            if(MSVC)
-                    target_link_libraries(${exe_name} gmock gmock_main SyclSTL)
-            else()
-                    target_link_libraries(${exe_name} gmock gmock_main SyclSTL pthread)
-            endif()
+            include_directories(${COMPUTECPP_INCLUDE_DIRECTORY})
 
-            add_test(NAME ${exe_name} COMMAND ${exe_name})
+            add_executable(${TEST_NAME} 
+                      ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_NAME}.cpp  )
+            target_compile_options(${TEST_NAME} PUBLIC ${HOST_COMPILER_OPTIONS})
+            target_link_libraries(${TEST_NAME} PUBLIC ${GMOCK_LIB_PATH})
+            target_link_libraries(${TEST_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
+            add_sycl_to_target(${TEST_NAME} 
+                      ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_NAME}.cpp 
+                      ${CMAKE_CURRENT_BINARY_DIR})
+
+            add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     endforeach()
 
   else()

@@ -220,6 +220,103 @@ typename iterator_traits<InputIt>::difference_type count_if(
   return exec.count_if(first, last, p);
 }
 
+/** exclusive_scan.
+ * @brief Calculates the exclusive scan of the given vector, across the range
+ * [first, last) and the initial value T init.
+ */
+template <class ExecutionPolicy, class InputIterator, class OutputIterator,
+          class T>
+OutputIterator exclusive_scan(ExecutionPolicy &&exec, InputIterator first,
+                              InputIterator last, OutputIterator output,
+                              T init) {
+  return exec.exclusive_scan(first, last, output, init);
+}
+
+/** exclusive_scan.
+ * @brief Calculates the exclusive scan of the given vector, across the range
+ * [first, last) and the initial value T init by applying BinaryOperation bop
+ */
+template <class ExecutionPolicy, class InputIterator, class OutputIterator,
+          class T, class BinaryOperation>
+OutputIterator exclusive_scan(ExecutionPolicy &&exec, InputIterator first,
+                              InputIterator last, OutputIterator output, T init,
+                              BinaryOperation bop) {
+  return exec.exclusive_scan(first, last, output, init, bop);
+}
+
+/** inclusive_scan.
+ * @brief Calculates the inclusive scan of the given vector, across the range
+ * [first, last) by applying a default addition operator.
+ */
+template <class ExecutionPolicy, class InputIterator, class OutputIterator>
+OutputIterator inclusive_scan(ExecutionPolicy &&exec, InputIterator first,
+                              InputIterator last, OutputIterator out) {
+  return exec.inclusive_scan(first, last, out);
+}
+
+/** inclusive_scan.
+ * @brief Calculates the inclusive scan of the given vector, across the range
+ * [first, last) by applying the BinaryOperation bop.
+ */
+template <class ExecutionPolicy, class InputIterator, class OutputIterator,
+          class BinaryOperation>
+OutputIterator inclusive_scan(ExecutionPolicy &&exec, InputIterator first,
+                              InputIterator last, OutputIterator out,
+                              BinaryOperation bop) {
+  return exec.inclusive_scan(first, last, out, bop);
+}
+
+/** inclusive_scan.
+ * @brief Calculates the inclusive scan of the given vector, across the range
+ * [first, last) and an initial value init by applying the BinaryOperation bop.
+ */
+template <class ExecutionPolicy, class InputIterator, class OutputIterator,
+          class BinaryOperation, class T>
+OutputIterator inclusive_scan(ExecutionPolicy &&exec, InputIterator first,
+                              InputIterator last, OutputIterator out,
+                              BinaryOperation bop, T init) {
+  return exec.inclusive_scan(first, last, out, bop, init);
+}
+
+/** find.
+ * @brief Returns an iterator to the first position at which value can be found
+ * in the range [first, last)
+ */
+template <class ExecutionPolicy, class InputIt, class T>
+InputIt find(ExecutionPolicy &&exec, InputIt first, InputIt last, T value) {
+  return exec.find(first, last, value);
+}
+
+/** find_if.
+ * @brief Returns an iterator to the first position at which the predicate p
+ * is true in the range [first, last)
+ */
+template <class ExecutionPolicy, class InputIt, class UnaryPredicate>
+InputIt find_if(ExecutionPolicy &&exec, InputIt first, InputIt last,
+                UnaryPredicate p) {
+  return exec.find_if(first, last, p);
+}
+
+/** find_if_not.
+ * @brief Returns an iterator to the first position at which the predicate p
+ * is false in the range [first, last)
+ */
+template <class ExecutionPolicy, class InputIt, class UnaryPredicate>
+InputIt find_if_not(ExecutionPolicy &&exec, InputIt first, InputIt last,
+                    UnaryPredicate p) {
+  return exec.find_if_not(first, last, p);
+}
+
+/** fill.
+* @brief Fills the range specified by [first, last) with the value given in
+* value. Implementation of the command groupt hat submits a fill kernel.
+*/
+template <class ExecutionPolicy, class ForwardIt, class T>
+void fill(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
+          const T &value) {
+  return exec.fill(first, last, value);
+}
+
 }  // namespace parallel
 }  // namespace experimental
 }  // namespace std

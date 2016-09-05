@@ -1,4 +1,5 @@
-/* Copyright (c) 2015 The Khronos Group Inc.
+/*
+ * Copyright (c) 2015 The Khronos Group Inc.
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and/or associated documentation files (the
@@ -23,40 +24,29 @@
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
-
 */
 
-#include <algorithm>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <cmath>
+/**
+ * @file
+ * @brief Helper templates for generating unique names for sycl kernels
+ */
 
-#include <experimental/algorithm>
-#include <sycl/execution_policy>
+#ifndef _EXPERIMENTAL_DETAIL_SYCL_NAMEGEN__
+#define _EXPERIMENTAL_DETAIL_SYCL_NAMEGEN__
 
-#include "benchmark.h"
+namespace cl {
+namespace sycl {
+namespace helpers {
 
-using namespace sycl::helpers;
-
-benchmark<>::time_units_t benchmark_foreach(const unsigned numReps,
-                                            const unsigned num_elems) {
-  std::vector<int> v1;
-
-  for (int i = num_elems; i > 0; i--) {
-    v1.push_back(i);
-  }
-
-  cl::sycl::queue q;
-  auto myforeach = [&]() {  
-    sycl::sycl_execution_policy<class ForEachAlgorithm1> snp(q);
-    std::experimental::parallel::for_each(
-        snp, begin(v1), end(v1), [=](float val) { return val + val * val; });
-  };
-
-  auto time = benchmark<>::duration(numReps, myforeach);
-
-  return time;
+/**
+ * Name generator, Details can be used to specialise for a specific
+ * ExecutionPolicy, while the index parameter can be used to specialise for
+ * algorithms with multiple kernels
+ */
+template <int Index, typename... Details>
+class NameGen {};
+}
+}
 }
 
-BENCHMARK_MAIN("BENCH_SYCL_FOREACH", benchmark_foreach, 2u, 33554432u, 10);
+#endif  // _EXPERIMENTAL_DETAIL_SYCL_NAMEGEN__

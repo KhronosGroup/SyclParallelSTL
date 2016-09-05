@@ -30,11 +30,13 @@
 #define __SYCL_IMPL_ALGORITHM_REDUCE__
 
 #include <type_traits>
+#include <typeinfo>
 #include <algorithm>
 #include <iostream>
 
 // SYCL helpers header
 #include <sycl/helpers/sycl_buffers.hpp>
+#include <sycl/helpers/sycl_differences.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
 
 namespace sycl {
@@ -50,14 +52,18 @@ template <class ExecutionPolicy, class Iterator, class T, class BinaryOperation>
 typename std::iterator_traits<Iterator>::value_type reduce(
     ExecutionPolicy &sep, Iterator b, Iterator e, T init, BinaryOperation bop) {
   cl::sycl::queue q(sep.get_queue());
-  auto vectorSize = std::distance(b, e);
+
+  auto vectorSize = sycl::helpers::distance(b, e);
 
   if (vectorSize < 1) {
     return init;
   }
 
   auto device = q.get_device();
-  auto local = device.get_info<cl::sycl::info::device::max_work_group_size>();
+  auto local =
+      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
+               vectorSize);
+
   typedef typename std::iterator_traits<Iterator>::value_type type_;
   auto bufI = sycl::helpers::make_const_buffer(b, e);
   size_t length = vectorSize;

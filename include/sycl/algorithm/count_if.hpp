@@ -35,6 +35,7 @@
 
 // SYCL helpers header
 #include <sycl/helpers/sycl_buffers.hpp>
+#include <sycl/helpers/sycl_differences.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
 
 namespace sycl {
@@ -51,7 +52,7 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
     ExecutionPolicy& exec, InputIterator first, InputIterator last,
     UnaryOperation unary_op, BinaryOperation binary_op) {
   cl::sycl::queue q(exec.get_queue());
-  auto vectorSize = std::distance(first, last);
+  auto vectorSize = sycl::helpers::distance(first, last);
   typename std::iterator_traits<InputIterator>::difference_type ret = 0;
 
   if (vectorSize < 1) {
@@ -59,7 +60,9 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
   }
 
   auto device = q.get_device();
-  auto local = device.get_info<cl::sycl::info::device::max_work_group_size>();
+  auto local =
+      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
+               vectorSize);
   typedef typename std::iterator_traits<InputIterator>::value_type type_;
   auto bufI = sycl::helpers::make_const_buffer(first, last);
   cl::sycl::buffer<int, 1> bufR((cl::sycl::range<1>(vectorSize)));

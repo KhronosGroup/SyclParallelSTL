@@ -1,10 +1,16 @@
 file(GLOB EXAMPLE_FILES ./*.cpp)
 
 foreach(file ${EXAMPLE_FILES})
-  get_filename_component(filename ${file} NAME)
-  set(exe_name "${filename}.exe")
+  get_filename_component(SOURCE_NAME ${file} NAME_WE)
+  message(STATUS " Adding ${SOURCE_NAME} ")
 
-  message(STATUS "File ${file} Filename ${filename}  Exename ${exe_name}")
-  add_sycl_target(${exe_name} ${file} ${CMAKE_CURRENT_BINARY_DIR})
+  include_directories(${COMPUTECPP_INCLUDE_DIRECTORY})
+
+  add_executable(${SOURCE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_NAME}.cpp  )
+  target_compile_options(${SOURCE_NAME} PUBLIC ${HOST_COMPILER_OPTIONS})
+
+  add_sycl_to_target(${SOURCE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_NAME}.cpp 
+    ${CMAKE_CURRENT_BINARY_DIR})
+
 
 endforeach()

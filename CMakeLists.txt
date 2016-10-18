@@ -15,7 +15,6 @@ include(FindOpenCL)
 include(FindComputeCpp)
 
 include_directories("${COMPUTECPP_INCLUDE_DIRECTORY}")
-include_directories("${COMPUTECPP_INCLUDE_DIRECTORY}/image_library")
 
 # PSTL specific 
 include_directories("include")

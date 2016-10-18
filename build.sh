@@ -1,11 +1,10 @@
 #!/bin/bash
-# the path to the sycl sdk, e.g. ~/computecpp-sdk/
-SDK_PATH=$1
-# the path to the ComputeCPP package root directory, e.g. ~/ComputeCPP-16.07-Linux/
-PACKAGE_ROOT=$2
+# the path to the ComputeCPP package root directory, e.g. /home/user/ComputeCpp-CE-0.1-Linux/
+PACKAGE_ROOT=$1
 
 function install_gmock  {
   mkdir -p external && pushd external
+  git clone git@github.com:google/googletest.git
   pushd googletest/googlemock/make && make
   popd 
   popd
@@ -13,12 +12,12 @@ function install_gmock  {
 
 function configure  {
   mkdir -p build && pushd build 
-  cmake .. -DCMAKE_MODULE_PATH=$SDK_PATH/cmake/Modules/ -DCOMPUTECPP_PACKAGE_ROOT_DIR=$PACKAGE_ROOT -DSYCL_PATH=$PACKAGE_ROOT -DOpenCL_INCLUDE_DIR=$PACKAGE_ROOT/include/CL/
+  cmake .. -DCOMPUTECPP_PACKAGE_ROOT_DIR=$PACKAGE_ROOT  -DPARALLEL_STL_BENCHMARKS=ON
   popd
 }
 
 function mak  {
-  pushd build && make 
+  pushd build && make -j32
   popd
 }
 

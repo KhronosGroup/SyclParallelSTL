@@ -40,14 +40,15 @@
 using namespace sycl::helpers;
 
 benchmark<>::time_units_t benchmark_foreach(const unsigned numReps,
-                                            const unsigned num_elems) {
+                                            const unsigned num_elems,
+                                            const cli_device_selector cds) {
   std::vector<int> v1;
 
   for (int i = num_elems; i > 0; i--) {
     v1.push_back(i);
   }
 
-  cl::sycl::queue q;
+  cl::sycl::queue q(cds);
   auto myforeach = [&]() {  
     sycl::sycl_execution_policy<class ForEachAlgorithm1> snp(q);
     std::experimental::parallel::for_each(

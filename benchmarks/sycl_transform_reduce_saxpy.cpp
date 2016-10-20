@@ -47,7 +47,8 @@ typedef struct elem {
 #define PI 3.141
 
 benchmark<>::time_units_t benchmark_transform_reduce(const unsigned numReps,
-                                              const unsigned num_elems) {
+                                              const unsigned num_elems,
+                                              const cli_device_selector cds) {
   std::vector<elem> v;
   auto expected = 0.0f;
 
@@ -59,7 +60,7 @@ benchmark<>::time_units_t benchmark_transform_reduce(const unsigned numReps,
     expected += a * b * PI;
   }
 
-  cl::sycl::queue q;
+  cl::sycl::queue q(cds);
   sycl::sycl_execution_policy<class TransformReduceAlgorithm1> snp(q);
 
   auto transformReduce = [&]() {

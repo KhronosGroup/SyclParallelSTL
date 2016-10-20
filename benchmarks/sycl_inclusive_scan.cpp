@@ -42,7 +42,8 @@ using namespace sycl::helpers;
  * @brief Body Function that executes the SYCL CG of inclusive_scan
  */
 benchmark<>::time_units_t benchmark_inclusive_scan(const unsigned numReps,
-                                         const unsigned num_elems) {
+                                         const unsigned num_elems,
+                                         const cli_device_selector cds) {
   std::vector<int> v1;
 
   for (int i = num_elems; i > 0; i--) {
@@ -50,7 +51,7 @@ benchmark<>::time_units_t benchmark_inclusive_scan(const unsigned numReps,
   }
 
   auto inclusive_scan = [&]() {
-    cl::sycl::queue q;
+    cl::sycl::queue q(cds);
     sycl::sycl_execution_policy<class InclusiveScanAlgorithm1> snp(q);
     std::experimental::parallel::inclusive_scan(snp, begin(v1), end(v1), 
       begin(v1), [=](int x, int y){ return x + y; });

@@ -34,7 +34,8 @@
 #include "benchmark.h"
 
 benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
-                                              const unsigned num_elems) {
+                                              const unsigned num_elems,
+                                              const cli_device_selector cds) {
   std::vector<float> v1;
   std::vector<float> v2;
   std::vector<float> res;

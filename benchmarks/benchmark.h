@@ -57,8 +57,9 @@ struct benchmark_arguments {
     std::cout << "         - CSV : Output to a CSV file " << std::endl;
     std::cout << "         - STDOUT: Output to stdout (default) " << std::endl;
     std::cout << "  --device  DEVICE" << std::endl;
-    std::cout << "         Select a device (best effort) for running the benchmark."
-              << std::endl;
+    std::cout
+        << "         Select a device (best effort) for running the benchmark."
+        << std::endl;
     std::cout << "         e.g. intel:cpu, amd:gpu etc" << std::endl;
   }
 
@@ -69,6 +70,8 @@ struct benchmark_arguments {
     /* Match parameters */
     std::regex output_regex("--output");
     std::regex device_regex("--device");
+    // device_vendor = std::string(".*");
+    // device_type   = std::string("*");
     /* Check if user has specified any options */
     bool match = true;
     for (int i = 1; i < argc; i++) {
@@ -104,27 +107,27 @@ struct benchmark_arguments {
       }
 
       // Check for the --device parameter
-      if (std::regex_match(option, device_regex)){
+      if (std::regex_match(option, device_regex)) {
         if (i + 1 >= argc) {
           std::cerr << " Incorrect parameter " << std::endl;
           match = false;
           break;
         }
         std::string outputOption = argv[i + 1];
-        std::transform(outputOption.begin(), outputOption.end(), 
+        std::transform(outputOption.begin(), outputOption.end(),
                        outputOption.begin(), ::tolower);
         // split the string into tokens on ':'
         std::stringstream ss;
         ss.str(outputOption);
         std::string item;
         std::vector<std::string> tokens;
-        while(std::getline(ss, item, ':')){
+        while (std::getline(ss, item, ':')) {
           tokens.push_back(item);
         }
-        if(tokens.size() != 2){
-          std::cerr << " Incorrect number of arguments to device selector " 
-            << std::endl;
-        }else{
+        if (tokens.size() != 2) {
+          std::cerr << " Incorrect number of arguments to device selector "
+                    << std::endl;
+        } else {
           device_vendor = tokens[0];
           device_type = tokens[1];
           matchedAnything = true;

@@ -68,21 +68,25 @@ class cli_device_selector : public cl::sycl::device_selector {
         device.get_info<cl::sycl::info::device::device_type>();
     cl::sycl::info::device_type rtype = match_device_type(m_device_type);
     if (rtype == dtype || rtype == cl::sycl::info::device_type::all) {
+      score += 2;
+    } else if (rtype == cl::sycl::info::device_type::defaults) {
       score += 1;
     } else {
-      score -= 1;
+      score -= 2;
     }
 
     // score the vendor name
     cl::sycl::platform plat = device.get_platform();
     std::string name = plat.template get_info<cl::sycl::info::platform::name>();
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    if (name.find(m_vendor_name) != std::string::npos) {
+    if (name.find(m_vendor_name) != std::string::npos &&
+        !m_vendor_name.empty()) {
+      score += 2;
+    } else if (m_vendor_name == "*" || m_vendor_name.empty()) {
       score += 1;
     } else {
       score -= 2;
     }
-
     return score;
   }
 };

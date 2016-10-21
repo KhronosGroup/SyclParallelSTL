@@ -58,14 +58,9 @@ class cli_device_selector : public cl::sycl::device_selector {
   cli_device_selector(std::string vendor_name, std::string device_type)
       : cl::sycl::device_selector(),
         m_vendor_name(vendor_name),
-        m_device_type(device_type) {
-    std::cout << "Vendor name: " << m_vendor_name << std::endl;
-    std::cout << "Device type: " << m_device_type << std::endl;
-  }
+        m_device_type(device_type) {}
 
   int operator()(const cl::sycl::device &device) const {
-    std::cout << "Vendor name: " << m_vendor_name << std::endl;
-    std::cout << "Device type: " << m_device_type << std::endl;
     int score = 0;
 
     // Score the device type...

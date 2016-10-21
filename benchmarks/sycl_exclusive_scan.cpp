@@ -41,9 +41,9 @@ using namespace sycl::helpers;
 /** benchmark_inclusive_scan
  * @brief Body Function that executes the SYCL CG of exclusive_scan
  */
-benchmark<>::time_units_t benchmark_exclusive_scan(const unsigned numReps,
-                                         const unsigned num_elems,
-                                         const cli_device_selector cds) {
+benchmark<>::time_units_t benchmark_exclusive_scan(
+    const unsigned numReps, const unsigned num_elems,
+    const cli_device_selector cds) {
   std::vector<int> v1;
 
   for (int i = num_elems; i > 0; i--) {
@@ -53,14 +53,15 @@ benchmark<>::time_units_t benchmark_exclusive_scan(const unsigned numReps,
   auto exclusive_scan = [&]() {
     cl::sycl::queue q(cds);
     sycl::sycl_execution_policy<class ExclusiveScanAlgorithm1> snp(q);
-    std::experimental::parallel::exclusive_scan(snp, begin(v1), end(v1), 
-      begin(v1), 0, [=](int x, int y){ return x + y; });
+    std::experimental::parallel::exclusive_scan(
+        snp, begin(v1), end(v1), begin(v1), 0,
+        [=](int x, int y) { return x + y; });
   };
 
-  auto time = benchmark<>::duration(
-      numReps, exclusive_scan);
+  auto time = benchmark<>::duration(numReps, exclusive_scan);
 
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_SYCL_EXCLUSIVE_SCAN", benchmark_exclusive_scan, 2u, 33554432u, 1);
+BENCHMARK_MAIN("BENCH_SYCL_EXCLUSIVE_SCAN", benchmark_exclusive_scan, 2u,
+               33554432u, 1);

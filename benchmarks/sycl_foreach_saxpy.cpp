@@ -49,7 +49,7 @@ benchmark<>::time_units_t benchmark_foreach(const unsigned numReps,
   }
 
   cl::sycl::queue q(cds);
-  auto myforeach = [&]() {  
+  auto myforeach = [&]() {
     sycl::sycl_execution_policy<class ForEachAlgorithm1> snp(q);
     std::experimental::parallel::for_each(
         snp, begin(v1), end(v1), [=](float val) { return val + val * val; });

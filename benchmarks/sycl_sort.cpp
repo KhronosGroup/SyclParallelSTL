@@ -53,8 +53,7 @@ benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
     std::experimental::parallel::sort(snp, begin(v1), end(v1));
   };
 
-  auto time = benchmark<>::duration(
-      numReps, mysort);
+  auto time = benchmark<>::duration(numReps, mysort);
 
   return time;
 }

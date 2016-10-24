@@ -70,8 +70,6 @@ struct benchmark_arguments {
     /* Match parameters */
     std::regex output_regex("--output");
     std::regex device_regex("--device");
-    // device_vendor = std::string(".*");
-    // device_type   = std::string("*");
     /* Check if user has specified any options */
     bool match = true;
     for (int i = 1; i < argc; i++) {
@@ -84,7 +82,7 @@ struct benchmark_arguments {
       }
       // Check for the --output parameter
       if (std::regex_match(option, output_regex)) {
-        if (i + 1 >= argc) {
+        if ((i + 1) >= argc) {
           std::cerr << " Incorrect parameter " << std::endl;
           match = false;
           break;
@@ -108,7 +106,7 @@ struct benchmark_arguments {
 
       // Check for the --device parameter
       if (std::regex_match(option, device_regex)) {
-        if (i + 1 >= argc) {
+        if ((i + 1) >= argc) {
           std::cerr << " Incorrect parameter " << std::endl;
           match = false;
           break;
@@ -117,8 +115,7 @@ struct benchmark_arguments {
         std::transform(outputOption.begin(), outputOption.end(),
                        outputOption.begin(), ::tolower);
         // split the string into tokens on ':'
-        std::stringstream ss;
-        ss.str(outputOption);
+        std::stringstream ss(outputOption);
         std::string item;
         std::vector<std::string> tokens;
         while (std::getline(ss, item, ':')) {

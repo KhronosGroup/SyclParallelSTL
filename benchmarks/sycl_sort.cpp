@@ -39,7 +39,8 @@
 using namespace sycl::helpers;
 
 benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
-                                         const unsigned num_elems) {
+                                         const unsigned num_elems,
+                                         const cli_device_selector cds) {
   std::vector<int> v1;
 
   for (int i = num_elems; i > 0; i--) {
@@ -47,13 +48,12 @@ benchmark<>::time_units_t benchmark_sort(const unsigned numReps,
   }
 
   auto mysort = [&]() {
-    cl::sycl::queue q;
+    cl::sycl::queue q(cds);
     sycl::sycl_execution_policy<class SortAlgorithm1> snp(q);
     std::experimental::parallel::sort(snp, begin(v1), end(v1));
   };
 
-  auto time = benchmark<>::duration(
-      numReps, mysort);
+  auto time = benchmark<>::duration(numReps, mysort);
 
   return time;
 }

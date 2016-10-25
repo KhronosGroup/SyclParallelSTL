@@ -43,14 +43,15 @@ using namespace sycl::helpers;
  * @brief Body Function that executes the SYCL CG of Reduce
  */
 benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
-                                           const unsigned N) {
+                                           const unsigned N,
+                                           const cli_device_selector cds) {
   std::vector<int> v;
   for (int i = 0; i < N; i++) {
     int x = 10 * (((float)std::rand()) / RAND_MAX);
     v.push_back(x);
   }
 
-  cl::sycl::queue q;
+  cl::sycl::queue q(cds);
   auto device = q.get_device();
   auto local = device.get_info<cl::sycl::info::device::max_work_group_size>();
   sycl::sycl_execution_policy<class ReduceAlgorithmBench> snp(q);

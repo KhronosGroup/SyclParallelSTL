@@ -42,32 +42,32 @@ using namespace sycl::helpers;
 typedef struct elem {
   float a;
   float b;
-} elem; 
+} elem;
 
 #define PI 3.141
 
-benchmark<>::time_units_t benchmark_transform_reduce(const unsigned numReps,
-                                              const unsigned num_elems) {
+benchmark<>::time_units_t benchmark_transform_reduce(
+    const unsigned numReps, const unsigned num_elems,
+    const cli_device_selector cds) {
   std::vector<elem> v;
   auto expected = 0.0f;
 
-
   for (unsigned int i = num_elems; i > 0; i--) {
-    float a = 10.0f + static_cast<float>(10.0f*sin(i));
-    float b = 10.0f + static_cast<float>(10.0f*cos(i));
-    v.push_back({a,b});
+    float a = 10.0f + static_cast<float>(10.0f * sin(i));
+    float b = 10.0f + static_cast<float>(10.0f * cos(i));
+    v.push_back({a, b});
     expected += a * b * PI;
   }
 
-  cl::sycl::queue q;
+  cl::sycl::queue q(cds);
   sycl::sycl_execution_policy<class TransformReduceAlgorithm1> snp(q);
 
   auto transformReduce = [&]() {
     float pi = PI;
     float res = std::experimental::parallel::transform_reduce(
-        snp, std::begin(v), std::end(v), 
-        [=](elem x){ return x.a * x.b * pi; }, 0, // map multiplication
-        [=](float a, float b){return a + b;}); // reduce addition
+        snp, std::begin(v), std::end(v), [=](elem x) { return x.a * x.b * pi; },
+        0,                                         // map multiplication
+        [=](float a, float b) { return a + b; });  // reduce addition
   };
 
   auto time = benchmark<>::duration(numReps, transformReduce);
@@ -75,4 +75,5 @@ benchmark<>::time_units_t benchmark_transform_reduce(const unsigned numReps,
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_SYCL_TRANSFORM_REDUCE", benchmark_transform_reduce, 2u, 33554432u, 10);
+BENCHMARK_MAIN("BENCH_SYCL_TRANSFORM_REDUCE", benchmark_transform_reduce, 2u,
+               33554432u, 10);

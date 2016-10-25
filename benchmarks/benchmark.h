@@ -31,6 +31,7 @@
 #include <string>
 #include <iostream>
 #include <regex>
+#include "cli_device_selector.hpp"
 
 /**
  * output_type
@@ -43,6 +44,8 @@ enum class output_type {
 struct benchmark_arguments {
   std::string program_name;
   output_type requestedOutput;
+  std::string device_vendor;
+  std::string device_type;
   bool validProgramOptions;
 
   void usage() {
@@ -53,6 +56,11 @@ struct benchmark_arguments {
               << std::endl;
     std::cout << "         - CSV : Output to a CSV file " << std::endl;
     std::cout << "         - STDOUT: Output to stdout (default) " << std::endl;
+    std::cout << "  --device  DEVICE" << std::endl;
+    std::cout
+        << "         Select a device (best effort) for running the benchmark."
+        << std::endl;
+    std::cout << "         e.g. intel:cpu, amd:gpu etc" << std::endl;
   }
 
   benchmark_arguments(int argc, char** argv)
@@ -61,6 +69,7 @@ struct benchmark_arguments {
         validProgramOptions(true) {
     /* Match parameters */
     std::regex output_regex("--output");
+    std::regex device_regex("--device");
     /* Check if user has specified any options */
     bool match = true;
     for (int i = 1; i < argc; i++) {
@@ -73,7 +82,7 @@ struct benchmark_arguments {
       }
       // Check for the --output parameter
       if (std::regex_match(option, output_regex)) {
-        if (i + 1 >= argc) {
+        if ((i + 1) >= argc) {
           std::cerr << " Incorrect parameter " << std::endl;
           match = false;
           break;
@@ -92,6 +101,35 @@ struct benchmark_arguments {
           break;
         }
         // Skip next parameter, since it was the name
+        i++;
+      }
+
+      // Check for the --device parameter
+      if (std::regex_match(option, device_regex)) {
+        if ((i + 1) >= argc) {
+          std::cerr << " Incorrect parameter " << std::endl;
+          match = false;
+          break;
+        }
+        std::string outputOption = argv[i + 1];
+        std::transform(outputOption.begin(), outputOption.end(),
+                       outputOption.begin(), ::tolower);
+        // split the string into tokens on ':'
+        std::stringstream ss(outputOption);
+        std::string item;
+        std::vector<std::string> tokens;
+        while (std::getline(ss, item, ':')) {
+          tokens.push_back(item);
+        }
+        if (tokens.size() != 2) {
+          std::cerr << " Incorrect number of arguments to device selector "
+                    << std::endl;
+        } else {
+          device_vendor = tokens[0];
+          device_type = tokens[1];
+          matchedAnything = true;
+        }
+        // Skip next parameter, since it was the device
         i++;
       }
 
@@ -176,12 +214,13 @@ struct benchmark {
     if (!ba.validProgramOptions) {                                            \
       return 1;                                                               \
     }                                                                         \
+    cli_device_selector cds(ba.device_vendor, ba.device_type);                \
     const unsigned NUM_REPS = REPS;                                           \
     const unsigned STEP_SIZE = STEP_SIZE_PARAM;                               \
     const unsigned MAX_ELEMS = STEP_SIZE * (NUM_STEPS);                       \
     for (int nelems = STEP_SIZE; nelems < MAX_ELEMS; nelems *= STEP_SIZE) {   \
       const std::string short_name = NAME;                                    \
-      auto time = FUNCTION(NUM_REPS, nelems);                                 \
+      auto time = FUNCTION(NUM_REPS, nelems, cds);                            \
       benchmark<>::output_data(short_name, nelems, time, ba.requestedOutput); \
     }                                                                         \
   }

@@ -51,7 +51,7 @@ class Body {
   cl::sycl::cl_float3 pos;  // position components
   cl::sycl::cl_float3 vel;  // velocity components
   cl::sycl::cl_float3 acc;  // force components
-  float mass;            // mass of the particle
+  float mass;               // mass of the particle
 
  public:
   /** generateBody
@@ -118,7 +118,7 @@ class Body {
    * @brief Function that prints the Body attributes to an ostream
    * @param os : The output stream
    */
-  void printToFile(std::ostream& os){
+  void printToFile(std::ostream& os) {
     os << pos.x() << " " << pos.y() << " " << pos.z() << " ";
     os << vel.x() << " " << vel.y() << " " << vel.z() << " ";
     os << acc.x() << " " << acc.y() << " " << acc.z() << " ";
@@ -130,7 +130,8 @@ class Body {
  * @brief Body Function that executes the SYCL CG of NBODY
  */
 benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
-                                          const unsigned N) {
+                                          const unsigned N,
+                                          const cli_device_selector cds) {
   srand(time(NULL));
   std::vector<Body> bodies(N);
 
@@ -141,7 +142,7 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
   }
   auto mainLoop = [&]() {
     auto d_bodies = sycl::helpers::make_buffer(begin(bodies), end(bodies));
-    cl::sycl::queue q;
+    cl::sycl::queue q(cds);
     // Main loop
     auto vectorSize = d_bodies.get_count();
     auto f = [vectorSize, &d_bodies](cl::sycl::handler& h) mutable {
@@ -166,9 +167,9 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
     sycl::sycl_execution_policy<class UpdateAlgorithm> snp2(q);
     std::experimental::parallel::for_each(snp2, begin(d_bodies), end(d_bodies),
                                           [=](Body& body) {
-      body.update();
-      return body;
-    });  // main loop
+                                            body.update();
+                                            return body;
+                                          });  // main loop
 
     q.wait_and_throw();
   };

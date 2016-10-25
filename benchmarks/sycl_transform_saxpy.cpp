@@ -40,7 +40,8 @@
 using namespace sycl::helpers;
 
 benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
-                                              const unsigned num_elems) {
+                                              const unsigned num_elems,
+                                              const cli_device_selector cds) {
   std::vector<int> v1;
   std::vector<int> v2;
   std::vector<int> res;
@@ -50,7 +51,7 @@ benchmark<>::time_units_t benchmark_transform(const unsigned numReps,
     v2.push_back(i);
     res.push_back(i);
   }
-  cl::sycl::queue q;
+  cl::sycl::queue q(cds);
   sycl::sycl_execution_policy<class TransformAlgorithm1> snp(q);
 
   auto mytransform = [&]() {

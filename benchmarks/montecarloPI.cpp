@@ -45,7 +45,8 @@ int isInsideCircleFunctor(cl::sycl::float2 p) {
 }
 
 benchmark<>::time_units_t benchmark_montecarlo(const unsigned numReps,
-                                               const unsigned num_elems) {
+                                               const unsigned num_elems,
+                                               const cli_device_selector cds) {
   // Container for the random points
   std::vector<cl::sycl::float2> pointset;
   std::srand((unsigned int)std::time(0));
@@ -59,7 +60,7 @@ benchmark<>::time_units_t benchmark_montecarlo(const unsigned numReps,
   }
 
   auto myMontecarlo = [&]() {
-    cl::sycl::queue q;
+    cl::sycl::queue q(cds);
     sycl::sycl_execution_policy<class MontecarloAlgorithm1> snp(q);
     count = std::experimental::parallel::transform_reduce(
         snp, pointset.begin(), pointset.end(),

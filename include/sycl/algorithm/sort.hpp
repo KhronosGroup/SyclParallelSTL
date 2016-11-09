@@ -84,8 +84,8 @@ class sort_kernel_sequential {
 
   // Simple sequential sort
   void operator()() {
-    for (int i = 0; i < vS_; i++) {
-      for (int j = 1; j < vS_; j++) {
+    for (size_t i = 0; i < vS_; i++) {
+      for (size_t j = 1; j < vS_; j++) {
         if (a_[j - 1] > a_[j]) {
           sort_swap<T>(a_[j - 1], a_[j]);
         }

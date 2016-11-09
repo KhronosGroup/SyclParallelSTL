@@ -136,9 +136,6 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
           r, [aI, scratch, localRange, length, bop](cl::sycl::nd_item<3> id) {
-            int globalid = id.get_global(0);
-            int localid = id.get_local(0);
-
             auto r = ReductionStrategy<search_result>(localRange, length, id,
                                                       scratch);
             r.workitem_get_from(aI);

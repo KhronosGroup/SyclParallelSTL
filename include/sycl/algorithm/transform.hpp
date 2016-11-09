@@ -63,12 +63,12 @@ OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
     size_t global = sep.calculateGlobalSize(vectorSize, local);
     auto f = [vectorSize, local, global, &bufI, &bufO, op](
         cl::sycl::handler &h) {
-      cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                              cl::sycl::range<3>{local, 1, 1}};
+      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                              cl::sycl::range<1>{local}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
       auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, aO, op, vectorSize](cl::sycl::nd_item<3> id) {
+          r, [aI, aO, op, vectorSize](cl::sycl::nd_item<1> id) {
             if ((id.get_global(0) < vectorSize)) {
               aO[id.get_global(0)] = op(aI[id.get_global(0)]);
             }
@@ -104,13 +104,13 @@ OutputIterator transform(ExecutionPolicy &sep, InputIterator first1,
   size_t global = sep.calculateGlobalSize(n, local);
   auto f = [n, local, global, &buf1, &buf2, &res, op](
       cl::sycl::handler &h) mutable {
-    cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                            cl::sycl::range<3>{local, 1, 1}};
+    cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                            cl::sycl::range<1>{local}};
     auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
     auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
     auto aO = res.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
-        r, [a1, a2, aO, op, n](cl::sycl::nd_item<3> id) {
+        r, [a1, a2, aO, op, n](cl::sycl::nd_item<1> id) {
           if (id.get_global(0) < n) {
             aO[id.get_global(0)] =
                 op(a1[id.get_global(0)], a2[id.get_global(0)]);
@@ -147,13 +147,13 @@ OutputIterator transform(ExecutionPolicy &sep, cl::sycl::queue &q,
   size_t global = sep.calculateGlobalSize(n, local);
   auto f = [n, local, global, &buf1, &buf2, &res, op](
       cl::sycl::handler &h) mutable {
-    cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                            cl::sycl::range<3>{local, 1, 1}};
+    cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                            cl::sycl::range<1>{local}};
     auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
     auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
     auto aO = res.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
-        r, [a1, a2, aO, op, n](cl::sycl::nd_item<3> id) {
+        r, [a1, a2, aO, op, n](cl::sycl::nd_item<1> id) {
           if (id.get_global(0) < n) {
             aO[id.get_global(0)] =
                 op(a1[id.get_global(0)], a2[id.get_global(0)]);
@@ -183,13 +183,13 @@ void transform(ExecutionPolicy &sep, cl::sycl::queue &q, Buffer &buf1,
   size_t global = sep.calculateGlobalSize(n, local);
   auto f = [n, local, global, &buf1, &buf2, &res, op](
       cl::sycl::handler &h) mutable {
-    cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                            cl::sycl::range<3>{local, 1, 1}};
+    cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                            cl::sycl::range<1>{local}};
     auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
     auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
     auto aO = res.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<class TransformAlgorithm>(
-        r, [a1, a2, aO, op, n](cl::sycl::nd_item<3> id) {
+        r, [a1, a2, aO, op, n](cl::sycl::nd_item<1> id) {
           if (id.get_global(0) < n) {
             aO[id.get_global(0)] =
                 op(a1[id.get_global(0)], a2[id.get_global(0)]);

@@ -71,15 +71,15 @@ typename std::iterator_traits<Iterator>::value_type reduce(
 
   do {
     auto f = [length, local, global, &bufI, bop](cl::sycl::handler &h) mutable {
-      cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                              cl::sycl::range<3>{local, 1, 1}};
+      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                              cl::sycl::range<1>{local}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<type_, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
           scratch(cl::sycl::range<1>(local), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, scratch, local, length, bop](cl::sycl::nd_item<3> id) {
+          r, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<T>(local, length, id, scratch);
             r.workitem_get_from(aI);
             r.combine_threads(bop);

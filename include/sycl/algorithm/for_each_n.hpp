@@ -61,11 +61,11 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
     size_t global = exec.calculateGlobalSize(vectorSize, local);
     auto cg = [vectorSize, local, global, &bufI, f](
         cl::sycl::handler &h) mutable {
-      cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                              cl::sycl::range<3>{local, 1, 1}};
+      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                              cl::sycl::range<1>{local}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [vectorSize, aI, f](cl::sycl::nd_item<3> id) {
+          r, [vectorSize, aI, f](cl::sycl::nd_item<1> id) {
             if (id.get_global(0) < vectorSize) {
               f(aI[id.get_global(0)]);
             }

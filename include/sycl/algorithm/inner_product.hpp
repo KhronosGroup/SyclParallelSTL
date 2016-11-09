@@ -118,13 +118,15 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
         cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
                            cl::sycl::access::target::local>
             scratch(cl::sycl::range<1>(local), h);
-        cl::sycl::nd_range<3> r{
-            cl::sycl::range<3>{std::max(global, local), 1, 1},
-            cl::sycl::range<3>{local, 1, 1}};
+        cl::sycl::nd_range<1> r{
+            cl::sycl::range<1>{std::max(global, local)},
+            cl::sycl::range<1>{local}};
 
         h.parallel_for<typename ExecutionPolicy::kernelName>(
             r, [a1, a2, aR, scratch, length, local, passes, op1, op2](
-                   cl::sycl::nd_item<3> id) {
+                   cl::sycl::nd_item<1> id) {
+              size_t globalid = id.get_global(0);
+              size_t localid = id.get_local(0);
               auto r = ReductionStrategy<T>(local, length, id, scratch);
               if (passes == 0) {
                 r.workitem_get_from(op2, a1, a2);

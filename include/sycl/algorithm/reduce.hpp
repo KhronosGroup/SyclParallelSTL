@@ -80,9 +80,6 @@ typename std::iterator_traits<Iterator>::value_type reduce(
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           r, [aI, scratch, local, length, bop](cl::sycl::nd_item<3> id) {
-            int globalid = id.get_global(0);
-            int localid = id.get_local(0);
-
             auto r = ReductionStrategy<T>(local, length, id, scratch);
             r.workitem_get_from(aI);
             r.combine_threads(bop);

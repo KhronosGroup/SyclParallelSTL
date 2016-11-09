@@ -50,7 +50,6 @@ void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction op) {
     auto device = q.get_device();
     size_t localRange =
         device.get_info<cl::sycl::info::device::max_work_group_size>();
-    typedef typename std::iterator_traits<Iterator>::value_type type_;
     auto bufI = sycl::helpers::make_buffer(b, e);
     auto vectorSize = bufI.get_count();
     size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);

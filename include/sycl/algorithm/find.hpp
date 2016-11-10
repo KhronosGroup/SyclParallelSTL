@@ -81,15 +81,15 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   // store the result of the predicate and the index in the array of the result
   auto eqf = [vectorSize, localRange, globalRange, &buf, &t_buf, p](
       cl::sycl::handler &h) {
-    cl::sycl::nd_range<3> r{
-        cl::sycl::range<3>{std::max(globalRange, localRange), 1, 1},
-        cl::sycl::range<3>{localRange, 1, 1}};
+    cl::sycl::nd_range<1> r{
+        cl::sycl::range<1>{std::max(globalRange, localRange)},
+        cl::sycl::range<1>{localRange}};
     auto aI = buf.template get_access<cl::sycl::access::mode::read>(h);
     auto aO = t_buf.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
-        r, [aI, aO, vectorSize, p](cl::sycl::nd_item<3> id) {
-          int m_id = id.get_global(0);
+        r, [aI, aO, vectorSize, p](cl::sycl::nd_item<1> id) {
+          size_t m_id = id.get_global(0);
           // build a pair of equality and index, so that we can find the
           // _first_ index which is true, as opposed to just "one" of them
           aO[m_id] = search_result(p(aI[m_id]), m_id);
@@ -124,9 +124,9 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   do {
     auto rf = [length, localRange, globalRange, &t_buf, bop](
         cl::sycl::handler &h) {
-      cl::sycl::nd_range<3> r{
-          cl::sycl::range<3>{std::max(globalRange, localRange), 1, 1},
-          cl::sycl::range<3>{localRange, 1, 1}};
+      cl::sycl::nd_range<1> r{
+          cl::sycl::range<1>{std::max(globalRange, localRange)},
+          cl::sycl::range<1>{localRange}};
       auto aI =
           t_buf.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<search_result, 1, cl::sycl::access::mode::read_write,
@@ -135,7 +135,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
 
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
-          r, [aI, scratch, localRange, length, bop](cl::sycl::nd_item<3> id) {
+          r, [aI, scratch, localRange, length, bop](cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<search_result>(localRange, length, id,
                                                       scratch);
             r.workitem_get_from(aI);

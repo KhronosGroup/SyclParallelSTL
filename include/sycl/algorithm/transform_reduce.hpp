@@ -71,8 +71,8 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
   do {
     auto f = [passes, length, local, global, &bufI, &bufR, unary_op, binary_op](
         cl::sycl::handler& h) mutable {
-      cl::sycl::nd_range<3> r{cl::sycl::range<3>{std::max(global, local), 1, 1},
-                              cl::sycl::range<3>{local, 1, 1}};
+      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
+                              cl::sycl::range<1>{local}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
       auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
@@ -81,7 +81,7 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           r, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
-                 cl::sycl::nd_item<3> id) {
+                 cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<T>(local, length, id, scratch);
             if (passes == 0) {
               r.workitem_get_from(unary_op, aI);

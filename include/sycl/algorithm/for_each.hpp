@@ -55,12 +55,12 @@ void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction op) {
     size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
     auto f = [vectorSize, localRange, globalRange, &bufI, op](
         cl::sycl::handler &h) mutable {
-      cl::sycl::nd_range<3> r{
-          cl::sycl::range<3>{std::max(globalRange, localRange), 1, 1},
-          cl::sycl::range<3>{localRange, 1, 1}};
+      cl::sycl::nd_range<1> r{
+          cl::sycl::range<1>{std::max(globalRange, localRange)},
+          cl::sycl::range<1>{localRange}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, op, vectorSize](cl::sycl::nd_item<3> id) {
+          r, [aI, op, vectorSize](cl::sycl::nd_item<1> id) {
             if (id.get_global(0) < vectorSize) {
               op(aI[id.get_global(0)]);
             }

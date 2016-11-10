@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 
 #include <experimental/algorithm>
@@ -177,12 +178,13 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
   auto time = benchmark<>::duration(numReps, mainLoop);
 
   std::fstream file;
-  char* fname = (char*)malloc(30 * sizeof(char));
-  sprintf(fname, "bodies_output_%d.txt", N);
-  file.open(fname, std::fstream::out);
-  for (int i = 0; i < N; i++) {
-    bodies[i].printToFile(file);
+  std::stringstream fnss;
+  fnss << "bodies_output_" << N << ".txt";
+  file.open(fnss.str(), std::fstream::out);
+  for(auto b:bodies){
+    b.printToFile(file);
   }
+  file.close();
 
   return time;
 }

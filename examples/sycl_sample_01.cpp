@@ -59,14 +59,16 @@ class multiply_by_factor {
  * Note that for the moment the sycl variants of the algorithm
  *   are on the sycl namespace and not in std::experimental.
  */
+void null_deleter(void const *) {};
+
 int main() {
   std::vector<int> v = {3, 1, 5, 6};
   sycl::sycl_execution_policy<> sycl_policy;
 
   {
-    cl::sycl::buffer<int> b(v.begin(), v.end());
-    b.set_final_data(v.data());
-
+	  std::shared_ptr<int> ptr_v{ v.data(), null_deleter };
+	  cl::sycl::buffer<int> b(ptr_v, cl::sycl::range<1>(v.size()));
+  
     sort(sycl_policy, begin(b), end(b));
 
     cl::sycl::default_selector h;

@@ -57,7 +57,7 @@ class multiply_by_factor {
  * In this case we use a sycl buffer to perform all operations on
  * the device.
  * Note that for the moment the sycl variants of the algorithm
- *   are on the sycl namespace and not in std::experimental.
+ * are in the sycl namespace and not in std::experimental.
  */
 
 int main() {
@@ -88,7 +88,7 @@ int main() {
 
       sycl::sycl_execution_policy<std::negate<int> > sepn4(q);
       transform(sepn4, begin(b), end(b), begin(b), std::negate<int>());
-    }  // All the kernels will finish at this point
+    }  // All kernels will finish at this point
   }    // The buffer destructor guarantees host syncrhonization
   std::sort(v.begin(), v.end());
 

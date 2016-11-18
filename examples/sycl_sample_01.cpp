@@ -59,7 +59,6 @@ class multiply_by_factor {
  * Note that for the moment the sycl variants of the algorithm
  * are in the sycl namespace and not in std::experimental.
  */
-
 int main() {
   std::vector<int> v = {3, 1, 5, 6};
   sycl::sycl_execution_policy<> sycl_policy;

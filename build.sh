@@ -1,13 +1,37 @@
 #!/bin/bash
-# the path to the ComputeCPP package root directory, e.g. /home/user/ComputeCpp-CE-0.1-Linux/
-PACKAGE_ROOT=$1
 
-#compute the number of cores
+# How to use build.sh to compile SyclParallelSTL with ComputeCpp ?
+# ./build.sh "path/to/ComputeCpp" (this path can be relative)
+#
+# for example:
+#	./build.sh /home/user/ComputeCpp
+#
+# How to use build.sh to compile SyclParallelSTL with triSYCL ?
+# ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include]
+#
+# for example (Ubuntu 16.04):
+#	./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include
+#
+#
+
+
+# Useless to go on when an error occurs
+set -o errexit
+
+if [ $1 == "--trisycl" ]
+then
+	shift
+	echo "build.sh enter mode: triSYCL"
+	CMAKE_ARGS="$CMAKE_ARGS -DUSE_COMPUTECPP=OFF $@"
+else
+	echo "build.sh enter mode: ComputeCpp"
+	CMAKE_ARGS="$CMAKE_ARGS -DCOMPUTECPP_PACKAGE_ROOT_DIR=$(readlink -f $1)"
+	shift
+fi
 NPROC=$(nproc)
 
 function install_gmock  {(
-  REPO="git@github.com:google/googletest.git"
-  #REPO="https://github.com/google/googletest.git"
+  REPO="https://github.com/google/googletest.git"
   mkdir -p external
   cd external
   if [ -d googletest ]
@@ -23,8 +47,8 @@ function install_gmock  {(
 )}
 
 function configure  {
-  mkdir -p build && pushd build 
-  cmake .. -DCOMPUTECPP_PACKAGE_ROOT_DIR=$PACKAGE_ROOT  -DPARALLEL_STL_BENCHMARKS=ON
+  mkdir -p build && pushd build
+  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON
   popd
 }
 

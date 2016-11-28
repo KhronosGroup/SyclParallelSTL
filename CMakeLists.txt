@@ -28,7 +28,7 @@ else()
 	message(STATUS " Path to boost/compute implementation: ${COMPUTE_PACKAGE_ROOT_DIR} ")
 
 	include(FindOpenCL)
-	include(FindTriSycl)
+	include(FindTriSYCL)
 	
 	include_directories("${COMPUTE_INCLUDE_DIRECTORY}")
 	include_directories("${TRISYCL_INCLUDE_DIRECTORY}")

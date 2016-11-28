@@ -44,7 +44,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     endif()
 else()
   message(WARNING
-	  "host compiler - Not found! (TriSycl supports GCC and Clang, see readme)")
+	  "host compiler - Not found! (triSYCL supports GCC and Clang, see readme)")
 endif()
 
 set(COMPUTECPP_64_BIT_DEFAULT ON)
@@ -71,7 +71,7 @@ else()
 endif()
 option(COMPUTE_PACKAGE_ROOT_DIR "Path to the boost/compute Package")
 
-# Obtain the TriSycl include directory
+# Obtain the triSYCL include directory
 set(TRISYCL_INCLUDE_DIRECTORY ${TRISYCL_PACKAGE_ROOT_DIR}/include/)
 if (NOT EXISTS ${TRISYCL_INCLUDE_DIRECTORY})
 	message(FATAL_ERROR "triSYCL includes - Not found!")

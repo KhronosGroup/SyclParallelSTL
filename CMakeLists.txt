@@ -4,6 +4,7 @@ project (SyclSTL)
 enable_testing()
 
 option(PARALLEL_STL_BENCHMARKS "Build the internal benchmarks" OFF)
+option(USE_COMPUTECPP "Use ComputeCPP" ON)
 
 message(STATUS " Path to CMAKE source directory: ${CMAKE_SOURCE_DIR} ")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)

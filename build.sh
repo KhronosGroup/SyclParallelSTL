@@ -22,7 +22,7 @@ then
 	fi
 else
 	echo "build.sh enter mode: ComputeCpp"
-	CMAKE_ARGS="$CMAKE_ARGS -DUSE_COMPUTECPP=ON -DCOMPUTECPP_PACKAGE_ROOT_DIR=$(readlink -f $1)"
+	CMAKE_ARGS="$CMAKE_ARGS -DCOMPUTECPP_PACKAGE_ROOT_DIR=$(readlink -f $1)"
 fi
 NPROC=$(nproc)
 

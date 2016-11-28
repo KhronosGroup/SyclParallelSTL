@@ -27,7 +27,7 @@ NPROC=$(nproc)
 
 function install_gmock  {
   mkdir -p external && pushd external
-  git clone https://github.com/google/googletest.git
+  git clone git@github.com:google/googletest.git
   pushd googletest/googlemock/make && make
   popd 
   popd

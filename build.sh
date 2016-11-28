@@ -11,16 +11,16 @@
 #
 # 
 
-
-
-if [ $1=="--trisycl" ]
+if [ $1 == "--trisycl" ]
 then
+	echo "build.sh enter mode: triSYCL"
 	CMAKE_ARGS="$CMAKE_ARGS -DUSE_COMPUTECPP=OFF -DTRISYCL_PACKAGE_ROOT_DIR=$(readlink -f $2)"
 	if [ $3 ]
 	then
 		CMAKE_ARGS="$CMAKE_ARGS -DCOMPUTE_PACKAGE_ROOT_DIR=$(readlink -f $3)"
 	fi
 else
+	echo "build.sh enter mode: ComputeCpp"
 	CMAKE_ARGS="$CMAKE_ARGS -DUSE_COMPUTECPP=ON -DCOMPUTECPP_PACKAGE_ROOT_DIR=$(readlink -f $1)"
 fi
 NPROC=$(nproc)

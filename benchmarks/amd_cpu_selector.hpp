@@ -29,7 +29,7 @@
 #ifndef __AMD_CPU_SELECTOR__
 #define __AMD_CPU_SELECTOR__
 
-#include <SYCL/sycl.hpp>
+#include <CL/sycl.hpp>
 #include <string>
 #include <iostream>
 

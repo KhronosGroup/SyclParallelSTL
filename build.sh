@@ -5,11 +5,12 @@
 # ./build.sh "path/to/ComputeCpp"
 #
 # How to use build.sh to compile SyclParallelSTL with triSYCL ?
-# ./build.sh --trisycl "path/to/triSYCL" ["path/to/compute"]
+# ./build.sh --trisycl "path/to/triSYCL" "path/to/compute"
 #
 # paths can be relative ones, this script will make them absoulte before to send them to CMake
 #
-# 
+# WARNING/TODO: setting the "path/to/compute" in triSYCL mode is not an option yet
+#
 
 if [ $1 == "--trisycl" ]
 then

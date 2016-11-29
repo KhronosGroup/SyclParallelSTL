@@ -10,19 +10,19 @@ function install_gmock  {(
     cd external
     if [ -d googletest ]
     then
-    (
       cd googletest
       git pull
-    )
     else
       git clone $REPO
+      cd googletest
     fi
   else
     mkdir external
     cd external
     git clone $REPO
+    cd googletest
   fi
-  cd googletest/googlemock/make
+  cd googlemock/make
   make -j$NPROC
 )}
 

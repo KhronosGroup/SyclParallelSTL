@@ -8,22 +8,15 @@ NPROC=$(nproc)
 function install_gmock  {(
   REPO="git@github.com:google/googletest.git"
   #REPO="https://github.com/google/googletest.git"
-  if [ -d external ]
+  mkdir -p external
+  cd external
+  if [ -d googletest ]
   then
-    cd external
-    if [ -d googletest ]
-    then
-      cd googletest
-      git pull
-    else
-      git clone $REPO
-      cd googletest
-    fi
+	  cd googletest
+	  git pull
   else
-    mkdir external
-    cd external
-    git clone $REPO
-    cd googletest
+	  git clone $REPO
+	  cd googletest
   fi
   cd googlemock/make
   make -j$NPROC

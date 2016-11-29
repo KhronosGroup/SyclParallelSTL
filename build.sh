@@ -2,7 +2,7 @@
 # the path to the ComputeCPP package root directory, e.g. /home/user/ComputeCpp-CE-0.1-Linux/
 PACKAGE_ROOT=$1
 
-function install_gmock  (
+function install_gmock  {(
   REPO="git@github.com:google/googletest.git"
   #REPO="https://github.com/google/googletest.git"
   if [ -d external ]
@@ -23,8 +23,8 @@ function install_gmock  (
     git clone $REPO
   fi
   cd googletest/googlemock/make
-  make
-)
+  make -j$NPROC
+)}
 
 function configure  {
   mkdir -p build && pushd build 

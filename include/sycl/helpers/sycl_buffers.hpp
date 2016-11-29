@@ -104,12 +104,7 @@ template <typename Iterator,
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
   typedef typename std::iterator_traits<Iterator>::value_type type_;
-  size_t bufferSize = std::distance(b, e);
-  std::unique_ptr<type_> up{new type_[bufferSize]};
-  std::copy(b, e, up.get());
-  cl::sycl::buffer<type_, 1> buf(std::move(up), cl::sycl::range<1>(bufferSize));
-  buf.set_final_data(nullptr);
-  return buf;
+  return cl::sycl::buffer<type_, 1>(b, e);
 }
 
 /**

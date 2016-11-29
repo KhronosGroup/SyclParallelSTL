@@ -2,6 +2,9 @@
 # the path to the ComputeCPP package root directory, e.g. /home/user/ComputeCpp-CE-0.1-Linux/
 PACKAGE_ROOT=$1
 
+#compute the number of cores
+NPROC=$(nproc)
+
 function install_gmock  {(
   REPO="git@github.com:google/googletest.git"
   #REPO="https://github.com/google/googletest.git"
@@ -33,7 +36,7 @@ function configure  {
 }
 
 function mak  {
-  pushd build && make -j32
+  pushd build && make -j$NPROC
   popd
 }
 

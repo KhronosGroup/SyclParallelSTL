@@ -11,9 +11,9 @@
 #  Tools for finding and building with triSYCL.
 #
 #  User must define:
-#	TRISYCL_PACKAGE_ROOT_DIR pointing to triSYCL
+#	TRISYCL_INCLUDE_DIR pointing to triSYCL
 #		available : https://github.com/keryell/triSYCL
-#	COMPUTE_PACKAGE_ROOT_DIR pointing to Compute
+#	BOOST_COMPUTE_INCLUDE_DIR pointing to Compute
 #		available : https://github.com/boostorg/compute
 #
 
@@ -56,23 +56,23 @@ mark_as_advanced(COMPUTECPP_64_BIT_CODE)
 find_package(OpenCL REQUIRED)
 
 # Find triSYCL packagee
-if(NOT TRISYCL_PACKAGE_ROOT_DIR)
-	message(FATAL_ERROR "triSYCL package - Not found! (please set TRISYCL_PACKAGE_ROOT_DIR): ${TRISYCL_PACKAGE_ROOT_DIR}")
+if(NOT TRISYCL_INCLUDE_DIR)
+	message(FATAL_ERROR "triSYCL package - Not found! (please set TRISYCL_INCLUDE_DIR): ${TRISYCL_INCLUDE_DIR}")
 else()
 	message(STATUS "triSYCL package - Found")
 endif()
-option(TRISYCL_PACKAGE_ROOT_DIR "Path to the triSYCL Package")
+option(TRISYCL_INCLUDE_DIR "Path to the triSYCL Package")
 
 # Find Compute packagee
-if(NOT COMPUTE_PACKAGE_ROOT_DIR)
-	message(FATAL_ERROR "boost/compute package - Not found! (please set COMPUTE_PACKAGE_ROOT_DIR): ${COMPUTE_PACKAGE_ROOT_DIR}")
+if(NOT BOOST_COMPUTE_INCLUDE_DIR)
+	message(FATAL_ERROR "boost/compute package - Not found! (please set BOOST_COMPUTE_INCLUDE_DIR): ${BOOST_COMPUTE_INCLUDE_DIR}")
 else()
 	message(STATUS "boost/compute package - Found")
 endif()
-option(COMPUTE_PACKAGE_ROOT_DIR "Path to the boost/compute Package")
+option(BOOST_COMPUTE_INCLUDE_DIR "Path to the boost/compute Package")
 
 # Obtain the triSYCL include directory
-set(TRISYCL_INCLUDE_DIRECTORY ${TRISYCL_PACKAGE_ROOT_DIR}/include/)
+set(TRISYCL_INCLUDE_DIRECTORY ${TRISYCL_INCLUDE_DIR})
 if (NOT EXISTS ${TRISYCL_INCLUDE_DIRECTORY})
 	message(FATAL_ERROR "triSYCL includes - Not found!")
 else()
@@ -80,7 +80,7 @@ else()
 endif()
 
 # Obtain the Compute include directory
-set(COMPUTE_INCLUDE_DIRECTORY ${COMPUTE_PACKAGE_ROOT_DIR}/include/)
+set(COMPUTE_INCLUDE_DIRECTORY ${BOOST_COMPUTE_INCLUDE_DIR})
 if (NOT EXISTS ${COMPUTE_INCLUDE_DIRECTORY})
 	message(FATAL_ERROR "boost/compute includes - Not found!")
 else()

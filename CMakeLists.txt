@@ -24,8 +24,11 @@ else()
 
 	add_compile_options("-std=c++14") 
 
-	message(STATUS " Path to TriSycl implementation: ${TRISYCL_PACKAGE_ROOT_DIR} ")
-	message(STATUS " Path to boost/compute implementation: ${COMPUTE_PACKAGE_ROOT_DIR} ")
+	set(TRISYCL_INCLUDE_DIR "/usr/include" CACHE STRING "Path to triSYCL/include")
+	set(BOOST_COMPUTE_INCLUDE_DIR  "/usr/include" CACHE STRING "Path to Boost-compute/include")
+
+	message(STATUS "Path to triSYCL/include = " ${TRISYCL_INCLUDE_DIR})
+	message(STATUS "Path to Boost-compute/include = " ${BOOST_COMPUTE_INCLUDE_DIR})
 
 	include(FindOpenCL)
 	include(FindTriSYCL)

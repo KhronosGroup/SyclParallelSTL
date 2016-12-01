@@ -22,19 +22,20 @@ if (USE_COMPUTECPP)
 else()
 	message(STATUS " Using triSYCL CMake")
 
-	add_compile_options("-std=c++14") 
-
-	set(TRISYCL_INCLUDE_DIR "/usr/include" CACHE STRING "Path to triSYCL/include")
-	set(BOOST_COMPUTE_INCLUDE_DIR  "/usr/include" CACHE STRING "Path to Boost-compute/include")
-
-	message(STATUS "Path to triSYCL/include = " ${TRISYCL_INCLUDE_DIR})
-	message(STATUS "Path to Boost-compute/include = " ${BOOST_COMPUTE_INCLUDE_DIR})
+	add_compile_options("-std=c++14")
+	if(TRISYCL_INCLUDE_DIR)
+		message(STATUS "Path to triSYCL include directory: " ${TRISYCL_INCLUDE_DIR})
+		include_directories(${TRISYCL_INCLUDE_DIR})
+	endif()
+	if(BOOST_COMPUTE_INCLUDE_DIR)
+		message(STATUS "Path to Boost compute include directory: " ${BOOST_COMPUTE_INCLUDE_DIR})
+		include_directories(${BOOST_COMPUTE_INCLUDE_DIR})
+	endif()
 
 	include(FindOpenCL)
-	include(FindTriSYCL)
-	
-	include_directories("${COMPUTE_INCLUDE_DIRECTORY}")
-	include_directories("${TRISYCL_INCLUDE_DIRECTORY}")
+
+	function(add_sycl_to_target targetName sourceFile binaryDir)
+	endfunction(add_sycl_to_target)
 
 endif()
 

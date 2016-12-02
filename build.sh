@@ -31,7 +31,6 @@ fi
 NPROC=$(nproc)
 
 function install_gmock  {(
-  #REPO="git@github.com:google/googletest.git"
   REPO="https://github.com/google/googletest.git"
   mkdir -p external
   cd external

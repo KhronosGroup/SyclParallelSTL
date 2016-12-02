@@ -21,8 +21,9 @@ if (USE_COMPUTECPP)
 
 else()
 	message(STATUS " Using triSYCL CMake")
+	set(CMAKE_CXX_STANDARD 14)
+	set(CXX_STANDARD_REQUIRED ON)
 
-	add_compile_options("-std=c++14")
 	if(TRISYCL_INCLUDE_DIR)
 		message(STATUS "Path to triSYCL include directory: " ${TRISYCL_INCLUDE_DIR})
 		include_directories(${TRISYCL_INCLUDE_DIR})

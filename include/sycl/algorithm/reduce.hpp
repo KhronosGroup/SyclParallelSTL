@@ -92,7 +92,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
   q.wait_and_throw();
   auto hI = bufI.template get_access<cl::sycl::access::mode::read,
                                      cl::sycl::access::target::host_buffer>();
-  return hI[0] + init;
+  return bop(hI[0], init);
 }
 
 }  // namespace impl

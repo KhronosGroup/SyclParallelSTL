@@ -45,7 +45,7 @@ namespace impl {
 /* reduce.
  * Implementation of the command group that submits a reduce kernel.
  * The kernel is implemented as a lambda.
- * Note that there is a potential race condition while using the same buffer fot
+ * Note that there is a potential race condition while using the same buffer for
  * input-output
  */
 template <class ExecutionPolicy, class Iterator, class T, class BinaryOperation>

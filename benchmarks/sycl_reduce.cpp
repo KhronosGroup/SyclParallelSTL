@@ -46,7 +46,7 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
                                            const unsigned N,
                                            const cli_device_selector cds) {
   std::vector<int> v;
-  for (int i = 0; i < N; i++) {
+  for (size_t i = 0; i < N; i++) {
     int x = 10 * (((float)std::rand()) / RAND_MAX);
     v.push_back(x);
   }
@@ -71,16 +71,16 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
 
         h.parallel_for<class ReduceAlgorithmBench>(
             r, [aI, scratch, local, length](cl::sycl::nd_item<1> id) {
-              int globalid = id.get_global(0);
-              int localid = id.get_local(0);
+              size_t globalid = id.get_global(0);
+              size_t localid = id.get_local(0);
 
               if (globalid < length) {
                 scratch[localid] = aI[globalid];
               }
               id.barrier(cl::sycl::access::fence_space::local_space);
 
-              int min = (length < local) ? length : local;
-              for (int offset = min >> 1; offset > 0; offset = offset >> 1) {
+              size_t min = (length < local) ? length : local;
+              for (size_t offset = min >> 1; offset > 0; offset = offset >> 1) {
                 if (localid < offset) {
                   scratch[localid] += scratch[localid + offset];
                 }

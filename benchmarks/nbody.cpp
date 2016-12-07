@@ -137,7 +137,7 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
   std::vector<Body> bodies(N);
 
   // randomly generating N Particles
-  for (int i = 0; i < N; i++) {
+  for (size_t i = 0; i < N; i++) {
     auto& b = bodies[i];
     b.generateBody();
   }
@@ -156,7 +156,7 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
       h.parallel_for<class NBodyAlgorithm>(
           r, [a_bodies, vectorSize](cl::sycl::nd_item<3> id) {
             if (id.get_global(0) < vectorSize) {
-              for (int i = 0; i < vectorSize; i++) {
+              for (size_t i = 0; i < vectorSize; i++) {
                 a_bodies[id.get_global(0)].addForce(a_bodies[i]);
               }
             }

@@ -52,7 +52,7 @@ benchmark<>::time_units_t benchmark_montecarlo(const unsigned numReps,
   std::srand((unsigned int)std::time(0));
   // scatter some random points in the unit circle
   int count = 0;
-  for (int i = 0; i < num_elems; i++) {
+  for (size_t i = 0; i < num_elems; i++) {
     float x = ((float)std::rand()) / RAND_MAX;
     float y = ((float)std::rand()) / RAND_MAX;
     cl::sycl::float2 p(x, y);

@@ -48,7 +48,7 @@ namespace impl {
  * Note that there is a potential race condition while using the same buffer for
  * input-output
  */
-#ifdef __COMPUTECPP__
+#if CL_SYCL_LANGUAGE_VERSION < 220
 template <class ExecutionPolicy, class Iterator, class T, class BinaryOperation>
 typename std::iterator_traits<Iterator>::value_type reduce(
     ExecutionPolicy &sep, Iterator b, Iterator e, T init, BinaryOperation bop) {

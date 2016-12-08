@@ -108,7 +108,6 @@ make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
   std::unique_ptr<type_> up{new type_[bufferSize]};
   std::copy(b, e, up.get());
   cl::sycl::buffer<type_, 1> buf(std::move(up), cl::sycl::range<1>(bufferSize));
-  buf.set_final_data(nullptr);
   return buf;
 }
 

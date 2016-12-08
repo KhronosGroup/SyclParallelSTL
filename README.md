@@ -104,8 +104,27 @@ CMake rules for intermediate file generation.
 Refer to your SYCL implementation documentation for 
 implementation-specific building options.
 
-Note, the included build.sh is for internal testing purposes only, and should 
-not be relied on for configuring/building SyclParallelSTL.
+To quickly build the project you can use the script build.sh:
+
+If you want to compile it with ComputeCpp:
+
+    ./build.sh "path/to/ComputeCpp" (this path can be relative)
+    
+for example (on Ubuntu 16.04):
+
+    ./build.sh ~/ComputeCpp
+    
+If you want to compile it with triSYCL:
+
+    ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include]
+    
+for example (on Ubuntu 16.04):
+
+    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include
+
+or (if Boost compute is in your library's default path) 
+
+    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include
 
 Building the documentation
 ----------------------------

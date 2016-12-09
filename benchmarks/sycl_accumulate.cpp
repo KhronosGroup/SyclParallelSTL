@@ -97,11 +97,9 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
      * If sizeof(T) > local_mem_size, this means that an object
      * of type T can't hold in the memory of a single work-group
      */
-    if (nb_work_item == 0)
-    {
+    if (nb_work_item == 0) {
       T acc = init;
-      for(size_t i; i < size; i++)
-      {
+      for(size_t i; i < size; i++) {
         acc = bop(acc, vect[i]);
       }
       return acc;
@@ -154,6 +152,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
           size_t local_id = id.get_local(0);
           size_t local_pos = group_begin + local_id;
           if (local_pos < group_end) {
+            //we peal the first iteration
             T acc = input[local_pos];
             for(size_t read = local_pos + nb_work_item; read < group_end; read += nb_work_item) {
               acc = bop(acc, input[read]);
@@ -162,8 +161,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
           }
         });
         T acc = sum[0];
-        for(size_t local_id = 1; local_id < min(nb_work_item, group_end - group_begin); local_id++)
-        {
+        for(size_t local_id = 1; local_id < min(nb_work_item, group_end - group_begin); local_id++) {
           acc = bop(acc, sum[local_id]);
         }
         output[group_id] = acc;

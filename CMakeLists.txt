@@ -24,6 +24,13 @@ else()
 	set(CMAKE_CXX_STANDARD 14)
 	set(CXX_STANDARD_REQUIRED ON)
 
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRISYCL_ASYNC=1 -fopenmp")
+  #SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRISYCL_ASYNC=1")#-fopenmp -I/usr/lib/gcc/x86_64-linux-gnu/5/include")
+	#find_package (Threads)
+	#include(FindPThreads)
+	#add_executable (myapp main.cpp ...)
+	#target_link_libraries (myapp ${CMAKE_THREAD_LIBS_INIT})
+
 	if(TRISYCL_INCLUDE_DIR)
 		message(STATUS "Path to triSYCL include directory: " ${TRISYCL_INCLUDE_DIR})
 		include_directories(${TRISYCL_INCLUDE_DIR})

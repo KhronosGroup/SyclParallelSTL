@@ -36,6 +36,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
+#include "CL/sycl.hpp"
 #include "benchmark.h"
 
 using namespace sycl::helpers;

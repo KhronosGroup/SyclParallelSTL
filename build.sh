@@ -59,13 +59,15 @@ function mak  {
 
 function tst {
   pushd build/tests
-  ctest
+  ctest -j$NPROC
   popd 
 }
 
 function main {
   install_gmock
   configure
+  # Do not exit when an error occurs
+  set +o errexit
   mak
   tst
 }

@@ -31,9 +31,12 @@
 
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_namegen.hpp>
+#include <sycl/algorithm/inclusive_scan.hpp>
 
 namespace sycl {
 namespace impl {
+
+#if 0
 
 /* exclusive_scan.
  * Implementation of the command group that submits a exclusive_scan kernel.
@@ -128,6 +131,44 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
   q.wait_and_throw();
   return o + vectorSize;
 }
+
+#else
+
+
+template <class ExecutionPolicy, class InputIterator, class OutputIterator,
+          class T, class BinaryOperation>
+OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
+                              InputIterator e, OutputIterator o, T init,
+                              BinaryOperation bop) {
+
+  cl::sycl::queue q(snp.get_queue());
+  auto device = q.get_device();
+  size_t size = sycl::helpers::distance(b, e);
+  using value_type = typename std::iterator_traits<InputIterator>::value_type;
+  //size_t size = sycl::helpers::distance(b, e);
+  std::vector<value_type> vect {b, e};
+
+  /*std::cout << "VECT = [";
+  for(auto x : vect) std::cout << ", " << x;
+  std::cout << "]" << std::endl;*/
+
+  {
+    cl::sycl::buffer<value_type, 1> buffer { vect.data(), cl::sycl::range<1> {size-1} };
+    buffer.set_final_data(vect.data()+1);
+
+    auto d = compute_mapscan_descriptor(device, vect.size(), sizeof(value_type));
+    buffer_mapscan(snp, q, buffer, buffer, init, d, [=](value_type x){return x;}, bop);
+    buffer = {};
+  }
+
+  /*std::cout << "VECT = [";
+  for(auto x : vect) std::cout << ", " << x;
+  std::cout << "]" << std::endl;*/
+  vect[0] = init;
+  return std::copy(vect.begin(), vect.end(), o);
+}
+
+#endif
 
 }  // namespace impl
 }  // namespace sycl

@@ -47,6 +47,9 @@ namespace impl {
 * group
 * that submits a transform_reduce kernel.
 */
+
+#if 0
+
 template <class ExecutionPolicy, class InputIterator, class UnaryOperation,
           class T, class BinaryOperation>
 T transform_reduce(ExecutionPolicy& exec, InputIterator first,
@@ -101,6 +104,35 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
                                      cl::sycl::access::target::host_buffer>();
   return binary_op(hR[0], init);
 }
+
+#else
+
+template <class ExecutionPolicy, class InputIt, class UnaryOperation,
+          class T, class BinaryOperation>
+T transform_reduce(ExecutionPolicy& snp, InputIt b,
+                   InputIt e, UnaryOperation unary_op, T init,
+                   BinaryOperation binary_op) {
+  
+  auto size = sycl::helpers::distance(b, e);
+  if(size <= 0) return init;
+
+  cl::sycl::queue q(snp.get_queue());
+  auto device = q.get_device();
+  using value_type = typename std::iterator_traits<InputIt>::value_type;
+
+
+  mapreduce_descriptor d = compute_mapreduce_descriptor(device, size, sizeof(value_type));
+
+  auto input_buff = sycl::helpers::make_const_buffer(b, e);
+
+  auto map = [=](size_t pos, value_type x) {return unary_op(x);};
+
+
+  return buffer_mapreduce( snp, q, input_buff, init, d, map, binary_op );
+
+}
+
+#endif
 
 }  // namespace impl
 }  // namespace sycl

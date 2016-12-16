@@ -41,6 +41,8 @@
 namespace sycl {
 namespace impl {
 
+#if 0
+
 /* count_if.
 * @brief Returns the count_if of one vector across the range [first,
 * last) by applying Function p. Implementation of the command group
@@ -51,6 +53,7 @@ template <class ExecutionPolicy, class InputIterator, class UnaryOperation,
 typename std::iterator_traits<InputIterator>::difference_type count_if(
     ExecutionPolicy& exec, InputIterator first, InputIterator last,
     UnaryOperation unary_op, BinaryOperation binary_op) {
+
   cl::sycl::queue q(exec.get_queue());
   auto vectorSize = sycl::helpers::distance(first, last);
   typename std::iterator_traits<InputIterator>::difference_type ret = 0;
@@ -101,6 +104,36 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
                                      cl::sycl::access::target::host_buffer>();
   return hr[0];
 }
+
+#else
+
+template <class ExecutionPolicy, class InputIt, class UnaryOperation,
+          class BinaryOperation>
+typename std::iterator_traits<InputIt>::difference_type count_if(
+    ExecutionPolicy& snp, InputIt b, InputIt e,
+    UnaryOperation unary_op, BinaryOperation binary_op) {
+
+
+  auto size = sycl::helpers::distance(b, e);
+  if(size <= 0) return 0;
+
+  cl::sycl::queue q(snp.get_queue());
+  auto device = q.get_device();
+  using value_type = typename std::iterator_traits<InputIt>::value_type;
+
+
+  mapreduce_descriptor d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+
+  auto input_buff = sycl::helpers::make_const_buffer(b, e);
+
+  auto map = [=](size_t pos, value_type x) {
+    return (unary_op(x)) ? 1 : 0;
+  };
+
+  return buffer_mapreduce( snp, q, input_buff, 0, d, map, binary_op );
+
+}
+#endif
 
 }  // namespace impl
 }  // namespace sycl

@@ -82,8 +82,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
      *  - the memory use to store accumulators of type T is smaller than local_mem_size
      *  - every work group do something
      */
-    //size_t max_work_group = device.get_info<cl::sycl::info::device::max_compute_units>();
-    size_t max_work_group = 56;
+    size_t max_work_group = device.get_info<cl::sycl::info::device::max_compute_units>();
     std::cout << "max_work_group=\t" << max_work_group << std::endl;
     //maximal number of work item per work group
     size_t max_work_item  = device.get_info<cl::sycl::info::device::max_work_group_size>();
@@ -99,7 +98,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
      */
     if (nb_work_item == 0) {
       T acc = init;
-      for(size_t i; i < size; i++) {
+      for(size_t i = 0; i < size; i++) {
         acc = bop(acc, vect[i]);
       }
       return acc;

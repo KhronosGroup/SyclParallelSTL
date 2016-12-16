@@ -98,26 +98,26 @@ typename std::iterator_traits<Iterator>::value_type reduce(
 }
 #else
 size_t up_rounded_division(size_t x, size_t y){
-  //return x / y + ((x % y == 0) ? 0 : 1);
   return (x+(y-1)) / y;
 }
 
-template <class ExecutionPolicy, class Iterator, class T, class BinaryOperation>
-typename std::iterator_traits<Iterator>::value_type reduce(
-    ExecutionPolicy &snp, Iterator b, Iterator e, T init, BinaryOperation bop) {
+typedef struct mapreduce_descriptor{
+  size_t size, size_per_work_group, nb_work_group, nb_work_item;
+  mapreduce_descriptor(size_t size_, size_t size_per_work_group_, size_t nb_work_group_, size_t nb_work_item_ ):
+    size(size_),
+    size_per_work_group(size_per_work_group_),
+    nb_work_group(nb_work_group_),
+    nb_work_item(nb_work_item_) {}
+} mapreduce_descriptor;
 
-  using value_type = typename std::iterator_traits<Iterator>::value_type;
+/*
+ * Compute a valid set of parameters for buffer_mapreduce algorithm to work properly
+ */
 
-  cl::sycl::queue q(snp.get_queue());
-  
-  auto size = sycl::helpers::distance(b, e);
-  
-
-  auto device = q.get_device();
-  
-  using std::min;
+mapreduce_descriptor compute_mapreduce_descriptor(cl::sycl::device device, size_t size, size_t sizeofB){
   using std::max;
-  if(size <= 0) return init;
+  using std::min;
+  if(size <= 0) return mapreduce_descriptor(0, 0, 0, 0);
   /* Here we have a heuristic which compute appropriate values for the number of
    * work items and work groups, this heuristic ensure that:
    *  - there is less work group than max_compute_units
@@ -132,7 +132,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
   std::cout << "max_work_item=\t" << max_work_item << std::endl;
   size_t local_mem_size = device.get_info<cl::sycl::info::device::local_mem_size>();
   std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
-  size_t nb_work_item   = min(max_work_item, local_mem_size / sizeof(value_type));
+  size_t nb_work_item   = min(max_work_item, local_mem_size / sizeofB);
   std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
 
   /* (nb_work_item == 0) iff (sizeof(T) > local_mem_size)
@@ -140,13 +140,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
    * of type T can't hold in the memory of a single work-group
    */
   if (nb_work_item == 0) {
-    value_type acc = init;
-    for(auto i = b; i < e; i++)
-    {
-      acc = bop(acc, *i);
-    }
-    return acc;
-    //return boost::compute::reduce(b, e, init, bop);
+    return mapreduce_descriptor(size, 0, 0, 0);
   }
   // we ensure that each work_item of every work_group is used at least once
   size_t nb_work_group = min(max_work_group, up_rounded_division(size, nb_work_item));
@@ -174,19 +168,52 @@ typename std::iterator_traits<Iterator>::value_type reduce(
 
   size_t size_per_work_item_last = up_rounded_division(size_last_work_group, nb_work_item);
 
-  auto input_buff = sycl::helpers::make_const_buffer(b, e);
-  //cl::sycl::buffer<value_type, 1> input_buff = { b, e };
-  //TODO: replace value_type by const value_type
-  cl::sycl::buffer<T, 1> output_buff = { cl::sycl::range<1> { nb_work_group } };
+  return mapreduce_descriptor(size, size_per_work_group, nb_work_group, nb_work_item);
+
+}
+
+/*
+ * MapReduce Algorithm applied on a buffer
+ */
+
+template <class ExecutionPolicy, class A, class B, class Reduce, class Map>
+B buffer_mapreduce(
+    ExecutionPolicy &snp, cl::sycl::queue q, cl::sycl::buffer<A, 1> input_buff, B init, //map is not applied on init
+    mapreduce_descriptor d, Map map, Reduce reduce) {
+
+  size_t size = d.size;
+  size_t size_per_work_group = d.size_per_work_group;
+  size_t nb_work_group = d.nb_work_group;
+  size_t nb_work_item = d.nb_work_item;
+  /*
+   * 'map' is not applied on init
+   * 'map': A -> B
+   * 'reduce': B * B -> B
+   */
+
+  if ((nb_work_item == 0) || (nb_work_group == 0)) {
+    auto read_input = input_buff.template get_access
+      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+    B acc = init;
+    for(size_t pos = 0; pos < size; pos++)
+    {
+      acc = reduce(acc, map(pos, read_input[pos]));
+    }
+    return acc;
+    //return boost::compute::reduce(b, e, init, bop);
+  }
+
+  using std::min;
+  using std::max;
+
+  cl::sycl::buffer<B, 1> output_buff = { cl::sycl::range<1> { nb_work_group } };
 
   q.submit([&] (cl::sycl::handler &cgh) {
-    cl::sycl::nd_range<1> rng { cl::sycl::range<1>{nb_work_group*nb_work_item},
+    cl::sycl::nd_range<1> rng { cl::sycl::range<1>{nb_work_group * nb_work_item},
                                 cl::sycl::range<1>{nb_work_item}};
     auto input  = input_buff.template get_access<cl::sycl::access::mode::read>(cgh);
     auto output = output_buff.template get_access<cl::sycl::access::mode::write>(cgh);
-      cl::sycl::accessor<value_type, 1, cl::sycl::access::mode::read_write,
-                         cl::sycl::access::target::local>
-          sum(cl::sycl::range<1>(nb_work_item), cgh);
+    cl::sycl::accessor<B, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> sum(cl::sycl::range<1>(nb_work_item), cgh);
     cgh.parallel_for_work_group<class workgroup>(rng, [=](cl::sycl::group<1> grp) {
       //int sum[nb_work_item];
       size_t group_id = grp.get(0);
@@ -199,16 +226,16 @@ typename std::iterator_traits<Iterator>::value_type reduce(
         size_t local_pos = group_begin + local_id;
         if (local_pos < group_end) {
           //we peal the first iteration
-          value_type acc = input[local_pos];
+          B acc = map(local_pos, input[local_pos]);
           for(size_t read = local_pos + nb_work_item; read < group_end; read += nb_work_item) {
-            acc = bop(acc, input[read]);
+            acc = reduce(acc, map(read, input[read]));
           }
           sum[local_id] = acc;
         }
       });
-      value_type acc = sum[0];
+      B acc = sum[0];
       for(size_t local_id = 1; local_id < min(nb_work_item, group_end - group_begin); local_id++) {
-        acc = bop(acc, sum[local_id]);
+        acc = reduce(acc, sum[local_id]);
       }
       output[group_id] = acc;
     });
@@ -217,12 +244,36 @@ typename std::iterator_traits<Iterator>::value_type reduce(
   auto read_output  = output_buff.template get_access
     <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
   
-  value_type acc = init;
+  B acc = init;
   for(size_t pos0 = 0; pos0 < nb_work_group; pos0++)
   {
-    acc = bop(acc, read_output[pos0]);
+    acc = reduce(acc, read_output[pos0]);
   }
   return acc;
+}
+
+/*
+ * Reduce algorithm
+ */
+
+template <class ExecutionPolicy, class Iterator, class T, class BinaryOperation>
+typename std::iterator_traits<Iterator>::value_type reduce(
+    ExecutionPolicy &snp, Iterator b, Iterator e, T init, BinaryOperation bop) {
+  
+  cl::sycl::queue q(snp.get_queue());
+  auto device = q.get_device();
+  auto size = sycl::helpers::distance(b, e);
+  using value_type = typename std::iterator_traits<Iterator>::value_type;
+
+  if(size <= 0) return init;
+
+  mapreduce_descriptor d = compute_mapreduce_descriptor(device, size, sizeof(value_type));
+
+  auto input_buff = sycl::helpers::make_const_buffer(b, e);
+
+  auto map = [=](size_t pos, value_type x) {return x;};
+
+  return buffer_mapreduce( snp, q, input_buff, init, d, map, bop );
 }
 
 #endif // __COMPUTECPP__

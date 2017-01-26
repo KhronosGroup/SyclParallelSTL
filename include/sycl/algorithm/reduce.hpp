@@ -67,7 +67,9 @@ typename std::iterator_traits<Iterator>::value_type reduce(
                vectorSize);
 
   typedef typename std::iterator_traits<Iterator>::value_type type_;
-  auto bufI = sycl::helpers::make_const_buffer(b, e);
+  //auto bufI = sycl::helpers::make_const_buffer(b, e);
+  cl::sycl::buffer<type_, 1> bufI { b, e };
+  bufI.set_final_data(nullptr);
   size_t length = vectorSize;
   size_t global = sep.calculateGlobalSize(length, local);
 
@@ -202,6 +204,15 @@ B buffer_mapreduce(
     return acc;
     //return boost::compute::reduce(b, e, init, bop);
   }
+/*  {
+    auto read_input = input_buff.template get_access
+      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+    for(size_t pos = 0; pos < size; pos++)
+    {
+      std::cout << "[" << pos << "] " << read_input[pos] << ", ";
+    }
+    std::cout << std::endl;
+  }*/
 
   using std::min;
   using std::max;
@@ -229,6 +240,103 @@ B buffer_mapreduce(
           B acc = map(local_pos, input[local_pos]);
           for(size_t read = local_pos + nb_work_item; read < group_end; read += nb_work_item) {
             acc = reduce(acc, map(read, input[read]));
+          }
+          sum[local_id] = acc;
+        }
+      });
+      B acc = sum[0];
+      for(size_t local_id = 1; local_id < min(nb_work_item, group_end - group_begin); local_id++) {
+        acc = reduce(acc, sum[local_id]);
+      }
+      output[group_id] = acc;
+    });
+  });
+  q.wait_and_throw();
+  auto read_output  = output_buff.template get_access
+    <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+  
+  B acc = init;
+  for(size_t pos0 = 0; pos0 < nb_work_group; pos0++)
+  {
+    acc = reduce(acc, read_output[pos0]);
+  }
+  return acc;
+}
+
+/*
+ * Map2Reduce on a buffer
+ * */
+
+
+template <class ExecutionPolicy, class A1, class A2, class B, class Reduce, class Map>
+B buffer_map2reduce(
+    ExecutionPolicy &snp,
+    cl::sycl::queue q,
+    cl::sycl::buffer<A1, 1> input_buff1,
+    cl::sycl::buffer<A2, 1> input_buff2,
+    B init, //map is not applied on init
+    mapreduce_descriptor d, Map map, Reduce reduce) {
+
+  size_t size = d.size;
+  size_t size_per_work_group = d.size_per_work_group;
+  size_t nb_work_group = d.nb_work_group;
+  size_t nb_work_item = d.nb_work_item;
+  /*
+   * 'map' is not applied on init
+   * 'map': A -> B
+   * 'reduce': B * B -> B
+   */
+
+  if ((nb_work_item == 0) || (nb_work_group == 0)) {
+    auto read_input1 = input_buff1.template get_access
+      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+    auto read_input2 = input_buff2.template get_access
+      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+    B acc = init;
+    for(size_t pos = 0; pos < size; pos++)
+    {
+      acc = reduce(acc, map(pos, read_input1[pos], read_input2[pos]));
+    }
+    return acc;
+    //return boost::compute::reduce(b, e, init, bop);
+  }
+/*  {
+    auto read_input = input_buff.template get_access
+      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+    for(size_t pos = 0; pos < size; pos++)
+    {
+      std::cout << "[" << pos << "] " << read_input[pos] << ", ";
+    }
+    std::cout << std::endl;
+  }*/
+
+  using std::min;
+  using std::max;
+
+  cl::sycl::buffer<B, 1> output_buff = { cl::sycl::range<1> { nb_work_group } };
+
+  q.submit([&] (cl::sycl::handler &cgh) {
+    cl::sycl::nd_range<1> rng { cl::sycl::range<1>{nb_work_group * nb_work_item},
+                                cl::sycl::range<1>{nb_work_item}};
+    auto input1  = input_buff1.template get_access<cl::sycl::access::mode::read>(cgh);
+    auto input2  = input_buff2.template get_access<cl::sycl::access::mode::read>(cgh);
+    auto output = output_buff.template get_access<cl::sycl::access::mode::write>(cgh);
+    cl::sycl::accessor<B, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> sum(cl::sycl::range<1>(nb_work_item), cgh);
+    cgh.parallel_for_work_group<class workgroup>(rng, [=](cl::sycl::group<1> grp) {
+      //int sum[nb_work_item];
+      size_t group_id = grp.get(0);
+      assert(group_id < nb_work_group);
+      size_t group_begin = group_id * size_per_work_group;
+      size_t group_end   = min((group_id+1) * size_per_work_group, size);
+      assert(group_begin < group_end); //as we properly selected the number of work_group
+      grp.parallel_for_work_item([&](cl::sycl::nd_item<1> id) {
+        size_t local_id = id.get_local(0);
+        size_t local_pos = group_begin + local_id;
+        if (local_pos < group_end) {
+          //we peal the first iteration
+          B acc = map(local_pos, input1[local_pos], input2[local_pos]);
+          for(size_t read = local_pos + nb_work_item; read < group_end; read += nb_work_item) {
+            acc = reduce(acc, map(read, input1[read], input2[local_pos]));
           }
           sum[local_id] = acc;
         }

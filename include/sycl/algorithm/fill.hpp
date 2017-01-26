@@ -50,7 +50,9 @@ void fill(ExecutionPolicy &sep, ForwardIt b, ForwardIt e, const T &value) {
     auto device = q.get_device();
     size_t localRange =
         device.get_info<cl::sycl::info::device::max_work_group_size>();
-    auto bufI = sycl::helpers::make_buffer(b, e);
+    //typedef typename std::iterator_traits<ForwardIt>::value_type type_ ;
+    //cl::sycl::buffer<type_, 1> bufI { b, e };
+    auto bufI = helpers::make_buffer( b, e );
     // copy value into a local variable, as we cannot capture it by reference
     T val = value;
     auto vectorSize = bufI.get_count();

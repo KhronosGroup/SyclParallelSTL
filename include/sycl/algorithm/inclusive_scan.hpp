@@ -123,26 +123,26 @@ typedef struct mapscan_descriptor {
 } mapscan_descriptor;
 
 mapscan_descriptor compute_mapscan_descriptor(cl::sycl::device device, size_t size, size_t sizeofB) {
-  std::cout << "size=\t" << size << std::endl; 
+  //std::cout << "size=\t" << size << std::endl; 
   using std::min;
   using std::max;
   if(size == 0) return mapscan_descriptor(0, 0, 0, 0, 0);
   size_t local_mem_size = device.get_info<cl::sycl::info::device::local_mem_size>();
-  std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
+  //std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
   size_t size_per_work_group = min(size, local_mem_size / sizeofB);
-  std::cout << "size_per_work_group=\t" << size_per_work_group << std::endl;
+  //std::cout << "size_per_work_group=\t" << size_per_work_group << std::endl;
   if(size_per_work_group <= 0) {
     return mapscan_descriptor(size, 0, 0, 0, 0);
   }
   size_t nb_work_group = up_rounded_division(size, size_per_work_group);
-  std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
+  //std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
 
   size_t max_work_item  = device.get_info<cl::sycl::info::device::max_work_group_size>();
-  std::cout << "max_work_item=\t" << max_work_item << std::endl;
+  //std::cout << "max_work_item=\t" << max_work_item << std::endl;
   size_t nb_work_item = min(max_work_item, size_per_work_group);
-  std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
+  //std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
   size_t size_per_work_item = up_rounded_division(size_per_work_group, nb_work_item);
-  std::cout << "size_per_work_item=\t" << size_per_work_item << std::endl;
+  //std::cout << "size_per_work_item=\t" << size_per_work_item << std::endl;
   return mapscan_descriptor(size, size_per_work_group, size_per_work_item, nb_work_group, nb_work_item);
 }
 
@@ -170,9 +170,6 @@ void buffer_mapscan(
                                 cl::sycl::range<1>{nb_work_item}};
     auto input  = input_buffer.template get_access<cl::sycl::access::mode::read>(cgh);
     auto output = output_buffer.template get_access<cl::sycl::access::mode::write>(cgh);
-    
-    
-    std::cout << "starting STEP I: local scans" << std::endl;
 
     cgh.parallel_for_work_group<class workgroup>(rng, [=](cl::sycl::group<1> grp) {
       //assert(false);
@@ -268,17 +265,14 @@ void buffer_mapscan(
       <cl::sycl::access::mode::read_write, cl::sycl::access::target::host_buffer>();
     auto write_scan  = scan.template get_access
       <cl::sycl::access::mode::write, cl::sycl::access::target::host_buffer>();
-    //std::cout << "VEC = ["; 
     B acc = init;
     for(size_t global_pos = size_per_work_group - 1, local_pos = 0;
         local_pos < nb_work_group - 1;
         local_pos++, global_pos+=size_per_work_group){
       write_scan[local_pos] = acc;
-      //std::cout << ", " << acc;
       acc = red(acc, buff[global_pos]);
     }
     write_scan[nb_work_group - 1] = acc;
-    //std::cout << ", " << acc << "]" << std::endl;
   }
 
 
@@ -287,9 +281,6 @@ void buffer_mapscan(
     cl::sycl::nd_range<1> rng { cl::sycl::range<1>{nb_work_group * nb_work_item},
                                 cl::sycl::range<1>{nb_work_item}};
     auto buff  = output_buffer.template get_access<cl::sycl::access::mode::read_write>(cgh);
-
-    std::cout << "starting STEP III: propagate global scan on local scans" << std::endl;
-
     auto read_scan  = scan.template get_access<cl::sycl::access::mode::read>(cgh);
 
     cgh.parallel_for_work_group<class workgroup>(rng, [=](cl::sycl::group<1> grp) {
@@ -314,23 +305,8 @@ void buffer_mapscan(
 
   });
   q.wait_and_throw();
-  
-  if(0){
-    auto buff  = output_buffer.template get_access
-      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
-    auto read_scan  = scan.template get_access
-      <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
-    std::cout << "BUFF = ["; 
-    for(size_t i = 0; i < size; i++){
-      std::cout << ", " << buff[i];
-    }
-    std::cout << "]" << std::endl << "SCAN = [";
-    for(size_t i = 0; i < nb_work_group; i++){
-      std::cout << ", " << read_scan[i];
-    }
-    std::cout << "]" << std::endl;
-  }
 
+  return;
 }
 
 template <class ExecutionPolicy, class InputIterator, class OutputIterator,
@@ -343,26 +319,16 @@ OutputIterator inclusive_scan(ExecutionPolicy &snp, InputIterator b,
   auto device = q.get_device();
   size_t size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<InputIterator>::value_type;
-  //size_t size = sycl::helpers::distance(b, e);
-  std::vector<value_type> vect {b, e};
-
-  /*std::cout << "VECT = [";
-  for(auto x : vect) std::cout << ", " << x;
-  std::cout << "]" << std::endl;*/
-
   {
-    cl::sycl::buffer<value_type, 1> buffer { vect.data(), cl::sycl::range<1> {size} };
+    cl::sycl::buffer<value_type, 1> buffer { b, e };
+    buffer.set_final_data(o);
 
-    auto d = compute_mapscan_descriptor(device, vect.size(), sizeof(value_type));
+    auto d = compute_mapscan_descriptor(device, size, sizeof(value_type));
     buffer_mapscan(snp, q, buffer, buffer, init, d, [=](value_type x){return x;}, bop);
-    buffer = {};
   }
 
-  /*std::cout << "VECT = [";
-  for(auto x : vect) std::cout << ", " << x;
-  std::cout << "]" << std::endl;*/
-
-  return std::copy(vect.begin(), vect.end(), o);
+  std::advance(o, size);
+  return o;
 }
 
 #endif

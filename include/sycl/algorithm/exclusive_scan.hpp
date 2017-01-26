@@ -156,9 +156,8 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
     cl::sycl::buffer<value_type, 1> buffer { vect.data(), cl::sycl::range<1> {size-1} };
     buffer.set_final_data(vect.data()+1);
 
-    auto d = compute_mapscan_descriptor(device, vect.size(), sizeof(value_type));
+    auto d = compute_mapscan_descriptor(device, size-1, sizeof(value_type));
     buffer_mapscan(snp, q, buffer, buffer, init, d, [=](value_type x){return x;}, bop);
-    buffer = {};
   }
 
   /*std::cout << "VECT = [";

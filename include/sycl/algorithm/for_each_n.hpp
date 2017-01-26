@@ -56,14 +56,18 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
     auto device = q.get_device();
     size_t local =
         device.get_info<cl::sycl::info::device::max_work_group_size>();
-    auto bufI = sycl::helpers::make_buffer(first, last);
+    //typedef typename std::iterator_traits<InputIterator>::value_type type_ ;
+    //cl::sycl::buffer<type_, 1> bufI { first , last };
+    auto bufI = helpers::make_buffer( first, last);
     auto vectorSize = bufI.get_count();
     size_t global = exec.calculateGlobalSize(vectorSize, local);
     auto cg = [vectorSize, local, global, &bufI, f](
         cl::sycl::handler &h) mutable {
       cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
                               cl::sycl::range<1>{local}};
+      std::cerr << "plop [0]" << std::endl;
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
+      std::cerr << "plop [1]" << std::endl;
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           r, [vectorSize, aI, f](cl::sycl::nd_item<1> id) {
             if (id.get_global(0) < vectorSize) {
@@ -72,6 +76,7 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
           });
     };
     q.submit(cg);
+    q.wait();
     return last;
   } else {
     return first;

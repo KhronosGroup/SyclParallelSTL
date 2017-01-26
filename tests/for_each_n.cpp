@@ -76,21 +76,23 @@ TEST_F(ForEachNAlgorithm, TestStd3ForEachN) {
 }
 
 TEST_F(ForEachNAlgorithm, TestSyclForEachN) {
-  std::vector<int> v = {2, 1, 3, 4, 8};
+  std::vector<int> v      = {2, 1, 3, 4, 8};
   std::vector<int> result = {3, 2, 4, 5, 7};
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ForEachNAlgorithm> snp(q);
   int threshold = 5;
   int adder = 1;
-  for_each_n(snp, v.begin(), v.size(), [=](int &val) {
+  auto iterator = for_each_n(snp, v.begin(), v.size(), [=](int &val) {
     if (val > threshold) {
-      val = val - adder;
+      val -= adder;
     } else {
-      val = val + adder;
+      val += adder;
     }
+    std::cout << val << std::endl;
   });
-#if PRINT_OUTPUT
+//#if PRINT_OUTPUT
+#if 1
   std::cout << " Elements " << std::endl;
   std::for_each(v.begin(), v.end(),
                 [=](int elem) { std::cout << elem << std::endl; });

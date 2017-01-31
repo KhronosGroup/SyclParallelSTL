@@ -10,6 +10,7 @@ message(STATUS " Path to CMAKE source directory: ${CMAKE_SOURCE_DIR} ")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 
 if (USE_COMPUTECPP)
+
 	message(STATUS " Using ComputeCpp CMake")
 
 	message(STATUS " Path to ComputeCpp implementation: ${COMPUTECPP_PACKAGE_ROOT_DIR} ")
@@ -48,7 +49,7 @@ else()
 endif()
 
 
-# PSTL specific 
+# PSTL specific
 include_directories("include")
 
 add_subdirectory (src)

@@ -218,7 +218,7 @@ struct benchmark {
     const unsigned NUM_REPS = REPS;                                           \
     const unsigned STEP_SIZE = STEP_SIZE_PARAM;                               \
     const unsigned MAX_ELEMS = STEP_SIZE * (NUM_STEPS);                       \
-    for (int nelems = STEP_SIZE; nelems < MAX_ELEMS; nelems *= STEP_SIZE) {   \
+    for (size_t nelems = STEP_SIZE; nelems < MAX_ELEMS; nelems *= STEP_SIZE) {   \
       const std::string short_name = NAME;                                    \
       auto time = FUNCTION(NUM_REPS, nelems, cds);                            \
       benchmark<>::output_data(short_name, nelems, time, ba.requestedOutput); \

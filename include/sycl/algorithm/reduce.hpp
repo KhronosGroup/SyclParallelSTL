@@ -96,7 +96,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
   q.wait_and_throw();
   auto hI = bufI.template get_access<cl::sycl::access::mode::read,
                                      cl::sycl::access::target::host_buffer>();
-  return bop(hI[0],  init);
+  return bop(hI[0], init);
 }
 #else
 size_t up_rounded_division(size_t x, size_t y){

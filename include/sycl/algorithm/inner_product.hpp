@@ -129,8 +129,6 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
         h.parallel_for<typename ExecutionPolicy::kernelName>(
             r, [a1, a2, aR, scratch, length, local, passes, op1, op2](
                    cl::sycl::nd_item<1> id) {
-              size_t globalid = id.get_global(0);
-              size_t localid = id.get_local(0);
               auto r = ReductionStrategy<T>(local, length, id, scratch);
               if (passes == 0) {
                 r.workitem_get_from(op2, a1, a2);

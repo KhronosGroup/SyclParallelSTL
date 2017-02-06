@@ -43,7 +43,7 @@ namespace impl {
  * Implementation of the command group that submits a fill kernel.
  * The kernel is implemented as a lambda.
  */
-template <class ExecutionPolicy, class ForwardIt, class T>
+template <typename ExecutionPolicy, typename ForwardIt, typename T>
 void fill(ExecutionPolicy &sep, ForwardIt b, ForwardIt e, const T &value) {
   cl::sycl::queue q = sep.get_queue();
   auto device = q.get_device();

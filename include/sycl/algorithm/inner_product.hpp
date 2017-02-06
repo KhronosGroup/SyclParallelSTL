@@ -170,11 +170,12 @@ template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
 T inner_product(ExecutionPolicy &snp, InputIt1 first1, InputIt1 last1,
                 InputIt2 first2, T value, BinaryOperation1 op1,
                 BinaryOperation2 op2) {
-  
+
   cl::sycl::queue q(snp.get_queue());
   auto device = q.get_device();
   auto size = sycl::helpers::distance(first1, last1);
-  if(size <= 0) return value;
+  if (size <= 0)
+    return value;
   InputIt2 last2 = first2;
   std::advance(last2, size);
 
@@ -182,14 +183,20 @@ T inner_product(ExecutionPolicy &snp, InputIt1 first1, InputIt1 last1,
   using value_type_2 = typename std::iterator_traits<InputIt2>::value_type;
 
 
-  mapreduce_descriptor d = compute_mapreduce_descriptor(device, size, sizeof(value_type_1)+sizeof(value_type_2));
+  mapreduce_descriptor d =
+    compute_mapreduce_descriptor(device,
+                                 size,
+                                 sizeof(value_type_1)+sizeof(value_type_2));
 
   auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
   auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);
 
-  auto map = [=](size_t pos, value_type_1 x, value_type_2 y) {return op2(x, y);};
+  auto map = [=](size_t pos, value_type_1 x, value_type_2 y) {
+    return op2(x, y);
+  };
 
-  return buffer_map2reduce( snp, q, input_buff1, input_buff2, value, d, map, op1 );
+  return buffer_map2reduce(snp, q, input_buff1, input_buff2,
+                           value, d, map, op1 );
 }
 
 

@@ -107,8 +107,8 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
 
 #else
 
-template <class ExecutionPolicy, class InputIt, class UnaryOperation,
-          class BinaryOperation>
+template <typename ExecutionPolicy, typename InputIt, typename UnaryOperation,
+          typename BinaryOperation>
 typename std::iterator_traits<InputIt>::difference_type count_if(
     ExecutionPolicy& snp, InputIt b, InputIt e,
     UnaryOperation unary_op, BinaryOperation binary_op) {
@@ -122,7 +122,8 @@ typename std::iterator_traits<InputIt>::difference_type count_if(
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
 
-  mapreduce_descriptor d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+  mapreduce_descriptor d =
+    compute_mapreduce_descriptor(device, size, sizeof(size_t));
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 

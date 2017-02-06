@@ -61,7 +61,7 @@ function mak  {
 function tst {
   pushd build/tests
   ctest #-j$NPROC
-  popd 
+  popd
 }
 
 function main {

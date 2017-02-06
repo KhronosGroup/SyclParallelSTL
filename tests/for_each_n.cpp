@@ -76,7 +76,7 @@ TEST_F(ForEachNAlgorithm, TestStd3ForEachN) {
 }
 
 TEST_F(ForEachNAlgorithm, TestSyclForEachN) {
-  std::vector<int> v      = {2, 1, 3, 4, 8};
+  std::vector<int> v = {2, 1, 3, 4, 8};
   std::vector<int> result = {3, 2, 4, 5, 7};
 
   cl::sycl::queue q;

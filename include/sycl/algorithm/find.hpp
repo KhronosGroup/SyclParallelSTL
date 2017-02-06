@@ -166,11 +166,10 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
 
 #else
 
-template <class ExecutionPolicy, class InputIt, class UnaryPredicate>
+template <typename ExecutionPolicy, typename InputIt, typename UnaryPredicate>
 InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
                   UnaryPredicate p) {
 
-  
   auto size = sycl::helpers::distance(b, e);
   if(size <= 0) return e;
 
@@ -178,7 +177,8 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
-  mapreduce_descriptor d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+  mapreduce_descriptor d =
+    compute_mapreduce_descriptor(device, size, sizeof(size_t));
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 

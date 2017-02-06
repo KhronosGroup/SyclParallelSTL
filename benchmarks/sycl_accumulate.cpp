@@ -40,7 +40,7 @@
 
 using namespace sycl::helpers;
 
-size_t up_rounded_division(size_t x, size_t y){
+size_t up_rounded_division(size_t x, size_t y) {
   //return x / y + ((x % y == 0) ? 0 : 1);
   return (x+(y-1)) / y;
 }
@@ -60,7 +60,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
   }
   //std::cout << "}" << std::endl;
 
-  cl::sycl::queue q(cds);
+  cl::sycl::queue q { cds };
 
   auto device = q.get_device();
   
@@ -74,7 +74,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
   auto accumulate = [&]() {
     using std::min;
     using std::max;
-    if(size == 0) return init;
+    if (size == 0) return init;
     /* Here we have a heuristic which compute appropriate values for the number of
      * work items and work groups, this heuristic ensure that:
      *  - there is less work group than max_compute_units
@@ -98,7 +98,7 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
      */
     if (nb_work_item == 0) {
       T acc = init;
-      for(size_t i = 0; i < size; i++) {
+      for (size_t i = 0; i < size; i++) {
         acc = bop(acc, vect[i]);
       }
       return acc;
@@ -153,26 +153,30 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
           if (local_pos < group_end) {
             //we peal the first iteration
             T acc = input[local_pos];
-            for(size_t read = local_pos + nb_work_item; read < group_end; read += nb_work_item) {
+            for (size_t read = local_pos + nb_work_item; read < group_end; read += nb_work_item) {
               acc = bop(acc, input[read]);
             }
             sum[local_id] = acc;
           }
         });
         T acc = sum[0];
-        for(size_t local_id = 1; local_id < min(nb_work_item, group_end - group_begin); local_id++) {
+        for (size_t local_id = 1; local_id < min(nb_work_item, group_end - group_begin); local_id++) {
           acc = bop(acc, sum[local_id]);
         }
         output[group_id] = acc;
       });
     });
-    q.wait_and_throw();
     auto read_output  = output_buff.template get_access
       <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
-    
+
+    /* TODO: replace this reduction step by a recursive call this kernel
+        NB: as the only differences are kernel's parameters, maybe we could
+        avoid transmitting the kernel again and just re-execute it with
+        different parameters.
+     */
+
     int acc = 0;
-    for(size_t pos0 = 0; pos0 < nb_work_group; pos0++)
-    {
+    for (size_t pos0 = 0; pos0 < nb_work_group; pos0++) {
       acc = bop(acc, read_output[pos0]);
     }
     return acc;
@@ -192,4 +196,4 @@ benchmark<>::time_units_t benchmark_reduce( const unsigned numReps,
   return time;
 }
 
-BENCHMARK_MAIN("BENCH_REDUCE", benchmark_reduce, 2, 65536, 1);
+BENCHMARK_MAIN("BENCH_REDUCE":, benchmark_reduce, 2, 65536, 1);

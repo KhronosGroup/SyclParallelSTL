@@ -87,6 +87,7 @@ make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
   cl::sycl::buffer<type_, 1> buf(up, cl::sycl::range<1>(bufferSize));
   buf.set_final_data(up);*/
   cl::sycl::buffer<type_, 1> buf {b, e};
+  buf.set_final_data(b);
   return buf;
 }
 

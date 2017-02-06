@@ -257,7 +257,6 @@ void buffer_mapscan(
 
     });
   });
-  q.wait_and_throw();
 
   //STEP II: global scan
   {
@@ -304,7 +303,6 @@ void buffer_mapscan(
     });
 
   });
-  q.wait_and_throw();
 
   return;
 }

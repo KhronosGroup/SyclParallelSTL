@@ -4,14 +4,14 @@
 #   ./build.sh "path/to/ComputeCpp" (this path can be relative)
 #
 # for example:
-#	  ./build.sh /home/user/ComputeCpp
+#   ./build.sh /home/user/ComputeCpp
 
 #
 # How to use build.sh to compile SyclParallelSTL with triSYCL ?
-# ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include]
+#   ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include]
 #
 # for example (Ubuntu 16.04):
-#  ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include
+#   ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include
 #
 #
 
@@ -60,7 +60,7 @@ function mak  {
 
 function tst {
   pushd build/tests
-  ctest -j$NPROC
+  ctest #-j$NPROC
   popd 
 }
 

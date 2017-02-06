@@ -34,9 +34,9 @@
 #include <fstream>
 
 #include <experimental/algorithm>
+#include "CL/sycl.hpp"
 #include <sycl/execution_policy>
 
-#include "CL/sycl.hpp"
 #include "benchmark.h"
 
 using namespace sycl::helpers;

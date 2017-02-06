@@ -146,25 +146,21 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
   size_t size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<InputIterator>::value_type;
   //size_t size = sycl::helpers::distance(b, e);
-  std::vector<value_type> vect {b, e};
+  std::vector<value_type> vect { b, e };
 
-  /*std::cout << "VECT = [";
-  for(auto x : vect) std::cout << ", " << x;
-  std::cout << "]" << std::endl;*/
+  *o++ = init;
 
   {
-    cl::sycl::buffer<value_type, 1> buffer { vect.data(), cl::sycl::range<1> {size-1} };
-    buffer.set_final_data(vect.data()+1);
+    cl::sycl::buffer<value_type, 1> buffer { vect.data(), size - 1 };
+    //buffer.set_final_data(vect.data()+1);
+    buffer.set_final_data(o);
 
-    auto d = compute_mapscan_descriptor(device, size-1, sizeof(value_type));
-    buffer_mapscan(snp, q, buffer, buffer, init, d, [=](value_type x){return x;}, bop);
+    auto d = compute_mapscan_descriptor(device, size - 1, sizeof(value_type));
+    buffer_mapscan(snp, q, buffer, buffer, init, d, [](value_type x) { return x; }, bop);
   }
 
-  /*std::cout << "VECT = [";
-  for(auto x : vect) std::cout << ", " << x;
-  std::cout << "]" << std::endl;*/
-  vect[0] = init;
-  return std::copy(vect.begin(), vect.end(), o);
+  std::advance(o, size - 1);
+  return o;
 }
 
 #endif

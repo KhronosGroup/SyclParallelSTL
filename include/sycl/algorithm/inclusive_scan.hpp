@@ -112,15 +112,20 @@ OutputIterator inclusive_scan(ExecutionPolicy &sep, InputIterator b,
 #else
 
 
-typedef struct mapscan_descriptor {
-  size_t size, size_per_work_group, size_per_work_item, nb_work_group, nb_work_item;
-  mapscan_descriptor(size_t size_, size_t size_per_work_group_ , size_t size_per_work_item_, size_t nb_work_group_, size_t nb_work_item_):
+struct mapscan_descriptor {
+  size_t size, size_per_work_group, size_per_work_item,
+    nb_work_group, nb_work_item;
+  mapscan_descriptor(size_t size_,
+                     size_t size_per_work_group_,
+                     size_t size_per_work_item_,
+                     size_t nb_work_group_,
+                     size_t nb_work_item_):
     size(size_),
     size_per_work_group(size_per_work_group_),
     size_per_work_item(size_per_work_item_),
     nb_work_group(nb_work_group_),
     nb_work_item(nb_work_item_) {}
-} mapscan_descriptor;
+};
 
 mapscan_descriptor compute_mapscan_descriptor(cl::sycl::device device, size_t size, size_t sizeofB) {
   //std::cout << "size=\t" << size << std::endl; 

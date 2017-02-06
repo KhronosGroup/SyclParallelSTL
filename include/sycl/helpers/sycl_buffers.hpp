@@ -105,7 +105,7 @@ template <typename Iterator,
               !std::is_base_of<SyclIterator, Iterator>::value>::type* = nullptr>
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
-  typedef typename std::iterator_traits<Iterator>::value_type type_;
+  using type_= typename std::iterator_traits<Iterator>::value_type;
   /*size_t bufferSize = std::distance(b, e);
   std::unique_ptr<type_> up{new type_[bufferSize]};
   std::copy(b, e, up.get());

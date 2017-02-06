@@ -103,14 +103,14 @@ size_t up_rounded_division(size_t x, size_t y){
   return (x+(y-1)) / y;
 }
 
-typedef struct mapreduce_descriptor{
+struct mapreduce_descriptor {
   size_t size, size_per_work_group, nb_work_group, nb_work_item;
   mapreduce_descriptor(size_t size_, size_t size_per_work_group_, size_t nb_work_group_, size_t nb_work_item_ ):
     size(size_),
     size_per_work_group(size_per_work_group_),
     nb_work_group(nb_work_group_),
     nb_work_item(nb_work_item_) {}
-} mapreduce_descriptor;
+};
 
 /*
  * Compute a valid set of parameters for buffer_mapreduce algorithm to work properly

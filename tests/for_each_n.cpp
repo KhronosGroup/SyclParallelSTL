@@ -91,8 +91,7 @@ TEST_F(ForEachNAlgorithm, TestSyclForEachN) {
     }
     std::cout << val << std::endl;
   });
-//#if PRINT_OUTPUT
-#if 1
+#if PRINT_OUTPUT
   std::cout << " Elements " << std::endl;
   std::for_each(v.begin(), v.end(),
                 [=](int elem) { std::cout << elem << std::endl; });

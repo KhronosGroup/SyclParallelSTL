@@ -323,7 +323,6 @@ benchmark_inclusive_scan(const unsigned numReps,
     for (size_t i = 0; i < result.size(); i++) {
       assert(result[i] == read_output[i]);
     }
-    std::cout << "LOL, it worked !?" << std::endl;
 
   };
 

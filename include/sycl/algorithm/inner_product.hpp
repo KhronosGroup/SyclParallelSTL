@@ -151,15 +151,6 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
 }
 
 #else
-/*
-  sddtd::vector<value_type> vect {b, e}
-  boost::make_zip_iterator(
-          boost::make_tuple(beg1, beg2)
-              ),
-    boost::make_zip_iterator(
-            boost::make_tuple(end1, end2)
-                ),;
-*/
 
 /*
  * Inner Product Algorithm

@@ -139,16 +139,16 @@ mapreduce_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
    */
   size_t max_work_group =
     device.get_info<cl::sycl::info::device::max_compute_units>();
-  std::cout << "max_work_group=\t" << max_work_group << std::endl;
+  //std::cout << "max_work_group=\t" << max_work_group << std::endl;
   //maximal number of work item per work group
   size_t max_work_item =
     device.get_info<cl::sycl::info::device::max_work_group_size>();
-  std::cout << "max_work_item=\t" << max_work_item << std::endl;
+  //std::cout << "max_work_item=\t" << max_work_item << std::endl;
   size_t local_mem_size =
     device.get_info<cl::sycl::info::device::local_mem_size>();
-  std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
+  //std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
   size_t nb_work_item = min(max_work_item, local_mem_size / sizeofB);
-  std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
+  //std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
 
   /* (nb_work_item == 0) iff (sizeof(T) > local_mem_size)
    * If sizeof(T) > local_mem_size, this means that an object
@@ -160,21 +160,21 @@ mapreduce_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
   // we ensure that each work_item of every work_group is used at least once
   size_t nb_work_group = min(max_work_group,
                              up_rounded_division(size, nb_work_item));
-  std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
+  //std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
   assert(nb_work_group >= 1);
 
   //number of elements manipulated by each work_item
   size_t size_per_work_item =
     up_rounded_division(size, nb_work_item * nb_work_group);
-  std::cout << "size_per_work_item=\t" << size_per_work_item << std::endl;
+  //std::cout << "size_per_work_item=\t" << size_per_work_item << std::endl;
   //number of elements manipulated by each work_group (except the last one)
   size_t size_per_work_group = size_per_work_item * nb_work_item;
-  std::cout << "size_per_work_group=\t" << size_per_work_group << std::endl;
+  //std::cout << "size_per_work_group=\t" << size_per_work_group << std::endl;
 
   nb_work_group = max(static_cast<size_t>(1),
                       up_rounded_division(size, size_per_work_group));
-  std::cout << "nb_work_group=\t" << nb_work_group
-            << " (updated)" << std::endl;
+  //std::cout << "nb_work_group=\t" << nb_work_group
+  //          << " (updated)" << std::endl;
   assert(nb_work_group >= 1);
 
   assert(size_per_work_group * (nb_work_group - 1) < size);
@@ -183,7 +183,7 @@ mapreduce_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
    * n.b. if the value is 0, the last work_group is regular
    */
   size_t size_last_work_group = size % size_per_work_group;
-  std::cout << "size_last_work_group=" << size_last_work_group << std::endl;
+  //std::cout << "size_last_work_group=" << size_last_work_group << std::endl;
 
   size_t size_per_work_item_last = up_rounded_division(size_last_work_group,
                                                        nb_work_item);

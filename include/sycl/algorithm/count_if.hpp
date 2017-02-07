@@ -53,7 +53,6 @@ template <class ExecutionPolicy, class InputIterator, class UnaryOperation,
 typename std::iterator_traits<InputIterator>::difference_type count_if(
     ExecutionPolicy& exec, InputIterator first, InputIterator last,
     UnaryOperation unary_op, BinaryOperation binary_op) {
-
   cl::sycl::queue q(exec.get_queue());
   auto vectorSize = sycl::helpers::distance(first, last);
   typename std::iterator_traits<InputIterator>::difference_type ret = 0;

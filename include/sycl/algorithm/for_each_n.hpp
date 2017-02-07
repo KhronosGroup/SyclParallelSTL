@@ -56,7 +56,7 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
     auto device = q.get_device();
     size_t local =
         device.get_info<cl::sycl::info::device::max_work_group_size>();
-    auto bufI = helpers::make_buffer(first, last);
+    auto bufI = sycl::helpers::make_buffer(first, last);
     auto vectorSize = bufI.get_count();
     size_t global = exec.calculateGlobalSize(vectorSize, local);
     auto cg = [vectorSize, local, global, &bufI, f](

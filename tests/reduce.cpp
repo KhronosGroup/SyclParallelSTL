@@ -40,7 +40,6 @@ class ReduceAlgorithm : public testing::Test {
 
 TEST_F(ReduceAlgorithm, TestSyclReduce) {
   std::vector<int> v = {2, 1, 3, 5, 3, 4, 1, 3};
-  //std::vector<int> result = {22};
   int result = 22;
 
   cl::sycl::queue q;

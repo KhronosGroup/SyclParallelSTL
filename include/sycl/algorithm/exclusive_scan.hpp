@@ -135,8 +135,11 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
 #else
 
 
-template <class ExecutionPolicy, class InputIterator, class OutputIterator,
-          class T, class BinaryOperation>
+template <typename ExecutionPolicy,
+          typename InputIterator,
+          typename OutputIterator,
+          typename T,
+          typename BinaryOperation>
 OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
                               InputIterator e, OutputIterator o, T init,
                               BinaryOperation bop) {
@@ -156,7 +159,9 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
     buffer.set_final_data(o);
 
     auto d = compute_mapscan_descriptor(device, size - 1, sizeof(value_type));
-    buffer_mapscan(snp, q, buffer, buffer, init, d, [](value_type x) { return x; }, bop);
+    buffer_mapscan(snp, q, buffer, buffer, init, d,
+                   [](value_type x) { return x; },
+                   bop);
   }
 
   std::advance(o, size - 1);

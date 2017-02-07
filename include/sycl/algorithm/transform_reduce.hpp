@@ -116,7 +116,7 @@ T transform_reduce(ExecutionPolicy& snp, InputIt b,
   auto size = sycl::helpers::distance(b, e);
   if(size <= 0) return init;
 
-  cl::sycl::queue q(snp.get_queue());
+  cl::sycl::queue q = snp.get_queue();
   auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 

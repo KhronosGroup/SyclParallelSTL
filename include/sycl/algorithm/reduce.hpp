@@ -67,9 +67,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
                vectorSize);
 
   typedef typename std::iterator_traits<Iterator>::value_type type_;
-  //auto bufI = sycl::helpers::make_const_buffer(b, e);
-  cl::sycl::buffer<type_, 1> bufI { b, e };
-  bufI.set_final_data(nullptr);
+  auto bufI = sycl::helpers::make_const_buffer(b, e);
   size_t length = vectorSize;
   size_t global = sep.calculateGlobalSize(length, local);
 

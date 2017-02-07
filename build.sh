@@ -60,8 +60,8 @@ function mak  {
 
 function tst {
   pushd build/tests
-  ctest #-j$NPROC
-  popd 
+  ctest -j$NPROC
+  popd
 }
 
 function main {

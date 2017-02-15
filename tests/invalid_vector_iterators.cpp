@@ -68,7 +68,7 @@ TEST_F(InvalidIterators, TestReduce3) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class TestReduce3> snp(q);
   int res;
-  ASSERT_NO_THROW({ res = reduce(snp, v.rbegin(), v.rend(), 0, std::plus<int>()); });
+  ASSERT_NO_THROW({ res = reduce(snp, v.rbegin(), v.rend()); });
   std::cout << "res = " << res << std::endl;
   EXPECT_TRUE(res == result[0]);
 }

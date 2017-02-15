@@ -48,7 +48,7 @@ namespace impl {
 * that submits a transform_reduce kernel.
 */
 
-#if 0
+#ifdef __COMPUTECPP__
 
 template <class ExecutionPolicy, class InputIterator, class UnaryOperation,
           class T, class BinaryOperation>

@@ -43,7 +43,7 @@
 namespace sycl {
 namespace impl {
 
-#if 0
+#ifdef __COMPUTECPP__
 
 // a struct to store the result of a predicate comparison, and an index
 // we have to declare this here instead of in the function so that the sycl
@@ -171,7 +171,9 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
                   UnaryPredicate p) {
 
   auto size = sycl::helpers::distance(b, e);
-  if(size <= 0) return e;
+  if (size <= 0) {
+    return e;
+  }
 
   cl::sycl::queue q(snp.get_queue());
   auto device = q.get_device();
@@ -185,15 +187,17 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   auto map = [=](size_t pos, value_type x) {
     return (p(x)) ? pos : size;
   };
-  auto red = [=](size_t x, size_t y){return std::min(x, y);};
+
+  auto red = [=](size_t x, size_t y){
+    return std::min(x, y);
+  };
 
   size_t pos = buffer_mapreduce( snp, q, input_buff, size, d, map, red );
 
-  if (pos==size) {return e;}
-  else {
-    auto itr = b;
-    std::advance(itr, pos);
-    return itr;
+  if (pos==size) {
+    return e;
+  } else {
+    return std::next(b, pos);
   }
 }
 #endif

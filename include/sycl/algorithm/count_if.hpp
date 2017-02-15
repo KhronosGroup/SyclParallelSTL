@@ -41,7 +41,7 @@
 namespace sycl {
 namespace impl {
 
-#if 0
+#ifdef __COMPUTECPP__
 
 /* count_if.
 * @brief Returns the count_if of one vector across the range [first,

@@ -72,7 +72,6 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
           });
     };
     q.submit(cg);
-    q.wait();
     return last;
   } else {
     return first;

@@ -149,10 +149,6 @@ TEST_F(InnerProductAlgorithm, TestSycl7InnerProduct) {
   int n_elems = 4096;
   std::vector<int> v1 (n_elems, 1);
   std::vector<int> v2 (n_elems, 2);
-  /*for (int i = 0; i < n_elems; i++) {
-    v1.push_back(1);
-    v2.push_back(2);
-  }*/
   int value = 0;
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class SYCL7InnerProductAlgorithm> snp(q);

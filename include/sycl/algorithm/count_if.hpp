@@ -37,6 +37,7 @@
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 
 namespace sycl {
 namespace impl {
@@ -121,8 +122,7 @@ typename std::iterator_traits<InputIt>::difference_type count_if(
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
 
-  mapreduce_descriptor d =
-    compute_mapreduce_descriptor(device, size, sizeof(size_t));
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 

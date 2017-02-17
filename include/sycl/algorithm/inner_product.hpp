@@ -34,9 +34,8 @@
 #include <iostream>
 
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
-#include <sycl/algorithm/reduce.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
-#include <boost/iterator/zip_iterator.hpp>
 
 namespace sycl {
 namespace impl {
@@ -167,17 +166,14 @@ T inner_product(ExecutionPolicy &snp, InputIt1 first1, InputIt1 last1,
   auto size = sycl::helpers::distance(first1, last1);
   if (size <= 0)
     return value;
-  InputIt2 last2 = first2;
-  std::advance(last2, size);
+  InputIt2 last2 = std::next(first2, size);
 
   using value_type_1 = typename std::iterator_traits<InputIt1>::value_type;
   using value_type_2 = typename std::iterator_traits<InputIt2>::value_type;
 
 
-  mapreduce_descriptor d =
-    compute_mapreduce_descriptor(device,
-                                 size,
-                                 sizeof(value_type_1)+sizeof(value_type_2));
+  auto d = compute_mapreduce_descriptor(
+      device, size, sizeof(value_type_1)+sizeof(value_type_2));
 
   auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
   auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);

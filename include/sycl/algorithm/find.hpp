@@ -38,7 +38,7 @@
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_namegen.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
-#include <sycl/algorithm/reduce.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 
 namespace sycl {
 namespace impl {
@@ -179,8 +179,7 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
-  mapreduce_descriptor d =
-    compute_mapreduce_descriptor(device, size, sizeof(size_t));
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 

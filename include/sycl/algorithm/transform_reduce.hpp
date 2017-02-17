@@ -123,8 +123,7 @@ T transform_reduce(ExecutionPolicy& snp, InputIt b,
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
 
-  mapreduce_descriptor d =
-    compute_mapreduce_descriptor(device, size, sizeof(value_type));
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(value_type));
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 

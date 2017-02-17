@@ -31,7 +31,6 @@
 
 #include <type_traits>
 #include <algorithm>
-#include <iostream>
 
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
 #include <sycl/algorithm/buffer_algorithms.hpp>

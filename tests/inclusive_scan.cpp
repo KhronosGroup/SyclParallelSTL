@@ -162,7 +162,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo1) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, plus<int>());
+  inclusive_scan_gold(gold, 0, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOT1> snp(q);

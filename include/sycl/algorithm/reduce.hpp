@@ -125,7 +125,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 
-  auto map = [=](size_t pos, value_type x) { return x; };
+  auto map = [](size_t, value_type x) { return x; };
 
   return buffer_mapreduce(snp, q, input_buff, init, d, map, bop);
 }

@@ -195,12 +195,12 @@ B buffer_mapreduce(ExecutionPolicy &snp,
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
     cgh.parallel_for_work_group<class wg>(rng, [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
-      assert(group_id < d.nb_work_group);
+      //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
       size_t group_end   = min((group_id+1) * d.size_per_work_group, d.size);
-      assert(group_begin < group_end); //< as we properly selected the
+      //assert(group_begin < group_end); //< as we properly selected the
                                        //  number of work_group
-      grp.parallel_for_work_item([&](cl::sycl::item<1> id) {
+      parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
         size_t local_id = id.get(0) % d.nb_work_item;
         size_t local_pos = group_begin + local_id;
         if (local_pos < group_end) {
@@ -223,7 +223,6 @@ B buffer_mapreduce(ExecutionPolicy &snp,
       output[group_id] = acc;
     });
   });
-  q.wait_and_throw();
   auto read_output  = output_buff.template get_access
     <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
 
@@ -319,7 +318,6 @@ B buffer_map2reduce(ExecutionPolicy &snp,
       output[group_id] = acc;
     });
   });
-  q.wait_and_throw();
   auto read_output  = output_buff.template get_access
     <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
 
@@ -403,8 +401,8 @@ void buffer_mapscan(ExecutionPolicy &snp,
       size_t group_begin = group_id * d.size_per_work_group;
       size_t group_end   = min((group_id+1) * d.size_per_work_group, d.size);
       size_t local_size = group_end - group_begin;
-      assert(group_begin < group_end); //  as we properly selected the
-                                       //  number of work_group
+      //assert(group_begin < group_end); //  as we properly selected the
+                                         //  number of work_group
 
       // Step 0:
       // each work_item copy a piece of data
@@ -415,7 +413,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
         // lpos: position in the local vector
         for (size_t gpos = group_begin + local_id, lpos = local_id;
             gpos < group_end;
-            gpos+=d.nb_work_item, lpos+=d.nb_work_item) {
+            gpos += d.nb_work_item, lpos += d.nb_work_item) {
           scratch[lpos] = map(input[gpos]);
         }
       });
@@ -496,7 +494,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
     B acc = init;
     for (size_t global_pos = d.size_per_work_group - 1, local_pos = 0;
         local_pos < d.nb_work_group - 1;
-        local_pos++, global_pos+=d.size_per_work_group) {
+        local_pos++, global_pos += d.size_per_work_group) {
       write_scan[local_pos] = acc;
       acc = red(acc, buff[global_pos]);
     }

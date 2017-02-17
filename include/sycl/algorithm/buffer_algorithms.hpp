@@ -126,11 +126,11 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
   /* number of elements manipulated by the last work_group
    * n.b. if the value is 0, the last work_group is regular
    */
-  size_t size_last_work_group = size % size_per_work_group;
+  /*size_t size_last_work_group = size % size_per_work_group;*/
   //std::cout << "size_last_work_group=" << size_last_work_group << std::endl;
 
-  size_t size_per_work_item_last = up_rounded_division(size_last_work_group,
-                                                       nb_work_item);
+  /*size_t size_per_work_item_last = up_rounded_division(size_last_work_group,
+                                                       nb_work_item);*/
 
   return sycl_algorithm_descriptor {
     size,
@@ -295,7 +295,7 @@ B buffer_map2reduce(ExecutionPolicy &snp,
       size_t group_end = min((group_id+1) * d.size_per_work_group, d.size);
       //assert(group_begin < group_end); // as we properly selected the
                                          // number of work_group
-      grp.parallel_for_work_item([&](cl::sycl::item<1> id) {
+      parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
         size_t local_id = id.get(0) % d.nb_work_item;
         size_t local_pos = group_begin + local_id;
         if (local_pos < group_end) {

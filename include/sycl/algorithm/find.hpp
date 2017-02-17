@@ -183,12 +183,12 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 
-  auto map = [=](size_t pos, value_type x) {
+  auto map = [&](size_t pos, value_type x) {
     return (p(x)) ? pos : size;
   };
 
-  auto red = [=](size_t x, size_t y){
-    return std::min(x, y);
+  auto red = [](size_t x, size_t y){
+    return (y < x) ? y : x;
   };
 
   size_t pos = buffer_mapreduce( snp, q, input_buff, size, d, map, red );

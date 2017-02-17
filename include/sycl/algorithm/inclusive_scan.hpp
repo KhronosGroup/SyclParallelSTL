@@ -127,7 +127,7 @@ OutputIterator inclusive_scan(ExecutionPolicy &snp, InputIterator b,
 
     auto d = compute_mapscan_descriptor(device, size, sizeof(value_type));
     buffer_mapscan(snp, q, buffer, buffer, init, d,
-                   [=](value_type x) { return x; },
+                   [](value_type x) { return x; },
                    bop);
   }
 

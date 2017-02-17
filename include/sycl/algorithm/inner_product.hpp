@@ -177,7 +177,7 @@ T inner_product(ExecutionPolicy &snp, InputIt1 first1, InputIt1 last1,
   auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
   auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);
 
-  auto map = [=](size_t pos, value_type_1 x, value_type_2 y) {
+  auto map = [&](size_t pos, value_type_1 x, value_type_2 y) {
     return op2(x, y);
   };
 

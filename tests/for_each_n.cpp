@@ -60,7 +60,7 @@ TEST_F(ForEachNAlgorithm, TestStd2ForEachN) {
 
   auto iterator1 = for_each_n(v.begin(), v.size(), [=](int &val) { val--; });
 
-  auto iterator2 = for_each_n(v.begin(), v.size(), [=](int &val) { val += 2; });
+  for_each_n(v.begin(), v.size(), [=](int &val) { val += 2; });
 
   EXPECT_TRUE(v.end() == iterator1);
 }
@@ -83,13 +83,12 @@ TEST_F(ForEachNAlgorithm, TestSyclForEachN) {
   sycl::sycl_execution_policy<class ForEachNAlgorithm> snp(q);
   int threshold = 5;
   int adder = 1;
-  auto iterator = for_each_n(snp, v.begin(), v.size(), [=](int &val) {
+  for_each_n(snp, v.begin(), v.size(), [=](int &val) {
     if (val > threshold) {
       val -= adder;
     } else {
       val += adder;
     }
-    std::cout << val << std::endl;
   });
 #if PRINT_OUTPUT
   std::cout << " Elements " << std::endl;
@@ -102,7 +101,7 @@ TEST_F(ForEachNAlgorithm, TestSyclForEachN) {
 
 TEST_F(ForEachNAlgorithm, TestSycl2ForEachN) {
   std::array<int, 5> v = {2, 1, 3, 4, 8};
-  std::array<int, 5> result = {3, 2, 4, 5, 9};
+  //std::array<int, 5> result = {3, 2, 4, 5, 9};
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ForEachN2Algorithm> snp(q);

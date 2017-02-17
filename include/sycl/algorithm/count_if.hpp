@@ -126,7 +126,7 @@ typename std::iterator_traits<InputIt>::difference_type count_if(
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 
-  auto map = [=](size_t pos, value_type x) {
+  auto map = [&](size_t pos, value_type x) {
     return (unary_op(x)) ? 1 : 0;
   };
 

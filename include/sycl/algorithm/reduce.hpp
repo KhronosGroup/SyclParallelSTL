@@ -85,7 +85,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
           scratch(cl::sycl::range<1>(local), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, scratch, local, length, bop](cl::sycl::item<1> id) {
+          r, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<T>(local, length, id, scratch);
             r.workitem_get_from(aI);
             r.combine_threads(bop);

@@ -176,7 +176,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo2) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, plus<int>());
+  inclusive_scan_gold(gold, 0, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOT2> snp(q);
@@ -191,7 +191,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo3) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 10, plus<int>());
+  inclusive_scan_gold(gold, 10, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOT3> snp(q);
@@ -208,7 +208,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanLargePowerOfTwo) {
   std::fill(v.begin(), v.end(), 42);
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, plus<int>());
+  inclusive_scan_gold(gold, 0, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmLPOT> snp(q);
@@ -226,7 +226,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwoRange) {
     std::fill(v.begin(), v.end(), 42);
     std::vector<int> gold(v);
 
-    inclusive_scan_gold(gold, 0, plus<int>());
+    inclusive_scan_gold(gold, 0, std::plus<int>());
 
     cl::sycl::queue q;
     sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOTR> snp(q);

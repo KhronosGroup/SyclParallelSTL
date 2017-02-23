@@ -47,7 +47,7 @@ template <class ExecutionPolicy, class InputIterator, class OutputIterator,
 OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
                               InputIterator e, OutputIterator o, ElemT init,
                               BinaryOperation bop) {
-  cl::sycl::queue q(sep.get_queue());
+  auto q = sep.get_queue();
   auto device = q.get_device();
 
   auto bufI = sycl::helpers::make_const_buffer(b, e);
@@ -148,15 +148,26 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
   auto device = q.get_device();
   size_t size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<InputIterator>::value_type;
-  //size_t size = sycl::helpers::distance(b, e);
+#ifdef __TRISYCL__
   std::vector<value_type> vect { b, e };
-
   *o++ = init;
+#endif
+
 
   {
+#ifdef __TRISYCL__
     cl::sycl::buffer<value_type, 1> buffer { vect.data(), size - 1 };
-    //buffer.set_final_data(vect.data()+1);
     buffer.set_final_data(o);
+#else
+    std::shared_ptr<value_type> data { new value_type[size-1],
+      [&](value_type* ptr) {
+        *o++ = init;
+        std::copy_n(ptr, size-1, o);
+      }
+    };
+    std::copy_n(b, size-1, data.get());
+    cl::sycl::buffer<value_type, 1> buffer { data, cl::sycl::range<1>{size-1} };
+#endif
 
     auto d = compute_mapscan_descriptor(device, size - 1, sizeof(value_type));
     buffer_mapscan(snp, q, buffer, buffer, init, d,
@@ -164,8 +175,7 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
                    bop);
   }
 
-  std::advance(o, size - 1);
-  return o;
+  return std::next(o, size -1);
 }
 
 #endif

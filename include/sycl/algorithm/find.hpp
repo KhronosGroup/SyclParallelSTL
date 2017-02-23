@@ -175,7 +175,7 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
     return e;
   }
 
-  cl::sycl::queue q(snp.get_queue());
+  auto q = snp.get_queue();
   auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 

@@ -160,7 +160,7 @@ T inner_product(ExecutionPolicy &snp, InputIt1 first1, InputIt1 last1,
                 InputIt2 first2, T value, BinaryOperation1 op1,
                 BinaryOperation2 op2) {
 
-  cl::sycl::queue q(snp.get_queue());
+  auto q = snp.get_queue();
   auto device = q.get_device();
   auto size = sycl::helpers::distance(first1, last1);
   if (size <= 0)

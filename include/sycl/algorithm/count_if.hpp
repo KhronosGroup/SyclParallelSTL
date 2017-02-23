@@ -114,10 +114,10 @@ typename std::iterator_traits<InputIt>::difference_type count_if(
     UnaryOperation unary_op, BinaryOperation binary_op) {
 
 
+  auto q = snp.get_queue();
   auto size = sycl::helpers::distance(b, e);
   if(size <= 0) return 0;
 
-  cl::sycl::queue q(snp.get_queue());
   auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 

@@ -113,7 +113,7 @@ template <typename ExecutionPolicy,
 typename std::iterator_traits<Iterator>::value_type reduce(
     ExecutionPolicy &snp, Iterator b, Iterator e, T init, BinaryOperation bop) {
 
-  cl::sycl::queue q { snp.get_queue() };
+  auto q = snp.get_queue();
   auto device = q.get_device();
   auto size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<Iterator>::value_type;

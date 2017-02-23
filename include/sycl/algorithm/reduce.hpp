@@ -50,7 +50,7 @@ namespace impl {
  * Note that there is a potential race condition while using the same buffer for
  * input-output
  */
-#ifdef __COMPUTECPP__
+#ifdef __USE_OLD_ALGO__
 template <typename ExecutionPolicy,
           typename Iterator,
           typename T,

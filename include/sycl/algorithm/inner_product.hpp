@@ -78,7 +78,7 @@ T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
   return value;
 }
 
-#ifdef __COMPUTECPP__
+#ifdef __USE_OLD_ALGO__
 
 /* inner_product.
 * @brief Returns the inner product of two vectors across the range [first1,

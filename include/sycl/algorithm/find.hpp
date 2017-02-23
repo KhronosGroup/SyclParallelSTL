@@ -43,7 +43,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef __COMPUTECPP__
+#ifdef __USE_OLD_ALGO__
 
 // a struct to store the result of a predicate comparison, and an index
 // we have to declare this here instead of in the function so that the sycl

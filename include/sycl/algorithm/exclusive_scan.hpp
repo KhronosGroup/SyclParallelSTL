@@ -36,7 +36,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef __COMPUTECPP__
+#ifdef __USE_OLD_ALGO__
 
 /* exclusive_scan.
  * Implementation of the command group that submits a exclusive_scan kernel.

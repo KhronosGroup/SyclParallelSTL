@@ -148,14 +148,14 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
   auto device = q.get_device();
   auto size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<InputIterator>::value_type;
-#ifdef __TRISYCL__
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
   std::vector<value_type> vect { b, e };
   *o++ = init;
 #endif
 
 
   {
-#ifdef __TRISYCL__
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
     cl::sycl::buffer<value_type, 1> buffer { vect.data(), size - 1 };
     buffer.set_final_data(o);
 #else

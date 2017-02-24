@@ -122,7 +122,7 @@ OutputIterator inclusive_scan(ExecutionPolicy &snp, InputIterator b,
   size_t size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<InputIterator>::value_type;
   {
-#ifdef __TRISYCL__
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
     cl::sycl::buffer<value_type, 1> buffer { b, e };
     buffer.set_final_data(o);
 #else

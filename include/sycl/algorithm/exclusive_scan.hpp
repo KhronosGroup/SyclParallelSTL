@@ -36,7 +36,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef SYCL_PSTL_US_OLD_ALGO
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 /* exclusive_scan.
  * Implementation of the command group that submits a exclusive_scan kernel.

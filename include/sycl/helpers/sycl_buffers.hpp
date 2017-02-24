@@ -74,7 +74,7 @@ template <typename Iterator,
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::random_access_iterator_tag) {
   typedef typename std::iterator_traits<Iterator>::value_type type_;
-#ifdef __TRISYCL__
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
   cl::sycl::buffer<type_, 1> buf { b, e };
   buf.set_final_data(b);
 #else
@@ -110,7 +110,7 @@ template <typename Iterator,
 cl::sycl::buffer<typename std::iterator_traits<Iterator>::value_type, 1>
 make_buffer_impl(Iterator b, Iterator e, std::input_iterator_tag) {
   using type_= typename std::iterator_traits<Iterator>::value_type;
-#ifdef __TRISYCL__
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
   cl::sycl::buffer<type_, 1> buf { b ,e };
   buf.set_final_data(nullptr);
 #else

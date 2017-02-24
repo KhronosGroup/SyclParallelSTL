@@ -43,7 +43,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef SYCL_PSTL_US_OLD_ALGO
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 // a struct to store the result of a predicate comparison, and an index
 // we have to declare this here instead of in the function so that the sycl

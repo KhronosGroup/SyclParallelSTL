@@ -78,7 +78,7 @@ T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
   return value;
 }
 
-#ifdef SYCL_PSTL_US_OLD_ALGO
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 /* inner_product.
 * @brief Returns the inner product of two vectors across the range [first1,

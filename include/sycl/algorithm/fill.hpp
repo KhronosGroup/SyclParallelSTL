@@ -45,7 +45,7 @@ namespace impl {
  */
 template <typename ExecutionPolicy, typename ForwardIt, typename T>
 void fill(ExecutionPolicy &sep, ForwardIt b, ForwardIt e, const T &value) {
-  cl::sycl::queue q = sep.get_queue();
+  cl::sycl::queue q { sep.get_queue() };
   auto device = q.get_device();
   size_t localRange =
     device.get_info<cl::sycl::info::device::max_work_group_size>();

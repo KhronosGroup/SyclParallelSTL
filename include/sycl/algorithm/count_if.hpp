@@ -42,7 +42,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef SYCL_PSTL_US_OLD_ALGO
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 /* count_if.
 * @brief Returns the count_if of one vector across the range [first,

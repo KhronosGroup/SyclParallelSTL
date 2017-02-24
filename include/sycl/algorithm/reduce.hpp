@@ -50,7 +50,7 @@ namespace impl {
  * Note that there is a potential race condition while using the same buffer for
  * input-output
  */
-#ifdef SYCL_PSTL_US_OLD_ALGO
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 template <typename ExecutionPolicy,
           typename Iterator,
           typename T,

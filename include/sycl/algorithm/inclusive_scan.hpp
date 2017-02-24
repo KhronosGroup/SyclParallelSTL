@@ -35,7 +35,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef __USE_OLD_ALGO__
+#ifdef SYCL_PSTL_US_OLD_ALGO
 /* inclusive_scan.
  * Implementation of the command group that submits a inclusive_scan kernel.
  * The kernel is implemented as a lambda.

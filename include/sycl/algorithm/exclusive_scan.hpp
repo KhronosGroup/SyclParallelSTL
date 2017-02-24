@@ -36,7 +36,7 @@
 namespace sycl {
 namespace impl {
 
-#ifdef __USE_OLD_ALGO__
+#ifdef SYCL_PSTL_US_OLD_ALGO
 
 /* exclusive_scan.
  * Implementation of the command group that submits a exclusive_scan kernel.
@@ -146,7 +146,7 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
 
   cl::sycl::queue q(snp.get_queue());
   auto device = q.get_device();
-  size_t size = sycl::helpers::distance(b, e);
+  auto size = sycl::helpers::distance(b, e);
   using value_type = typename std::iterator_traits<InputIterator>::value_type;
 #ifdef __TRISYCL__
   std::vector<value_type> vect { b, e };
@@ -175,7 +175,7 @@ OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
                    bop);
   }
 
-  return std::next(o, size -1);
+  return std::next(o, size - 1);
 }
 
 #endif

@@ -45,7 +45,7 @@ TEST_F(TransformAlgorithm, TestStdTransform) {
   std::transform(v.begin(), v.end(), v.begin(),
                  [=](int val) { return val + 1; });
 
-  //EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
 
 TEST_F(TransformAlgorithm, TestSyclTransform) {
@@ -61,7 +61,7 @@ TEST_F(TransformAlgorithm, TestSyclTransform) {
   sycl::sycl_execution_policy<class TransformAlgorithm2> snp2(q);
   transform(snp2, v.begin(), v.end(), o.begin(),
             [=](int val) { return val + 2; });
-  //EXPECT_TRUE(std::equal(o.begin(), o.end(), result.begin()));
+  EXPECT_TRUE(std::equal(o.begin(), o.end(), result.begin()));
 }
 
 TEST_F(TransformAlgorithm, TestSycl2Transform) {
@@ -75,7 +75,7 @@ TEST_F(TransformAlgorithm, TestSycl2Transform) {
 
   transform(snp, v1.begin(), v1.end(), v2.begin(), o.begin(),
             [=](int val1, int val2) { return val1 + val2 + 1; });
-  //EXPECT_TRUE(std::equal(o.begin(), o.end(), result.begin()));
+  EXPECT_TRUE(std::equal(o.begin(), o.end(), result.begin()));
 }
 
 TEST_F(TransformAlgorithm, TestSycl4Transform) {
@@ -98,5 +98,5 @@ TEST_F(TransformAlgorithm, TestSycl4Transform) {
   sycl::sycl_execution_policy<class TransformAlgorithm4> snp(q);
   transform(snp, v.begin(), v.end(), res_sycl.begin(),
             [=](int val1) { return val1 + 1; });
-  //EXPECT_TRUE(std::equal(res_std.begin(), res_std.end(), res_sycl.begin()));
+  EXPECT_TRUE(std::equal(res_std.begin(), res_std.end(), res_sycl.begin()));
 }

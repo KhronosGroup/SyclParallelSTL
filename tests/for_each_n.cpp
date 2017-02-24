@@ -101,7 +101,6 @@ TEST_F(ForEachNAlgorithm, TestSyclForEachN) {
 
 TEST_F(ForEachNAlgorithm, TestSycl2ForEachN) {
   std::array<int, 5> v = {2, 1, 3, 4, 8};
-  //std::array<int, 5> result = {3, 2, 4, 5, 9};
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ForEachN2Algorithm> snp(q);

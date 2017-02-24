@@ -37,6 +37,13 @@ using namespace std::experimental::parallel;
 
 struct InclusiveScanAlgorithm : public testing::Test {};
 
+/*
+ * we define functors plus and multiplies as there is not enough guarentee on
+ * their implementation in the standard library.
+ * In particular it is not guarenteed that std::plus and std::multiplies have
+ * no side effects
+ */
+
 template<typename T>
 struct plus {
   constexpr T operator() (const T &x, const T &y) const {

@@ -25,7 +25,7 @@ else()
   set(CMAKE_CXX_STANDARD 14)
   set(CXX_STANDARD_REQUIRED ON)
 
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRISYCL_ASYNC=1 -fopenmp -D__TRISYCL__")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -D__TRISYCL__")
 
   if(TRISYCL_INCLUDE_DIR)
     message(STATUS "Path to triSYCL include directory: " ${TRISYCL_INCLUDE_DIR})

@@ -48,7 +48,7 @@ namespace impl {
 * that submits a transform_reduce kernel.
 */
 
-#ifdef __USE_OLD_ALGO__
+#ifdef SYCL_PSTL_US_OLD_ALGO
 
 template <class ExecutionPolicy, class InputIterator, class UnaryOperation,
           class T, class BinaryOperation>

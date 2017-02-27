@@ -47,7 +47,8 @@ matrix:
             # clang and llvm 3.7 for POCL (llvm-toolchain-trusty-3.7 is not whitelisted)
             - clang-3.7
             - llvm-3.7
-            - llvm-3.7-dev (...)
+            - llvm-3.7-dev
+            - clang-3.7-dev
             # POCL
             - libltdl-dev
             - libhwloc-dev

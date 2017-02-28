@@ -261,10 +261,12 @@ install:
       fi
 
 script:
-
     ############################################################################
     # Build Boost.Compute tests, benchmarks and examples
     ############################################################################
+    - wget https://github.com/boostorg/compute/archive/boost-1.63.0.zip
+    - unzip boost-1.63.0.zip -d /tmp/
+    - pushd /tmp/compute-boost-1.63.0
     - mkdir -p build
     - cd build
     - echo ${CMAKE_OPTIONS}
@@ -279,10 +281,12 @@ script:
         ctest --output-on-failure
         ctest --output-on-failure
       fi
-    - make install
+    - sudo make install
+    - popd
+
 
     ###########################
-    # Build triSYCL
+    # Get triSYCL
     ###########################
     - wget https://github.com/triSYCL/triSYCL/archive/master.zip -O /tmp/trisycl.zip
     - unzip /tmp/trisycl.zip -d /tmp

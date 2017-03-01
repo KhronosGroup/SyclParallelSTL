@@ -188,7 +188,7 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   };
 
   auto red = [](size_t x, size_t y){
-    return (y < x) ? y : x;
+    return std::min(x, y);
   };
 
   size_t pos = buffer_mapreduce( snp, q, input_buff, size, d, map, red );

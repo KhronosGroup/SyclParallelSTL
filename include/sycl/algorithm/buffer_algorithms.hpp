@@ -183,9 +183,8 @@ B buffer_mapreduce(ExecutionPolicy &snp,
   cl::sycl::buffer<B, 1> output_buff { cl::sycl::range<1> { d.nb_work_group } };
 
   q.submit([&] (cl::sycl::handler &cgh) {
-    cl::sycl::nd_range<1> rng
-      { cl::sycl::range<1>{ d.nb_work_group * d.nb_work_item },
-        cl::sycl::range<1>{ d.nb_work_item } };
+    cl::sycl::range<1> rg { d.nb_work_group * d.nb_work_item };
+    cl::sycl::range<1> ri { d.nb_work_item };
     auto input = input_buff.template get_access
       <cl::sycl::access::mode::read>(cgh);
     auto output = output_buff.template get_access
@@ -193,7 +192,7 @@ B buffer_mapreduce(ExecutionPolicy &snp,
     cl::sycl::accessor<B, 1, cl::sycl::access::mode::read_write,
                        cl::sycl::access::target::local>
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
-    cgh.parallel_for_work_group<class wg>(rng, [=](cl::sycl::group<1> grp) {
+    cgh.parallel_for_work_group<class wg>(rg, ri, [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
@@ -381,7 +380,8 @@ void buffer_mapscan(ExecutionPolicy &snp,
   using std::max;
 
   //WARNING: nb_work_group is not bounded by max_compute_units
-  cl::sycl::buffer<B, 1> scan = { cl::sycl::range<1> { d.nb_work_group } };
+  auto scan = sycl::helpers::make_temp_buffer<B>( d.nb_work_group );
+  //cl::sycl::buffer<B, 1> scan = { cl::sycl::range<1> { d.nb_work_group } };
   cl::sycl::range<1> rng_wg {d.nb_work_group * d.nb_work_item};
   cl::sycl::range<1> rng_wi {d.nb_work_item};
 

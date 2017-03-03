@@ -37,9 +37,30 @@ using namespace std::experimental::parallel;
 
 struct InclusiveScanAlgorithm : public testing::Test {};
 
+/*
+ * we define functors plus and multiplies as there is not enough guarentee on
+ * their implementation in the standard library.
+ * In particular it is not guarenteed that std::plus and std::multiplies have
+ * no side effects
+ */
+
+template<typename T>
+struct plus {
+  constexpr T operator() (const T &x, const T &y) const {
+    return x + y;
+  }
+};
+
+template<typename T>
+struct multiplies {
+  constexpr T operator() (const T &x, const T &y) const {
+    return x * y;
+  }
+};
+
 template <typename T, class BinaryOperation>
 void inclusive_scan_gold(std::vector<T>& v, T init = 0,
-                         BinaryOperation bop = [](T a, T b) { return a + b; }) {
+                         BinaryOperation bop = plus<T>()) {
   v[0] = bop(v[0], init);
   for (auto i = std::next(v.begin()); i != v.end(); i++) {
     *i = bop(*i, *(std::prev(i)));
@@ -48,10 +69,10 @@ void inclusive_scan_gold(std::vector<T>& v, T init = 0,
 
 // test the gold computation against a known value
 TEST_F(InclusiveScanAlgorithm, TestSTDInclusiveScan) {
-  std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
+  std::vector<int> v    = {5, 1,  6,  2,  6,  2,  5,  7};
   std::vector<int> gold = {5, 6, 12, 14, 20, 22, 27, 34};
 
-  inclusive_scan_gold(v, 0, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(v, 0, plus<int>());
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -65,7 +86,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanPowerOfTwo1) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 0, plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmPOT1> snp(q);
@@ -79,13 +100,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanPowerOfTwo2) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 0, plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmPOT2> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a + b; });
+                 plus<int>());
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -94,13 +115,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanPowerOfTwo3) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 10, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 10, plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmPOT3> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a + b; }, 10);
+                 plus<int>(), 10);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -113,13 +134,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanMultOperation1) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, [](int a, int b) { return a * b; });
+  inclusive_scan_gold(gold, 0, multiplies<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmMOP1> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a * b; });
+                 multiplies<int>());
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -128,13 +149,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanMultOperation2) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 42, [](int a, int b) { return a * b; });
+  inclusive_scan_gold(gold, 42, multiplies<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmMOP2> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a * b; }, 42);
+                 multiplies<int>(), 42);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -148,7 +169,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo1) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 0, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOT1> snp(q);
@@ -162,13 +183,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo2) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 0, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOT2> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a + b; });
+                 plus<int>());
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -177,13 +198,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo3) {
   std::vector<int> v = {5, 1, 6, 2, 6, 2, 5};
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 10, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 10, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOT3> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a + b; }, 10);
+                 plus<int>(), 10);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -194,13 +215,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanLargePowerOfTwo) {
   std::fill(v.begin(), v.end(), 42);
   std::vector<int> gold(v);
 
-  inclusive_scan_gold(gold, 0, [](int a, int b) { return a + b; });
+  inclusive_scan_gold(gold, 0, std::plus<int>());
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class InclusiveScanAlgorithmLPOT> snp(q);
 
   inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                 [](int a, int b) { return a + b; });
+                 plus<int>());
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
 }
@@ -212,13 +233,13 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwoRange) {
     std::fill(v.begin(), v.end(), 42);
     std::vector<int> gold(v);
 
-    inclusive_scan_gold(gold, 0, [](int a, int b) { return a + b; });
+    inclusive_scan_gold(gold, 0, std::plus<int>());
 
     cl::sycl::queue q;
     sycl::sycl_execution_policy<class InclusiveScanAlgorithmNPOTR> snp(q);
 
     inclusive_scan(snp, v.begin(), v.end(), v.begin(),
-                   [](int a, int b) { return a + b; });
+                   plus<int>());
 
     EXPECT_TRUE(std::equal(v.begin(), v.end(), gold.begin()));
   }

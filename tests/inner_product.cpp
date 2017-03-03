@@ -147,13 +147,9 @@ TEST_F(InnerProductAlgorithm, TestSycl6InnerProduct) {
 }
 
 TEST_F(InnerProductAlgorithm, TestSycl7InnerProduct) {
-  std::vector<int> v1;
-  std::vector<int> v2;
   int n_elems = 4096;
-  for (int i = 0; i < n_elems; i++) {
-    v1.push_back(1);
-    v2.push_back(2);
-  }
+  std::vector<int> v1 (n_elems, 1);
+  std::vector<int> v2 (n_elems, 2);
   int value = 0;
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class SYCL7InnerProductAlgorithm> snp(q);
@@ -161,6 +157,7 @@ TEST_F(InnerProductAlgorithm, TestSycl7InnerProduct) {
                         [=](int v1, int v2) { return v1 + v2; },
                         [=](int v1, int v2) { return v1 * v2; });
 
+  std::cout << "value = " << value << std::endl;
   EXPECT_TRUE(8192 == value);
 }
 

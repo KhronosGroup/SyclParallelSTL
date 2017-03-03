@@ -10,6 +10,7 @@ message(STATUS " Path to CMAKE source directory: ${CMAKE_SOURCE_DIR} ")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 
 if (USE_COMPUTECPP)
+
   message(STATUS " Using ComputeCpp CMake")
 
   message(STATUS " Path to ComputeCpp implementation: ${COMPUTECPP_PACKAGE_ROOT_DIR} ")
@@ -23,6 +24,8 @@ else()
   message(STATUS " Using triSYCL CMake")
   set(CMAKE_CXX_STANDARD 14)
   set(CXX_STANDARD_REQUIRED ON)
+
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
   if(TRISYCL_INCLUDE_DIR)
     message(STATUS "Path to triSYCL include directory: " ${TRISYCL_INCLUDE_DIR})

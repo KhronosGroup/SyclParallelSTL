@@ -65,8 +65,8 @@ for the various kernels (potentially enabling asynchronous execution of the call
 Building the project
 ----------------------
 
-This project currently supports the SYCL beta implementation from Codeplay, 
-ComputeCPP. It is not currently tested on the open-source triSYCL implementation.
+This project currently supports the SYCL beta implementation from Codeplay,
+ComputeCPP and the open-source implementation, triSYCL.
 
 The project uses CMake 3.0.2 in order to produce build files. 
 More recent versions may work. 

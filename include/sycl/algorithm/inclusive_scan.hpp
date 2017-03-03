@@ -30,10 +30,12 @@
 #define __SYCL_IMPL_ALGORITHM_INCLUSIVE_SCAN__
 
 #include <sycl/helpers/sycl_buffers.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 
 namespace sycl {
 namespace impl {
 
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 /* inclusive_scan.
  * Implementation of the command group that submits a inclusive_scan kernel.
  * The kernel is implemented as a lambda.
@@ -107,7 +109,42 @@ OutputIterator inclusive_scan(ExecutionPolicy &sep, InputIterator b,
   q.wait_and_throw();
   return o + vectorSize;
 }
+#else
 
+template <class ExecutionPolicy, class InputIterator, class OutputIterator,
+          class T, class BinaryOperation>
+OutputIterator inclusive_scan(ExecutionPolicy &snp, InputIterator b,
+                              InputIterator e, OutputIterator o, T init,
+                              BinaryOperation bop) {
+
+  auto q = snp.get_queue();
+  auto device = q.get_device();
+  size_t size = sycl::helpers::distance(b, e);
+  using value_type = typename std::iterator_traits<InputIterator>::value_type;
+  {
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
+    cl::sycl::buffer<value_type, 1> buffer { b, e };
+    buffer.set_final_data(o);
+#else
+    std::shared_ptr<value_type> data { new value_type[size],
+      [&](value_type* ptr) {
+        std::copy_n(ptr, size, o);
+      }
+    };
+    std::copy_n(b, size, data.get());
+    cl::sycl::buffer<value_type, 1> buffer { data, cl::sycl::range<1>{ size } };
+#endif
+
+    auto d = compute_mapscan_descriptor(device, size, sizeof(value_type));
+    buffer_mapscan(snp, q, buffer, buffer, init, d,
+                   [](value_type x) { return x; },
+                   bop);
+  }
+
+  return std::next(o, size);
+}
+
+#endif
 }  // namespace impl
 }  // namespace sycl
 

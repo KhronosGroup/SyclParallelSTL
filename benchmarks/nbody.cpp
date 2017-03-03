@@ -36,6 +36,7 @@
 #include <fstream>
 
 #include <experimental/algorithm>
+//#include "CL/sycl.hpp"
 #include <sycl/execution_policy>
 
 #include "benchmark.h"

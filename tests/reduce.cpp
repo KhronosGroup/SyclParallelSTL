@@ -41,13 +41,13 @@ class ReduceAlgorithm : public testing::Test {
 
 TEST_F(ReduceAlgorithm, TestSyclReduce) {
   std::vector<int> v = {2, 1, 3, 5, 3, 4, 1, 3};
-  std::vector<int> result = {22};
+  int result = 22;
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReduceAlgorithm> snp(q);
   int res = reduce(snp, v.begin(), v.end());
 
-  EXPECT_TRUE(res == result[0]);
+  EXPECT_TRUE(res == result);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce2) {

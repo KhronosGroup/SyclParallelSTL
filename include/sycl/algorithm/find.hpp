@@ -183,7 +183,7 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 
-  auto map = [&](size_t pos, value_type x) {
+  auto map = [=](size_t pos, value_type x) {
     return (p(x)) ? pos : size;
   };
 

@@ -13,21 +13,15 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - boost-latest
     packages:
-      - libboost-chrono1.55-dev
-      - libboost-date-time1.55-dev
-      - libboost-system1.55-dev
-      - libboost-filesystem1.55-dev
-      - libboost-thread1.55-dev
-      - libboost-program-options1.55-dev
-      - libboost-test1.55-dev
       - python-yaml
 
 before_install:
     - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
+    - sudo add-apt-repository ppa:kzemek/boost -y
     - sudo apt-get update -q
     - sudo apt-get install cmake -y
+		- sudo apt-get install boost1.58 -y
 
 script:
     ###########################

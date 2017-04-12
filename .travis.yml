@@ -1,7 +1,7 @@
 language: cpp
 compiler: g++
 sudo: required
-dist: precise
+dist: trusty
 os:
   - linux
 
@@ -23,7 +23,11 @@ addons:
       - libboost-program-options1.55-dev
       - libboost-test1.55-dev
       - python-yaml
-      - cmake
+
+before_install:
+    - sudo add-apt-repository ppa:george-edison55/cmake-3.x
+    - sudo apt-get update -q
+    - sudo apt-get install cmake -y
 
 script:
     ###########################

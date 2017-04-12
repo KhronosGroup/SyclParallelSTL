@@ -24,7 +24,6 @@ addons:
       - libboost-test1.55-dev
       - python-yaml
       - cmake
-      - ocl-icd-opencl-dev
 
 script:
     ###########################

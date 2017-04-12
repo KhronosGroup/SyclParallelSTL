@@ -16,7 +16,7 @@ addons:
       - kubuntu-backports
     packages:
       - cmake
-			- ocl-icd-opencl-dev
+      - ocl-icd-opencl-dev
 
 script:
     ###########################

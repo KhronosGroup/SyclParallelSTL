@@ -21,7 +21,7 @@ before_install:
     - sudo add-apt-repository ppa:kzemek/boost -y
     - sudo apt-get update -q
     - sudo apt-get install cmake -y
-		- sudo apt-get install boost1.58 -y
+    - sudo apt-get install boost1.58 -y
 
 script:
     ###########################

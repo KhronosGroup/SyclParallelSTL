@@ -28,6 +28,15 @@ before_install:
     - sudo apt-get install boost1.58 -y
     - sudo apt-get install libc++-dev -y
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+    - wget https://github.com/KhronosGroup/OpenCL-Headers/archive/master.zip -O /tmp/ocl-headers.zip
+    - unzip /tmp/ocl-headers.zip
+    - wget https://github.com/KhronosGroup/OpenCL-ICD-Loader/archive/master.zip -O /tmp/ocl-icd.zip
+    - unzip /tmp/ocl-icd.zip 
+    - ln -sf /tmp/OpenCL-Headers/ /tmp/OpenCL-ICD-Loader-master/inc/CL
+    - cd /tmp/OpenCL-ICD-Loader-master/ && make
+    - mkdir /tmp/stub-opencl/
+    - sudo ln -sf /tmp/OpenCL-Headers/ /usr/include/CL
+    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/
 
 script:
     ###########################

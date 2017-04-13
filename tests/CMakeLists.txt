@@ -1,5 +1,4 @@
 
-find_package(Threads)
 
 set(GMOCK_DIR "${CMAKE_SOURCE_DIR}/external/googletest/googlemock/")
 

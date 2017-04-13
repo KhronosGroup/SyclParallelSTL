@@ -33,7 +33,7 @@ before_install:
     - wget https://github.com/KhronosGroup/OpenCL-ICD-Loader/archive/master.zip -O /tmp/ocl-icd.zip
     - unzip /tmp/ocl-icd.zip -d /tmp
     - ln -sf /tmp/OpenCL-Headers-master/ /tmp/OpenCL-ICD-Loader-master/inc/CL
-    - cd /tmp/OpenCL-ICD-Loader-master/ && make
+    - pushd /tmp/OpenCL-ICD-Loader-master/ && make && popd
     - mkdir /tmp/stub-opencl/
     - sudo ln -sf /tmp/OpenCL-Headers/ /usr/include/CL
     - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/

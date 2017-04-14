@@ -38,6 +38,7 @@
 #undef isnan
 #undef isnormal
 #undef isinf
+#undef signbit
 
 #include <CL/sycl.hpp>
 #include <sycl/algorithm/for_each.hpp>

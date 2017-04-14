@@ -13,12 +13,13 @@ compiler:
 addons:
   apt:
     sources:
+      - llvm-toolchain-trusty-3.8
       - ubuntu-toolchain-r-test
     packages:
       - python-yaml
       - gcc-5
       - g++-5
-      - clang-3.6
+      - clang-3.8
 
 before_install:
     - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
@@ -38,6 +39,10 @@ before_install:
     - sudo cp -fv /tmp/OpenCL-Headers-master/* /usr/include/CL/
     - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/
     - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/x86_64-linux-gnu/
+
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
 
 script:
     ###########################

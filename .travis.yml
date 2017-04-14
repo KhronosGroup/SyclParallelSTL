@@ -34,10 +34,11 @@ before_install:
     - unzip /tmp/ocl-icd.zip -d /tmp
     - ln -sf /tmp/OpenCL-Headers-master/ /tmp/OpenCL-ICD-Loader-master/inc/CL
     - pushd /tmp/OpenCL-ICD-Loader-master/ && make && popd
-    - sudo ln -sf /tmp/OpenCL-Headers/ /usr/include/CL
-    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/
-    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib64/
-    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/x86_64-linux-gnu/
+    - sudo mkdir /usr/include/CL/
+    - sudo cp -fv /tmp/OpenCL-Headers/* /usr/include/CL/
+    - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/
+    - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib64/
+    - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/x86_64-linux-gnu/
 
 script:
     ###########################

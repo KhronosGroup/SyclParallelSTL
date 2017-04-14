@@ -37,6 +37,7 @@ before_install:
     - sudo ln -sf /tmp/OpenCL-Headers/ /usr/include/CL
     - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/
     - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib64/
+    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/ /usr/lib/x86_64-linux-gnu/
 
 script:
     ###########################

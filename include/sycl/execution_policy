@@ -37,6 +37,7 @@
 #undef isfinite
 #undef isnan
 #undef isnormal
+#undef isinf
 
 #include <CL/sycl.hpp>
 #include <sycl/algorithm/for_each.hpp>

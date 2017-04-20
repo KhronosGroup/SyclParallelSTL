@@ -43,7 +43,7 @@ SyclParallelSTL
 
 SyclParallelSTL exposes a SYCL policy in the experimental::parallel namespace
 that can be passed to standard STL algorithms for them to run on SYCL.
-Currently, the following STL algorithms are implemented:
+Currently, only some STL algorithms are implemented, such as:
 
 * sort : Bitonic sort for ranges where the size is a power of two, or sequential
   sort otherwise.
@@ -66,10 +66,11 @@ Building the project
 ----------------------
 
 This project currently supports the SYCL beta implementation from Codeplay,
-ComputeCPP and the open-source implementation, triSYCL.
+ComputeCPP and the open-source triSYCL implementation.
 
-The project uses CMake 3.0.2 in order to produce build files. 
-More recent versions may work. 
+The project uses CMake 3.0.2 in order to produce build files,
+but more recent versions may work.
+
 In Linux, simply create a build directory and run CMake as follows:
 
     $ mkdir build
@@ -104,27 +105,35 @@ CMake rules for intermediate file generation.
 Refer to your SYCL implementation documentation for 
 implementation-specific building options.
 
-To quickly build the project you can use the script build.sh:
+To quickly build the project and run some non-regression tests with
+benchmarks, you can use the script `build.sh`:
 
 If you want to compile it with ComputeCpp:
 
     ./build.sh "path/to/ComputeCpp" (this path can be relative)
-    
+
 for example (on Ubuntu 16.04):
 
     ./build.sh ~/ComputeCpp
-    
+
 If you want to compile it with triSYCL:
 
-    ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include]
-    
+    ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include] [-DUSE_TRISYCL_OPENCL=ON]
 for example (on Ubuntu 16.04):
 
-    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include
+    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include -DUSE_TRISYCL_OPENCL=ON
 
-or (if Boost compute is in your library's default path) 
+or if Boost compute is in your library's default path, just with:
 
-    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include
+    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DUSE_TRISYCL_OPENCL=ON
+
+
+Just run `build.sh` alone to get a small help message.
+
+If not using OpenCL, some tests are expected to fail. For example the
+N-body application is using `vec3` interoperability types which are
+not defined outside of OpenCL mode for now.
+
 
 Building the documentation
 ----------------------------

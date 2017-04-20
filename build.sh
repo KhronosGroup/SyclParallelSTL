@@ -84,7 +84,7 @@ function mak  {
 
 function tst {
   pushd build/tests
-  ctest -j$NPROC
+  ctest
   popd
 }
 

@@ -45,7 +45,9 @@ else()
     include_directories(${BOOST_COMPUTE_INCLUDE_DIR})
   endif()
 
+  find_package( OpenCL REQUIRED )
   include(FindOpenCL)
+  set(TRISYCL_COMPILE_FLAGS "-DTRISYCL_OPENCL")
 
   function(add_sycl_to_target targetName sourceFile binaryDir)
   endfunction(add_sycl_to_target)

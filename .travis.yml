@@ -1,0 +1,19 @@
+language: cpp
+sudo: required
+dist: xenial
+
+os:
+  - linux
+
+
+before_install:
+  - echo $CXX
+  - echo $CXXFLAGS
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libcompute-dev
+  - wget https://github.com/triSYCL/triSYCL/archive/master.zip -O /tmp/trisycl.zip
+  - unzip /tmp/trisycl.zip
+  - ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL/include  -DBOOST_COMPUTE_INCLUDE_DIR=/usr/include/compute/
+
+
+

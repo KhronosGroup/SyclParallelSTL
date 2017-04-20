@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
+#include <numeric>
 
 #include <sycl/execution_policy>
 #include <experimental/algorithm>

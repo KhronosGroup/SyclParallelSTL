@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
 #include <sycl/execution_policy>
 #include <experimental/algorithm>

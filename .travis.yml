@@ -14,6 +14,10 @@ branches:
     - master
     - travis-ci
 
+env:
+  - IMPL=TRISYCL
+  - IMPL=COMPUTECPP
+
 addons:
   apt:
     sources:
@@ -64,6 +68,6 @@ script:
     ###########################
     # Build parallel-stl
     ###########################
-    - ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include 
-    - ./build.sh /tmp/ComputeCpp-CE-0.1.4-Linux/
+    - if [ "$IMPL" = "TRISYCL" ]; then ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; fi
+    - if [ "$IMPL" = "COMPUTECPP"]; then ./build.sh /tmp/ComputeCpp-CE-0.1.4-Linux/; fi
 

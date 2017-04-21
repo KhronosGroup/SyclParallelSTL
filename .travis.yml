@@ -9,7 +9,6 @@ compiler:
   - gcc
   - clang
 
-
 addons:
   apt:
     sources:

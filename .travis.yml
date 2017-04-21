@@ -60,6 +60,6 @@ script:
     ###########################
     # Build parallel-stl
     ###########################
-    # - ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include 
-    - ./build.sh /tmp/ComputeCpp-CE-0.1.3-Linux/
+    - ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include 
+    # - ./build.sh /tmp/ComputeCpp-CE-0.1.3-Linux/
 

@@ -29,7 +29,10 @@
 #include <vector>
 #include <algorithm>
 
+
+#include <sycl/execution_policy>
 #include <sycl/helpers/sycl_iterator.hpp>
+
 
 struct SyclHostIteratorTest : public testing::Test {};
 

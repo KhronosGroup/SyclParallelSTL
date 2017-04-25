@@ -195,7 +195,6 @@ function(__build_spir targetName sourceFile binaryDir)
     COMMAND ${COMPUTECPP_DEVICE_COMPILER}
             ${COMPUTECPP_DEVICE_COMPILER_FLAGS}
             -isystem ${COMPUTECPP_INCLUDE_DIRECTORY}
-            -v
             ${COMPUTECPP_PLATFORM_SPECIFIC_ARGS}
             ${device_compiler_includes}
             -o ${outputSyclFile}

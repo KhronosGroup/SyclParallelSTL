@@ -21,13 +21,17 @@ env:
 addons:
   apt:
     sources:
-      - llvm-toolchain-trusty-3.8
+			- llvm-toolchain-precise
       - ubuntu-toolchain-r-test
+	  	- sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+				key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+
     packages:
       - python-yaml
       - gcc-5
       - g++-5
-      - clang-3.8
+			- clang-3.9
+			- libc++-dev
 
 before_install:
     - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
@@ -35,7 +39,6 @@ before_install:
     - sudo apt-get update -q
     - sudo apt-get install cmake -y
     - sudo apt-get install boost1.58 -y
-    - sudo apt-get install libc++-dev -y
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
     - wget https://github.com/KhronosGroup/OpenCL-Headers/archive/master.zip -O /tmp/ocl-headers.zip
     - unzip /tmp/ocl-headers.zip -d /tmp

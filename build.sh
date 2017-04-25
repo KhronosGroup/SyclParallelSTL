@@ -43,7 +43,7 @@ function install_gmock  {(
     cd googletest
   fi
   cd googlemock/make
-  make -j$NPROC
+  make -j$NPROC VERBOSE=1
 )}
 
 function configure  {

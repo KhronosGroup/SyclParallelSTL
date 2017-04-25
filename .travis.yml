@@ -48,8 +48,8 @@ before_install:
     - pushd /tmp/OpenCL-ICD-Loader-master/ && make && popd
     - sudo mkdir /usr/include/CL/
     - sudo cp -fv /tmp/OpenCL-Headers-master/* /usr/include/CL/
-    - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/
-    - sudo cp -Rvf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/x86_64-linux-gnu/
+    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/
+    - sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/x86_64-linux-gnu/
 
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
@@ -60,13 +60,13 @@ script:
     # Get ComputeCpp
     ###########################
     - wget https://computecpp.codeplay.com/downloads/computecpp-ce/latest/ubuntu-14.04-64bit.tar.gz
-    - tar -xvzf ubuntu-14.04-64bit.tar.gz -C /tmp
+    - tar -xzf ubuntu-14.04-64bit.tar.gz -C /tmp 
 
     ###########################
     # Get triSYCL
     ###########################
     - wget https://github.com/triSYCL/triSYCL/archive/master.zip -O /tmp/trisycl.zip
-    - unzip /tmp/trisycl.zip -d /tmp
+    - unzip /tmp/trisycl.zip -d /tmp  &> /dev/null 
 
     ###########################
     # Build parallel-stl

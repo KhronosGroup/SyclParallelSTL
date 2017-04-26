@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <numeric>
 
 #include <experimental/algorithm>
 #include <sycl/execution_policy>

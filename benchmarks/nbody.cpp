@@ -46,7 +46,7 @@ using namespace sycl::helpers;
 /** getRand
  * @brief This function returns a random float number
  */
-float getRand() { return 1e18 * exp(-1.8) * (.5 - rand()); }
+float getRand() { return 1e18 * std::exp(-1.8) * (.5 - rand()); }
 
 /* Body.
 * The Body represents a particle in a three dimensinal space with a mass

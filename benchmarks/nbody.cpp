@@ -32,6 +32,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <numeric>
 
 #include <experimental/algorithm>
 #include <sycl/execution_policy>

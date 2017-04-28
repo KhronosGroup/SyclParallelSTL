@@ -11,9 +11,9 @@ sudo apt-get install boost1.58 -y
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
 # Install the khronos stub opencl
 wget https://github.com/KhronosGroup/OpenCL-Headers/archive/master.zip -O /tmp/ocl-headers.zip
-unzip -z /tmp/ocl-headers.zip -d /tmp
+unzip /tmp/ocl-headers.zip -d /tmp
 wget https://github.com/KhronosGroup/OpenCL-ICD-Loader/archive/master.zip -O /tmp/ocl-icd.zip
-unzip -z /tmp/ocl-icd.zip -d /tmp
+unzip /tmp/ocl-icd.zip -d /tmp
 ln -sf /tmp/OpenCL-Headers-master/ /tmp/OpenCL-ICD-Loader-master/inc/CL
 pushd /tmp/OpenCL-ICD-Loader-master/ && make && popd
 # Recreate a fake OpenCL setup

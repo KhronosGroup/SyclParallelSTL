@@ -17,7 +17,6 @@ branches:
 env:
   - IMPL=TRISYCL
   - IMPL=COMPUTECPP
-  - COMPUTECPP_TARGET=host
 
 addons:
   apt:
@@ -60,5 +59,5 @@ script:
     # Build parallel-stl
     ###########################
     - if [ "$IMPL" = "TRISYCL" ]; then ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; fi
-    - if [ "$IMPL" = "COMPUTECPP" ]; then ./build.sh /tmp/ComputeCpp-CE-0.1.4-Linux/; fi
+    - if [ "$IMPL" = "COMPUTECPP" ]; then COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-CE-0.1.4-Linux/; fi
 

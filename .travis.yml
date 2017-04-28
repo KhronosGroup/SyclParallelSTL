@@ -17,6 +17,7 @@ branches:
 env:
   - IMPL=TRISYCL
   - IMPL=COMPUTECPP
+  - COMPUTECPP_TARGET=host
 
 addons:
   apt:

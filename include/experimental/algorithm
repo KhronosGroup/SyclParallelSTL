@@ -39,6 +39,14 @@
 #undef isfinite
 #undef isnan
 #undef isnormal
+#undef isinf
+#undef signbit
+#undef isgreater
+#undef isless
+#undef islessequal
+#undef isunordered
+#undef isgreaterequal
+
 
 namespace std {
 namespace experimental {

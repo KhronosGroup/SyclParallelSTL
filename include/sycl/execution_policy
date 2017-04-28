@@ -43,6 +43,7 @@
 #undef isless
 #undef islessequal
 #undef isunordered
+#undef isgreaterequal
 
 #include <CL/sycl.hpp>
 #include <sycl/algorithm/for_each.hpp>

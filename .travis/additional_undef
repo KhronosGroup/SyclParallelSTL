@@ -9,3 +9,4 @@
 #undef isless                                                                   
 #undef islessequal                                                              
 #undef isunordered   
+#undef isgreaterequal

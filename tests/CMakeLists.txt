@@ -1,5 +1,3 @@
-
-
 set(GMOCK_DIR "${CMAKE_SOURCE_DIR}/external/googletest/googlemock/")
 
 if (MSVC)

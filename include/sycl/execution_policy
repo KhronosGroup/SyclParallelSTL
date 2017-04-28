@@ -39,6 +39,10 @@
 #undef isnormal
 #undef isinf
 #undef signbit
+#undef isgreater
+#undef isless
+#undef islessequal
+#undef isunordered
 
 #include <CL/sycl.hpp>
 #include <sycl/algorithm/for_each.hpp>

@@ -48,7 +48,7 @@ function install_gmock  {(
 
 function configure  {
   mkdir -p build && pushd build
-  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON -DOpenCL_INCLUDE_DIR=/opt/intel/opencl/include  -DOpenCL_LIBRARY=/opt/intel/opencl/
+  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON 
   popd
 }
 

@@ -41,7 +41,7 @@ class FindAlgorithm : public testing::Test {
 
 TEST_F(FindAlgorithm, TestSyclFind) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
   float search_val = 10.0f;
   int val_idx = std::rand() % n_elems;
 
@@ -67,7 +67,7 @@ TEST_F(FindAlgorithm, TestSyclFind) {
 
 TEST_F(FindAlgorithm, TestSyclListFind) {
   std::list<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
   float search_val = 10.0f;
   int val_idx = std::rand() % n_elems;
 
@@ -93,7 +93,7 @@ TEST_F(FindAlgorithm, TestSyclListFind) {
 
 TEST_F(FindAlgorithm, TestSyclFindIf) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
   float search_val = 10.0f;
   int val_idx = std::rand() % n_elems;
 
@@ -120,7 +120,7 @@ TEST_F(FindAlgorithm, TestSyclFindIf) {
 
 TEST_F(FindAlgorithm, TestSyclListFindIf) {
   std::list<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
   float search_val = 10.0f;
   int val_idx = std::rand() % n_elems;
 
@@ -147,7 +147,7 @@ TEST_F(FindAlgorithm, TestSyclListFindIf) {
 
 TEST_F(FindAlgorithm, TestSyclFindIfNot) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
   float search_val = 10.0f;
   int val_idx = std::rand() % n_elems;
 
@@ -174,7 +174,7 @@ TEST_F(FindAlgorithm, TestSyclFindIfNot) {
 
 TEST_F(FindAlgorithm, TestSyclListFindIfNot) {
   std::list<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
   float search_val = 10.0f;
   int val_idx = std::rand() % n_elems;
 

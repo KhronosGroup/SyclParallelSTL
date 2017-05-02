@@ -104,7 +104,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce5) {
 
 TEST_F(ReduceAlgorithm, TestSyclReduce6) {
   std::vector<int> v;
-  int n = 4096;
+  int n = 128;
 
   for (int i = 0; i < n; i++) {
     int x = 10 * (((float)std::rand()) / RAND_MAX);
@@ -122,7 +122,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce6) {
 
 TEST_F(ReduceAlgorithm, TestSyclReduce7) {
   std::vector<int> v;
-  int n = 4096;
+  int n = 128;
 
   for (int i = 0; i < n; i++) {
     int x = 10 * (((float)std::rand()) / RAND_MAX);

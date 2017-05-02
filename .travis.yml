@@ -40,7 +40,7 @@ install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.9" CC="clang-3.9"; fi
   - if [ "$IMPL" = "COMPUTECPP" ]; then bash .travis/build_computecpp.sh; fi
-  - if [ "$IMPL" = "TRISYCL" ]; then .travis/build_triSYCL.sh; fi
+  - if [ "$IMPL" = "TRISYCL" ]; then bash .travis/build_triSYCL.sh; fi
 
 script:
     ###########################

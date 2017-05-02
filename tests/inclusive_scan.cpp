@@ -190,7 +190,7 @@ TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanNonPowerOfTwo3) {
 
 // test of a large power of two sized input
 TEST_F(InclusiveScanAlgorithm, TestSyclInclusiveScanLargePowerOfTwo) {
-  std::vector<int> v(1 << 24);
+  std::vector<int> v(1 << 12);
   std::fill(v.begin(), v.end(), 42);
   std::vector<int> gold(v);
 

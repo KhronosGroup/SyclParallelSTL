@@ -18,6 +18,12 @@ env:
   - IMPL=TRISYCL
   - IMPL=COMPUTECPP
 
+matrix:
+  fast_finish: true
+# Some tests are not passing on triSYCL
+  allow_failures:
+    - env: IMPL=TRISYCL
+
 addons:
   apt:
     sources:

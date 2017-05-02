@@ -18,7 +18,7 @@
 # Useless to go on when an error occurs
 set -o errexit
 
-if [ $1 == "--trisycl" ]
+if [ $1 == "--trisycl" or "TRISYCL" ]
 then
   shift
   echo "build.sh enter mode: triSYCL"

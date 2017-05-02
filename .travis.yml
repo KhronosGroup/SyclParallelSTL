@@ -39,22 +39,10 @@ before_install:
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.9" CC="clang-3.9"; fi
+  - if [ "$IMPL" = "COMPUTECPP" ]; then bash .travis/build_computecpp.sh; fi
+  - if [ "$IMPL" = "TRISYCL"]; then .travis/build_triSYCL.sh; fi
 
 script:
-    ###########################
-    # Get ComputeCpp
-    ###########################
-    - wget https://computecpp.codeplay.com/downloads/computecpp-ce/latest/ubuntu-14.04-64bit.tar.gz
-    - tar -xzf ubuntu-14.04-64bit.tar.gz -C /tmp 
-    # Workaround for C99 definition conflict
-    - bash .travis/computecpp_workaround.sh
-
-    ###########################
-    # Get triSYCL
-    ###########################
-    - wget https://github.com/triSYCL/triSYCL/archive/master.zip -O /tmp/trisycl.zip
-    - unzip /tmp/trisycl.zip -d /tmp  &> /dev/null 
-
     ###########################
     # Build parallel-stl
     ###########################

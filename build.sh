@@ -18,7 +18,7 @@
 # Useless to go on when an error occurs
 set -o errexit
 
-if [ $1 == "--trisycl" or "TRISYCL" ]
+if [ $1 == "--trisycl" ]
 then
   shift
   echo "build.sh enter mode: triSYCL"
@@ -48,7 +48,7 @@ function install_gmock  {(
 
 function configure  {
   mkdir -p build && pushd build
-  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON
+  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON 
   popd
 }
 

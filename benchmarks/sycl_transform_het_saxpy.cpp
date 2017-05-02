@@ -31,6 +31,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <numeric>
 
 #include <experimental/algorithm>
 #include <sycl/heterogeneous_execution_policy.hpp>

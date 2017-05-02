@@ -1,19 +1,57 @@
 language: cpp
+compiler: g++
 sudo: required
-dist: xenial
-
+dist: trusty
 os:
   - linux
 
+compiler:
+  - gcc
+  - clang
+
+branches:
+  only:
+    - master
+    - travis-ci
+
+env:
+  - IMPL=TRISYCL
+  - IMPL=COMPUTECPP
+
+matrix:
+  fast_finish: true
+# Some tests are not passing on triSYCL
+  allow_failures:
+    - env: IMPL=TRISYCL
+
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-precise
+      - ubuntu-toolchain-r-test
+      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+        key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+
+    packages:
+      - python-yaml
+      - gcc-5
+      - g++-5
+      - clang-3.9
+      - libc++-dev
 
 before_install:
-  - echo $CXX
-  - echo $CXXFLAGS
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libcompute-dev
-  - wget https://github.com/triSYCL/triSYCL/archive/master.zip -O /tmp/trisycl.zip
-  - unzip /tmp/trisycl.zip
-  - ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL/include  -DBOOST_COMPUTE_INCLUDE_DIR=/usr/include/compute/
+  - bash .travis/before_install.sh
 
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.9" CC="clang-3.9"; fi
+  - if [ "$IMPL" = "COMPUTECPP" ]; then bash .travis/build_computecpp.sh; fi
+  - if [ "$IMPL" = "TRISYCL" ]; then bash .travis/build_triSYCL.sh; fi
 
+script:
+    ###########################
+    # Build parallel-stl
+    ###########################
+    - if [ "$IMPL" = "TRISYCL" ]; then ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; fi
+    - if [ "$IMPL" = "COMPUTECPP" ]; then COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-CE-0.1.4-Linux/; fi
 

@@ -48,6 +48,7 @@ namespace impl {
 typedef struct search_result {
   bool result;
   int index;
+  search_result() = default;
   search_result(bool r, int i) : result(r), index(i) {}
 } search_result;
 

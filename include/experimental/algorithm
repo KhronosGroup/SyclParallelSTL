@@ -33,6 +33,21 @@
 #include <algorithm>
 #include <iostream>
 
+
+// Workaround for travis builds,
+// disable old C99 macros
+#undef isfinite
+#undef isnan
+#undef isnormal
+#undef isinf
+#undef signbit
+#undef isgreater
+#undef isless
+#undef islessequal
+#undef isunordered
+#undef isgreaterequal
+
+
 namespace std {
 namespace experimental {
 namespace parallel {

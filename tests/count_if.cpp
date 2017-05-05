@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
 #include <sycl/execution_policy>
 #include <experimental/algorithm>
@@ -40,7 +41,7 @@ class CountIfAlgorithm : public testing::Test {
 
 TEST_F(CountIfAlgorithm, TestSyclCountIf) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
 
   for (int i = 0; i < n_elems; i++) {
     float x = ((float)std::rand()) / RAND_MAX;

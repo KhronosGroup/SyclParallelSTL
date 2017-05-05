@@ -52,7 +52,7 @@ TEST_F(TransformReduceAlgorithm, TestSyclTransformReduce) {
 
 TEST_F(TransformReduceAlgorithm, TestSyclTransformReduce2) {
   std::vector<int> v;
-  int n = 4096;
+  int n = 128;
 
   for (int i = 0; i < n; i++) {
     v.push_back(1);
@@ -64,5 +64,5 @@ TEST_F(TransformReduceAlgorithm, TestSyclTransformReduce2) {
                                  [=](int val) { return val * 2; }, 0,
                                  [=](int v1, int v2) { return v1 + v2; });
 
-  EXPECT_TRUE(8192 == ressycl);
+  EXPECT_TRUE( (2*128) == ressycl);
 }

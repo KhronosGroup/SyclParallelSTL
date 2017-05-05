@@ -189,7 +189,7 @@ TEST_F(ExclusiveScanAlgorithm, TestSyclExclusiveScanNonPowerOfTwo3) {
 
 // test of a large power of two sized input
 TEST_F(ExclusiveScanAlgorithm, TestSyclExclusiveScanLargePowerOfTwo) {
-  std::vector<int> v(1 << 24);
+  std::vector<int> v(1 << 9);
   std::fill(v.begin(), v.end(), 42);
   std::vector<int> gold(v);
 
@@ -205,7 +205,7 @@ TEST_F(ExclusiveScanAlgorithm, TestSyclExclusiveScanLargePowerOfTwo) {
 
 // test of a variety of non power of two sized input
 TEST_F(ExclusiveScanAlgorithm, TestSyclExclusiveScanNonPowerOfTwoRange) {
-  for (int i = 5; i < 14; i++) {
+  for (int i = 5; i < 9; i++) {
     std::vector<int> v((1 << i) - 1);
     std::fill(v.begin(), v.end(), 42);
     std::vector<int> gold(v);

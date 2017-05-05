@@ -53,7 +53,7 @@ else
   shift
 fi
 
-NPROC=$(nproc)
+NPROC=1
 
 function install_gmock  {(
   REPO="https://github.com/google/googletest.git"
@@ -73,7 +73,7 @@ function install_gmock  {(
 
 function configure  {
   mkdir -p build && pushd build
-  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON
+  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON 
   popd
 }
 

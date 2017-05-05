@@ -1,4 +1,4 @@
-SYCL Parallel STL
+SYCL Parallel STL [![Build Status](https://travis-ci.org/KhronosGroup/SyclParallelSTL.svg?branch=master)](https://travis-ci.org/KhronosGroup/SyclParallelSTL)
 ==============================
 
 This project features an implementation of the Parallel STL library

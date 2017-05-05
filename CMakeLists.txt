@@ -12,6 +12,7 @@ option(USE_TRISYCL_OPENCL "Use OpenCL inside triSYCL" OFF)
 
 message(STATUS " Path to CMAKE source directory: ${CMAKE_SOURCE_DIR} ")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
+find_package(Threads REQUIRED)
 
 if (USE_COMPUTECPP)
 

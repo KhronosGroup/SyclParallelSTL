@@ -31,6 +31,7 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include <numeric>
 
 #include <experimental/algorithm>
 #include <sycl/execution_policy>

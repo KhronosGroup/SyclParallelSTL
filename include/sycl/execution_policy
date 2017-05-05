@@ -32,6 +32,19 @@
 #include <typeinfo>
 #include <memory>
 
+// Workaround for travis builds,
+// disable old C99 macros
+#undef isfinite
+#undef isnan
+#undef isnormal
+#undef isinf
+#undef signbit
+#undef isgreater
+#undef isless
+#undef islessequal
+#undef isunordered
+#undef isgreaterequal
+
 #include <CL/sycl.hpp>
 #include <sycl/algorithm/for_each.hpp>
 #include <sycl/algorithm/for_each_n.hpp>

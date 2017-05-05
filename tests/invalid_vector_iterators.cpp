@@ -110,7 +110,7 @@ TEST_F(InvalidIterators, TestTransformReduce3) {
 
 TEST_F(InvalidIterators, TestCountIf1) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
 
   for (int i = 0; i < n_elems; i++) {
     float x = ((float)std::rand()) / RAND_MAX;
@@ -127,7 +127,7 @@ TEST_F(InvalidIterators, TestCountIf1) {
 
 TEST_F(InvalidIterators, TestCountIf2) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
 
   for (int i = 0; i < n_elems; i++) {
     float x = ((float)std::rand()) / RAND_MAX;
@@ -144,7 +144,7 @@ TEST_F(InvalidIterators, TestCountIf2) {
 
 TEST_F(InvalidIterators, TestCountIf3) {
   std::vector<float> v;
-  int n_elems = 4096;
+  int n_elems = 128;
 
   for (int i = 0; i < n_elems; i++) {
     float x = ((float)std::rand()) / RAND_MAX;

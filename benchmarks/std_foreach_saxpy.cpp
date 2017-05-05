@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <numeric>
 
 #include "benchmark.h"
 

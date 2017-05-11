@@ -44,8 +44,6 @@
 
 using namespace sycl::helpers;
 
-// This benchmark is currently disabled on triSYCL
-
 /** getRand
  * @brief This function returns a random float number
  */

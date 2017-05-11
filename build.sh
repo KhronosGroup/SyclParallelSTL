@@ -53,7 +53,7 @@ else
   shift
 fi
 
-NPROC=1
+NPROC=$(nproc)
 
 function install_gmock  {(
   REPO="https://github.com/google/googletest.git"

@@ -11,7 +11,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 find_package(Threads REQUIRED)
 
 if (USE_COMPUTECPP)
-
   message(STATUS " Using ComputeCpp CMake")
 
   message(STATUS " Path to ComputeCpp implementation: ${COMPUTECPP_PACKAGE_ROOT_DIR} ")

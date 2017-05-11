@@ -57,9 +57,9 @@ Currently, only some STL algorithms are implemented, such as:
 
 Some optimizations are implemented. For example:
 
-* the ability to pass iterators to buffers rather than STL containers to reduce 
+* the ability to pass iterators to buffers rather than STL containers to reduce
 the amount of information copied in and out
-* the ability to specify a queue to the SYCL policy so that the queue is used 
+* the ability to specify a queue to the SYCL policy so that the queue is used
 for the various kernels (potentially enabling asynchronous execution of the calls).
 
 Building the project
@@ -68,7 +68,7 @@ Building the project
 This project currently supports the SYCL beta implementation from Codeplay,
 ComputeCPP and the open-source triSYCL implementation.
 
-The project uses CMake 3.0.2 in order to produce build files,
+The project uses CMake 3.5 in order to produce build files,
 but more recent versions may work.
 
 In Linux, simply create a build directory and run CMake as follows:
@@ -78,7 +78,7 @@ In Linux, simply create a build directory and run CMake as follows:
     $ cmake ../ -DCOMPUTECPP_PACKAGE_ROOT_DIR=/path/to/sycl \
     $ make
 
-Usual CMake options are available (e.g. building debug or release). 
+Usual CMake options are available (e.g. building debug or release).
 Makefile and Ninja generators are supported on Linux.
 
 To simplify configuration, the `FindComputeCpp` cmake module from the ComputeCPP
@@ -92,17 +92,17 @@ stl project:
     $ mkdir external
     $ cd external
     $ git clone git@github.com:google/googletest.git
-    $ cd googletest/googlemock/make 
+    $ cd googletest/googlemock/make
     $ make
 
 To enable building the benchmarks, enable the *PARALLEL_STL_BENCHMARKS* option
 in the cmake configuration line, i.e. `-DPARALLEL_STL_BENCHMARKS=ON`.
 
 When building with a SYCL implementation that has no device compiler,
-enable the *SYCL_NO_DEVICE_COMPILER* option to disable the specific 
+enable the *SYCL_NO_DEVICE_COMPILER* option to disable the specific
 CMake rules for intermediate file generation.
 
-Refer to your SYCL implementation documentation for 
+Refer to your SYCL implementation documentation for
 implementation-specific building options.
 
 To quickly build the project and run some non-regression tests with
@@ -118,22 +118,22 @@ for example (on Ubuntu 16.04):
 
 If you want to compile it with triSYCL:
 
-    ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include] [-DUSE_TRISYCL_OPENCL=ON]
+    ./build.sh --trisycl [-DTRISYCL_INCLUDE_DIR=path/to/triSYCL/include] [-DBOOST_COMPUTE_INCLUDE_DIR=path/to/boost/compute/include] [-DTRISYCL_OPENCL=ON]
 for example (on Ubuntu 16.04):
 
-    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include -DUSE_TRISYCL_OPENCL=ON
+    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DBOOST_COMPUTE_INCLUDE_DIR=~/compute/include [-DTRISYCL_OPENCL=ON]
 
 or if Boost compute is in your library's default path, just with:
 
-    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include -DUSE_TRISYCL_OPENCL=ON
+    ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=~/triSYCL/include [-DTRISYCL_OPENCL=ON]
 
 
 Just run `build.sh` alone to get a small help message.
 
-If not using OpenCL, some tests are expected to fail. For example the
-N-body application is using `vec3` interoperability types which are
-not defined outside of OpenCL mode for now.
-
+For triSYCL some benchmarks may display messages saying that unimplemented
+features are used, you can ignore those messages as these features do not affect
+the benchmarks executions, if you wish you can also contribute to the triSYCL
+implementation to make those messages definitely disapear.
 
 Building the documentation
 ----------------------------
@@ -165,7 +165,7 @@ function. To provide a lambda name, the user has to do the following:
 elements to be computed are not power of two. The following algorithms have
 this limitation: sort, inner_product, reduce, count_if and transform_reduce.
 
-* Refer to SYCL implementation documentation for implementation-specific 
+* Refer to SYCL implementation documentation for implementation-specific
 building options.
 
 Copyright and Trademarks

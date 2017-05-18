@@ -20,7 +20,7 @@ ln -sf /tmp/OpenCL-Headers-master/opencl22/CL/ /tmp/OpenCL-ICD-Loader-master/inc
 pushd /tmp/OpenCL-ICD-Loader-master/ && make && popd
 # Recreate a fake OpenCL setup
 sudo mkdir /usr/include/CL/
-sudo cp -f /tmp/OpenCL-Headers-master/* /usr/include/CL/
+sudo cp -Rf /tmp/OpenCL-Headers-master/* /usr/include/CL/
 sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/
 sudo cp -Rf /tmp/OpenCL-ICD-Loader-master/build/bin/* /usr/lib/x86_64-linux-gnu/
 

@@ -225,13 +225,13 @@ class InputBufferIterator : public BufferIterator<T, Alloc> {
       : BufferIterator<T, Alloc>(hI.get_pos(), hI.h_) {}
 };
 
-template <typename Iterator1, typename Iterator2>
-inline bool operator==(Iterator1 a, Iterator2 b) {
+//template <typename Iterator1, typename Iterator2>
+inline bool operator==(SyclIterator a, SyclIterator b) {
   return a.get_pos() == b.get_pos();
 }
 
-template <typename Iterator1, typename Iterator2>
-inline bool operator!=(Iterator1 a, Iterator2 b) {
+//template <typename Iterator1, typename Iterator2>
+inline bool operator!=(SyclIterator a, SyclIterator b) {
   return !(a == b);
 }
 

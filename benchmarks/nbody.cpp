@@ -44,9 +44,6 @@
 
 using namespace sycl::helpers;
 
-// This benchmark is currently disabled on triSYCL
-#ifndef TRISYCL_CL_LANGUAGE_VERSION 
-
 /** getRand
  * @brief This function returns a random float number
  */
@@ -197,11 +194,3 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
 }
 
 BENCHMARK_MAIN("BENCH_NBODY", benchmark_nbody, 2, 65536, 1);
-
-#else
-
-int main() {
-  return 0;
-}
-
-#endif   // TRISYCL_CL_LANGUAGE_VERSION

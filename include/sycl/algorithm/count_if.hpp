@@ -37,9 +37,12 @@
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 
 namespace sycl {
 namespace impl {
+
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 /* count_if.
 * @brief Returns the count_if of one vector across the range [first,
@@ -101,6 +104,36 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
                                      cl::sycl::access::target::host_buffer>();
   return hr[0];
 }
+
+#else
+
+template <typename ExecutionPolicy, typename InputIt, typename UnaryOperation,
+          typename BinaryOperation>
+typename std::iterator_traits<InputIt>::difference_type count_if(
+    ExecutionPolicy& snp, InputIt b, InputIt e,
+    UnaryOperation unary_op, BinaryOperation binary_op) {
+
+
+  auto q = snp.get_queue();
+  auto size = sycl::helpers::distance(b, e);
+  if(size <= 0) return 0;
+
+  auto device = q.get_device();
+  using value_type = typename std::iterator_traits<InputIt>::value_type;
+
+
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+
+  auto input_buff = sycl::helpers::make_const_buffer(b, e);
+
+  auto map = [=](size_t pos, value_type x) {
+    return (unary_op(x)) ? 1 : 0;
+  };
+
+  return buffer_mapreduce( snp, q, input_buff, 0, d, map, binary_op );
+
+}
+#endif
 
 }  // namespace impl
 }  // namespace sycl

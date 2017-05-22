@@ -22,23 +22,7 @@ if (USE_COMPUTECPP)
 
 else()
   message(STATUS " Using triSYCL CMake")
-  set(CMAKE_CXX_STANDARD 14)
-  set(CXX_STANDARD_REQUIRED ON)
-
-  if(TRISYCL_INCLUDE_DIR)
-    message(STATUS "Path to triSYCL include directory: " ${TRISYCL_INCLUDE_DIR})
-    include_directories(${TRISYCL_INCLUDE_DIR})
-  endif()
-  if(BOOST_COMPUTE_INCLUDE_DIR)
-    message(STATUS "Path to Boost compute include directory: " ${BOOST_COMPUTE_INCLUDE_DIR})
-    include_directories(${BOOST_COMPUTE_INCLUDE_DIR})
-  endif()
-
-  include(FindOpenCL)
-
-  function(add_sycl_to_target targetName sourceFile binaryDir)
-  endfunction(add_sycl_to_target)
-
+  include(FindTriSYCL)
 endif()
 
 

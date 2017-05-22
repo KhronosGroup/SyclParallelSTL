@@ -38,6 +38,8 @@
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
+#include <sycl/execution_policy>
 
 namespace sycl {
 namespace impl {
@@ -45,10 +47,14 @@ namespace impl {
 /* reduce.
  * Implementation of the command group that submits a reduce kernel.
  * The kernel is implemented as a lambda.
- * Note that there is a potential race condition while using the same buffer fot
+ * Note that there is a potential race condition while using the same buffer for
  * input-output
  */
-template <class ExecutionPolicy, class Iterator, class T, class BinaryOperation>
+#ifdef SYCL_PSTL_USE_OLD_ALGO
+template <typename ExecutionPolicy,
+          typename Iterator,
+          typename T,
+          typename BinaryOperation>
 typename std::iterator_traits<Iterator>::value_type reduce(
     ExecutionPolicy &sep, Iterator b, Iterator e, T init, BinaryOperation bop) {
   cl::sycl::queue q(sep.get_queue());
@@ -94,6 +100,37 @@ typename std::iterator_traits<Iterator>::value_type reduce(
                                      cl::sycl::access::target::host_buffer>();
   return bop(hI[0], init);
 }
+#else
+
+
+/*
+ * Reduce algorithm
+ */
+template <typename ExecutionPolicy,
+          typename Iterator,
+          typename T,
+          typename BinaryOperation>
+typename std::iterator_traits<Iterator>::value_type reduce(
+    ExecutionPolicy &snp, Iterator b, Iterator e, T init, BinaryOperation bop) {
+
+  auto q = snp.get_queue();
+  auto device = q.get_device();
+  auto size = sycl::helpers::distance(b, e);
+  using value_type = typename std::iterator_traits<Iterator>::value_type;
+
+  if (size <= 0)
+    return init;
+
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(value_type));
+
+  auto input_buff = sycl::helpers::make_const_buffer(b, e);
+
+  auto map = [](size_t, value_type x) { return x; };
+
+  return buffer_mapreduce(snp, q, input_buff, init, d, map, bop);
+}
+
+#endif // __COMPUTECPP__
 
 }  // namespace impl
 }  // namespace sycl

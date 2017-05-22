@@ -38,9 +38,12 @@
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_namegen.hpp>
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 
 namespace sycl {
 namespace impl {
+
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 // a struct to store the result of a predicate comparison, and an index
 // we have to declare this here instead of in the function so that the sycl
@@ -48,7 +51,6 @@ namespace impl {
 typedef struct search_result {
   bool result;
   int index;
-  search_result() = default;
   search_result(bool r, int i) : result(r), index(i) {}
 } search_result;
 
@@ -160,6 +162,44 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   std::advance(r_iter, search_index);
   return r_iter;
 }
+
+#else
+
+template <typename ExecutionPolicy, typename InputIt, typename UnaryPredicate>
+InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
+                  UnaryPredicate p) {
+
+  auto size = sycl::helpers::distance(b, e);
+  if (size <= 0) {
+    return e;
+  }
+
+  auto q = snp.get_queue();
+  auto device = q.get_device();
+  using value_type = typename std::iterator_traits<InputIt>::value_type;
+
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+
+  auto input_buff = sycl::helpers::make_const_buffer(b, e);
+
+  auto map = [=](size_t pos, value_type x) {
+    return (p(x)) ? pos : size;
+  };
+
+  auto red = [](size_t x, size_t y){
+    return std::min(x, y);
+  };
+
+  size_t pos = buffer_mapreduce( snp, q, input_buff, size, d, map, red );
+
+  if (pos==size) {
+    return e;
+  } else {
+    return std::next(b, pos);
+  }
+}
+#endif
+
 }
 }
 

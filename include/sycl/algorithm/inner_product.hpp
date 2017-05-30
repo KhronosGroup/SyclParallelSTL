@@ -31,9 +31,9 @@
 
 #include <type_traits>
 #include <algorithm>
-#include <iostream>
 
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
 
 namespace sycl {
@@ -77,6 +77,8 @@ T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
   }
   return value;
 }
+
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 /* inner_product.
 * @brief Returns the inner product of two vectors across the range [first1,
@@ -145,6 +147,46 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
     return op1(value, hb[0]);
   }
 }
+
+#else
+
+/*
+ * Inner Product Algorithm
+ */
+
+template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
+          class BinaryOperation1, class BinaryOperation2>
+T inner_product(ExecutionPolicy &snp, InputIt1 first1, InputIt1 last1,
+                InputIt2 first2, T value, BinaryOperation1 op1,
+                BinaryOperation2 op2) {
+
+  auto q = snp.get_queue();
+  auto device = q.get_device();
+  auto size = sycl::helpers::distance(first1, last1);
+  if (size <= 0)
+    return value;
+  InputIt2 last2 = std::next(first2, size);
+
+  using value_type_1 = typename std::iterator_traits<InputIt1>::value_type;
+  using value_type_2 = typename std::iterator_traits<InputIt2>::value_type;
+
+
+  auto d = compute_mapreduce_descriptor(
+      device, size, sizeof(value_type_1)+sizeof(value_type_2));
+
+  auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
+  auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);
+
+  auto map = [&](size_t pos, value_type_1 x, value_type_2 y) {
+    return op2(x, y);
+  };
+
+  return buffer_map2reduce(snp, q, input_buff1, input_buff2,
+                           value, d, map, op1 );
+}
+
+
+#endif
 
 }  // namespace impl
 }  // namespace sycl

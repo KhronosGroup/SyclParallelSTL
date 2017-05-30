@@ -55,7 +55,7 @@ void exclusive_scan_gold(std::vector<T>& v, T init = 0,
 
 // test the gold computation against a known value
 TEST_F(ExclusiveScanAlgorithm, TestSTDExclusiveScan) {
-  std::vector<int> v = {5, 1, 6, 2, 6, 2, 5, 7};
+  std::vector<int> v    = {5, 1, 6,  2,  6,  2,  5,  7};
   std::vector<int> gold = {0, 5, 6, 12, 14, 20, 22, 27};
 
   exclusive_scan_gold(v, 0, [](int a, int b) { return a + b; });

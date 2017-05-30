@@ -72,7 +72,7 @@ TEST_F(TransformAlgorithm, TestSycl2Transform) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class TransformAlgorithm3> snp(q);
-  int value = 1;
+
   transform(snp, v1.begin(), v1.end(), v2.begin(), o.begin(),
             [=](int val1, int val2) { return val1 + val2 + 1; });
   EXPECT_TRUE(std::equal(o.begin(), o.end(), result.begin()));

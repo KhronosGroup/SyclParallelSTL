@@ -31,9 +31,12 @@
 
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_namegen.hpp>
+#include <sycl/algorithm/buffer_algorithms.hpp>
 
 namespace sycl {
 namespace impl {
+
+#ifdef SYCL_PSTL_USE_OLD_ALGO
 
 /* exclusive_scan.
  * Implementation of the command group that submits a exclusive_scan kernel.
@@ -44,7 +47,7 @@ template <class ExecutionPolicy, class InputIterator, class OutputIterator,
 OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
                               InputIterator e, OutputIterator o, ElemT init,
                               BinaryOperation bop) {
-  cl::sycl::queue q(sep.get_queue());
+  auto q = sep.get_queue();
   auto device = q.get_device();
 
   auto bufI = sycl::helpers::make_const_buffer(b, e);
@@ -128,6 +131,54 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
   q.wait_and_throw();
   return o + vectorSize;
 }
+
+#else
+
+
+template <typename ExecutionPolicy,
+          typename InputIterator,
+          typename OutputIterator,
+          typename T,
+          typename BinaryOperation>
+OutputIterator exclusive_scan(ExecutionPolicy &snp, InputIterator b,
+                              InputIterator e, OutputIterator o, T init,
+                              BinaryOperation bop) {
+
+  cl::sycl::queue q(snp.get_queue());
+  auto device = q.get_device();
+  auto size = sycl::helpers::distance(b, e);
+  using value_type = typename std::iterator_traits<InputIterator>::value_type;
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
+  std::vector<value_type> vect { b, e };
+  *o++ = init;
+#endif
+
+
+  {
+#ifdef TRISYCL_CL_LANGUAGE_VERSION
+    cl::sycl::buffer<value_type, 1> buffer { vect.data(), size - 1 };
+    buffer.set_final_data(o);
+#else
+    std::shared_ptr<value_type> data { new value_type[size-1],
+      [&](value_type* ptr) {
+        *o++ = init;
+        std::copy_n(ptr, size-1, o);
+      }
+    };
+    std::copy_n(b, size-1, data.get());
+    cl::sycl::buffer<value_type, 1> buffer { data, cl::sycl::range<1>{size-1} };
+#endif
+
+    auto d = compute_mapscan_descriptor(device, size - 1, sizeof(value_type));
+    buffer_mapscan(snp, q, buffer, buffer, init, d,
+                   [](value_type x) { return x; },
+                   bop);
+  }
+
+  return std::next(o, size - 1);
+}
+
+#endif
 
 }  // namespace impl
 }  // namespace sycl

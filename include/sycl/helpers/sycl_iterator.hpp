@@ -86,7 +86,7 @@ class HostAccessorIterator : public SyclIterator {
   HostAccessorIterator(sycl_host_acc<T, Mode> &h, size_t pos)
       : SyclIterator(pos), h_(h) {}
 
-  template <typename U, int ModeU>
+  template <typename U, cl::sycl::access::mode ModeU>
   HostAccessorIterator(const HostAccessorIterator<U, ModeU> &hI)
       : SyclIterator(hI.get_pos()), h_(hI.h_) {}
 

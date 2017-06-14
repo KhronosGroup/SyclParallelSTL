@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.2.0
+VERSION=0.2.1
 cat .travis/additional_undef /tmp/ComputeCpp-CE-${VERSION}-Linux/include/CL/sycl_builtins.h > /tmp/tmp_builtins
 mv /tmp/tmp_builtins /tmp/ComputeCpp-CE-${VERSION}-Linux/include/CL/sycl_builtins.h.h
 

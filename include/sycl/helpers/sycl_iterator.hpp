@@ -155,7 +155,7 @@ class BufferIterator : public SyclIterator {
 
   template <typename U>
   BufferIterator(const BufferIterator<U, Alloc> &hI)
-      : SyclIterator(hI.get_pos()), b_(hI.h_) {}
+      : SyclIterator(hI.get_pos()), b_(hI.b_) {}
 
   inline sycl_buffer_1d<T, Alloc> get_buffer() const { return b_; }
 

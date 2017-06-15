@@ -53,5 +53,5 @@ script:
     # Build parallel-stl
     ###########################
     - if [ "$IMPL" = "TRISYCL" ]; then ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; fi
-    - if [ "$IMPL" = "COMPUTECPP" ]; then COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-CE-0.2.0-Linux/ -DCOMPUTECPP_DISABLE_GCC_DUAL_ABI=1; fi
+    - if [ "$IMPL" = "COMPUTECPP" ]; then COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest -DCOMPUTECPP_DISABLE_GCC_DUAL_ABI=1; fi
 

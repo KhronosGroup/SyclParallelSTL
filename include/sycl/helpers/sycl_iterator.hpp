@@ -138,7 +138,7 @@ class HostAccessorIterator : public SyclIterator {
  */
 template <typename T, typename Alloc>
 class BufferIterator : public SyclIterator {
- private:
+ protected:
   sycl_buffer_1d<T, Alloc> b_;
 
  public:
@@ -218,11 +218,11 @@ class InputBufferIterator : public BufferIterator<T, Alloc> {
 
   template <typename U>
   InputBufferIterator(const InputBufferIterator<U, Alloc> &hI)
-      : BufferIterator<T, Alloc>(hI.get_pos(), hI.h_) {}
+      : BufferIterator<T, Alloc>(hI.b_, hI.get_pos()) {}
 
   template <typename U>
   InputBufferIterator(const BufferIterator<U, Alloc> &hI)
-      : BufferIterator<T, Alloc>(hI.get_pos(), hI.h_) {}
+      : BufferIterator<T, Alloc>(hI.b_, hI.get_pos()) {}
 };
 
 //template <typename Iterator1, typename Iterator2>

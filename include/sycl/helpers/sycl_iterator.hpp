@@ -181,6 +181,11 @@ class BufferIterator : public SyclIterator {
     return result;
   }
 
+  BufferIterator<T, Alloc> &operator+=(const int &value) {
+    this->pos_ += value;
+    return (*this);
+  }
+
   // Prefix operator (Increment and return value)
   BufferIterator<T, Alloc> &operator++() {
     this->pos_++;

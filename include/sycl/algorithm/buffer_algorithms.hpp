@@ -397,7 +397,6 @@ void buffer_mapscan(ExecutionPolicy &snp,
                        cl::sycl::access::target::local>
       scratch { cl::sycl::range<1> { d.size_per_work_group }, cgh };
 
-
     cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);

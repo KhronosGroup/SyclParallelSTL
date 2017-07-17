@@ -30,6 +30,7 @@
 #define __SYCL_IMPL_BUFFER_ALGORITHM__
 
 #include <sycl/helpers/sycl_buffers.hpp>
+#include <sycl/helpers/sycl_namegen.hpp>
 
 namespace sycl {
 namespace impl {
@@ -396,7 +397,8 @@ void buffer_mapscan(ExecutionPolicy &snp,
                        cl::sycl::access::target::local>
       scratch { cl::sycl::range<1> { d.size_per_work_group }, cgh };
 
-    cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(rng_wg, rng_wi,
+
+    cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
       //assert(group_id < d.nb_work_group);
@@ -510,8 +512,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
       <cl::sycl::access::mode::read_write>(cgh);
     auto read_scan = scan.template get_access
       <cl::sycl::access::mode::read>(cgh);
-
-    cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(rng_wg, rng_wi,
+    cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName>>(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
       B acc = read_scan[group_id];

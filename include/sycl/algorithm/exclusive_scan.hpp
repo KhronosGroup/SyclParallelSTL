@@ -57,7 +57,7 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
   auto bufO = sycl::helpers::make_buffer(o, o + vectorSize);
 
   size_t localRange =
-      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
+      std::min(device.template get_info<cl::sycl::info::device::max_work_group_size>(),
                vectorSize);
   size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
   // calculate iteration count, with extra if not a power of two size buffer

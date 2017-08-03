@@ -15,10 +15,15 @@ if (USE_COMPUTECPP)
 
   message(STATUS " Path to ComputeCpp implementation: ${COMPUTECPP_PACKAGE_ROOT_DIR} ")
 
+
   include(FindOpenCL)
   include(FindComputeCpp)
 
+  add_definitions(-DSYCL_PSTL_USE_OLD_ALGO)
+  set(COMPUTECPP_DEVICE_COMPILER_FLAGS "${COMPUTECPP_DEVICE_COMPILER_FLAGS} -DSYCL_PSTL_USE_OLD_ALGO")
+
   include_directories("${COMPUTECPP_INCLUDE_DIRECTORY}")
+
 
 else()
   message(STATUS " Using triSYCL CMake")

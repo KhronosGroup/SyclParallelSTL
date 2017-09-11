@@ -64,7 +64,7 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
 
   auto device = q.get_device();
   auto local =
-      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
+      std::min(device.template get_info<cl::sycl::info::device::max_work_group_size>(),
                vectorSize);
   auto bufI = sycl::helpers::make_const_buffer(first, last);
   size_t length = vectorSize;

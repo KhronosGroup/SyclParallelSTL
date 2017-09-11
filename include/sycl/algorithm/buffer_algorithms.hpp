@@ -32,6 +32,8 @@
 #include <sycl/helpers/sycl_buffers.hpp>
 #include <sycl/helpers/sycl_namegen.hpp>
 
+#include <cassert>
+
 namespace sycl {
 namespace impl {
 
@@ -66,14 +68,14 @@ struct sycl_algorithm_descriptor {
  * Compute a valid set of parameters for buffer_mapreduce algorithm to
  * work properly
  */
-
 sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
                                                   size_t size,
                                                   size_t sizeofB) {
   using std::max;
   using std::min;
-  if (size <= 0)
+  if (size <= 0) {
     return sycl_algorithm_descriptor {};
+  }
   /* Here we have a heuristic which compute appropriate values for the
    * number of work items and work groups, this heuristic ensure that:
    *  - there is less work group than max_compute_units
@@ -84,16 +86,16 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
    */
   size_t max_work_group =
     device.get_info<cl::sycl::info::device::max_compute_units>();
-  //std::cout << "max_work_group=\t" << max_work_group << std::endl;
+
   //maximal number of work item per work group
   size_t max_work_item =
     device.get_info<cl::sycl::info::device::max_work_group_size>();
-  //std::cout << "max_work_item=\t" << max_work_item << std::endl;
+
   size_t local_mem_size =
     device.get_info<cl::sycl::info::device::local_mem_size>();
-  //std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
+
   size_t nb_work_item = min(max_work_item, local_mem_size / sizeofB);
-  //std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
+
 
   /* (nb_work_item == 0) iff (sizeof(T) > local_mem_size)
    * If sizeof(T) > local_mem_size, this means that an object
@@ -105,21 +107,20 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
   // we ensure that each work_item of every work_group is used at least once
   size_t nb_work_group = min(max_work_group,
                              up_rounded_division(size, nb_work_item));
-  //std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
+
   assert(nb_work_group >= 1);
 
   //number of elements manipulated by each work_item
   size_t size_per_work_item =
     up_rounded_division(size, nb_work_item * nb_work_group);
-  //std::cout << "size_per_work_item=\t" << size_per_work_item << std::endl;
+
   //number of elements manipulated by each work_group (except the last one)
   size_t size_per_work_group = size_per_work_item * nb_work_item;
-  //std::cout << "size_per_work_group=\t" << size_per_work_group << std::endl;
+
 
   nb_work_group = max(static_cast<size_t>(1),
                       up_rounded_division(size, size_per_work_group));
-  //std::cout << "nb_work_group=\t" << nb_work_group
-  //          << " (updated)" << std::endl;
+
   assert(nb_work_group >= 1);
 
   assert(size_per_work_group * (nb_work_group - 1) < size);
@@ -127,11 +128,6 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
   /* number of elements manipulated by the last work_group
    * n.b. if the value is 0, the last work_group is regular
    */
-  /*size_t size_last_work_group = size % size_per_work_group;*/
-  //std::cout << "size_last_work_group=" << size_last_work_group << std::endl;
-
-  /*size_t size_per_work_item_last = up_rounded_division(size_last_work_group,
-                                                       nb_work_item);*/
 
   return sycl_algorithm_descriptor {
     size,
@@ -227,8 +223,9 @@ B buffer_mapreduce(ExecutionPolicy &snp,
     <cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
 
   B acc = init;
-  for (size_t pos0 = 0; pos0 < d.nb_work_group; pos0++)
+  for (size_t pos0 = 0; pos0 < d.nb_work_group; pos0++) {
     acc = reduce(acc, read_output[pos0]);
+  }
 
   return acc;
 }
@@ -241,8 +238,6 @@ B buffer_mapreduce(ExecutionPolicy &snp,
  * Reduce : B -> B -> B
  *
  */
-
-
 template <typename ExecutionPolicy,
           typename A1,
           typename A2,
@@ -400,12 +395,9 @@ void buffer_mapscan(ExecutionPolicy &snp,
     cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
-      //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
       size_t group_end   = min((group_id+1) * d.size_per_work_group, d.size);
       size_t local_size = group_end - group_begin;
-      //assert(group_begin < group_end); //  as we properly selected the
-                                         //  number of work_group
 
       // Step 0:
       // each work_item copy a piece of data
@@ -473,9 +465,6 @@ void buffer_mapscan(ExecutionPolicy &snp,
       // each work_item copy a piece of data
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
         size_t local_id = id.get(0) % d.nb_work_item;
-        size_t gpos = group_begin + local_id;
-        // gpos: position in the global vector
-        size_t lpos = local_id;
         // lpos: position in the local vector
         for (size_t gpos = group_begin + local_id, lpos = local_id;
             gpos < group_end;

@@ -283,8 +283,8 @@ B buffer_map2reduce(ExecutionPolicy &snp,
     cl::sycl::accessor<B, 1, cl::sycl::access::mode::read_write,
                        cl::sycl::access::target::local>
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
-    cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(
-        cl::sycl::range<1>{rng.get_global()}, [=](cl::sycl::group<1> grp) {
+    cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(rng.get_global(), rng.get_local(),
+                                                                      [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
@@ -391,7 +391,6 @@ void buffer_mapscan(ExecutionPolicy &snp,
     cl::sycl::accessor<B, 1, cl::sycl::access::mode::read_write,
                        cl::sycl::access::target::local>
       scratch { cl::sycl::range<1> { d.size_per_work_group }, cgh };
-
 
     cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {

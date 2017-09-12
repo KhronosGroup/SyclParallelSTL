@@ -35,29 +35,10 @@
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
 #include <sycl/algorithm/buffer_algorithms.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
+#include <sycl/helpers/sycl_iterator.hpp>
 
 namespace sycl {
 namespace impl {
-
-// value is true if ClassT has the get_buffer method
-template<class ClassT>
-class has_get_buffer_method {
-private:
-  static auto has_method() {
-    using return_type = decltype(test(&ClassT::get_buffer));
-    return return_type();
-  }
-
-  using MethodReturnT = cl::sycl::buffer<typename std::iterator_traits<ClassT>::value_type, 1,
-                                         typename ClassT::allocator_type>;
-  static std::true_type test(MethodReturnT (ClassT::*)() const) { return std::true_type(); }
-  static std::false_type test(...) { return std::false_type(); }
-
-  using returned_type = decltype(has_method());
-
-public:
-  static const bool value = returned_type::value;
-};
 
 template <bool UseSycl>
 struct InnerProductImpl;
@@ -116,7 +97,8 @@ template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
 T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
                            InputIt1 last1, InputIt2 first2, T value,
                            BinaryOperation1 op1, BinaryOperation2 op2) {
-  static constexpr bool UseSycl = has_get_buffer_method<InputIt1>::value && has_get_buffer_method<InputIt2>::value;
+  static constexpr bool UseSycl = std::is_base_of<sycl::helpers::SyclIterator, InputIt1>::value &&
+                                  std::is_base_of<sycl::helpers::SyclIterator, InputIt2>::value;
   return InnerProductImpl<UseSycl>::inner_product_sequential(exec, first1, last1, first2, value, op1, op2);
 }
 

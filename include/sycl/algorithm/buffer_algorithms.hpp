@@ -284,7 +284,7 @@ B buffer_map2reduce(ExecutionPolicy &snp,
                        cl::sycl::access::target::local>
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
     cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(
-        cl::sycl::range<1>{rng.get_global()}, [=](cl::sycl::group<1> grp) {
+        rng.get_global(), rng.get_local(), [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;

@@ -39,43 +39,85 @@
 namespace sycl {
 namespace impl {
 
-/* inner_product.
-* @brief Applies a Function across the range [first, first + n).
+// value is true if ClassT has the get_buffer method
+template<class ClassT>
+class has_get_buffer_method {
+private:
+  static auto has_method() {
+    using return_type = decltype(test(&ClassT::get_buffer));
+    return return_type();
+  }
+
+  using MethodReturnT = cl::sycl::buffer<typename std::iterator_traits<ClassT>::value_type, 1,
+                                         typename ClassT::allocator_type>;
+  static std::true_type test(MethodReturnT (ClassT::*)() const) { return std::true_type(); }
+  static std::false_type test(...) { return std::false_type(); }
+
+  using returned_type = decltype(has_method());
+
+public:
+  static const bool value = returned_type::value;
+};
+
+template <bool UseSycl>
+struct InnerProductImpl;
+
+template <>
+struct InnerProductImpl<true> {
+  template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
+            class BinaryOperation1, class BinaryOperation2>
+  static T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
+                                    InputIt1 last1, InputIt2 first2, T value,
+                                    BinaryOperation1 op1, BinaryOperation2 op2) {
+    auto size = sycl::helpers::distance(first1, last1);
+    if (size <= 0)
+      return value;
+
+    InputIt2 last2 = std::next(first2, size);
+    auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
+    auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);
+
+    return inner_product_sequential_sycl<typename ExecutionPolicy::kernelName>(exec.get_queue(), input_buff1,
+                                                                               input_buff2, value, size, op1, op2);
+  }
+};
+
+template <>
+struct InnerProductImpl<false> {
+  template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
+            class BinaryOperation1, class BinaryOperation2>
+  static T inner_product_sequential(ExecutionPolicy& exec, InputIt1 first1,
+                                    InputIt1 last1, InputIt2 first2, T value,
+                                    BinaryOperation1 op1, BinaryOperation2 op2) {
+    while (first1 != last1) {
+      value = op1(value, op2(*first1, *first2));
+      ++first1;
+      ++first2;
+    }
+    return value;
+  }
+};
+
+/* sequential inner_product.
+* @brief Returns the inner product of two vectors across the range [first1,
+* last1) by applying Functions op1 and op2.
 * Implementation of the command group that submits a for_each_n kernel,
 * According to Parallelism TS version n4507. Section 4.3.2
 * The kernel is implemented as a lambda.
 * @param ExecutionPolicy exec : The execution policy to be used
-* @param InputIterator first : Start of the range via a forward iterator
-* @param Size n : Specifies the number of valid elements
-* @param Function  f : No restrictions
-*/
-template <class ExecutionPolicy, class InputIt1, class InputIt2, class T>
-T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
-                           InputIt1 last1, InputIt2 first2, T value) {
-  while (first1 != last1) {
-    value = value + (*first1 * *first2);
-    ++first1;
-    ++first2;
-  }
-  return value;
-}
-
-/* inner_product.
-* @brief Returns the inner product of two vectors across the range [first1,
-* last1) by applying Functions op1 and op2. Implementation of the command group
-* that submits an inner_product kernel.
+* @param InputIterator first1 : Start of the range via a forward iterator
+* @param InputIterator last1 : End of the range via a forward iterator
+* @param InputIterator first2 : Start of the second vector via a forward iterator
+* @param Function  op1 : No restrictions
+* @param Function  op2 : No restrictions
 */
 template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
           class BinaryOperation1, class BinaryOperation2>
 T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
                            InputIt1 last1, InputIt2 first2, T value,
                            BinaryOperation1 op1, BinaryOperation2 op2) {
-  while (first1 != last1) {
-    value = op1(value, op2(*first1, *first2));
-    ++first1;
-    ++first2;
-  }
-  return value;
+  static constexpr bool UseSycl = has_get_buffer_method<InputIt1>::value && has_get_buffer_method<InputIt2>::value;
+  return InnerProductImpl<UseSycl>::inner_product_sequential(exec, first1, last1, first2, value, op1, op2);
 }
 
 #ifdef SYCL_PSTL_USE_OLD_ALGO

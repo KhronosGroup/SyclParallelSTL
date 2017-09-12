@@ -226,32 +226,14 @@ class sycl_execution_policy {
 
   /* inner_product.
   * @brief Returns the inner product of two vectors across the range [first1,
-  * last1). Implementation of the command group that submits an inner_product
-  * kernel.
-  */
-  template <class InputIt1, class InputIt2, class T>
-  T inner_product(InputIt1 first1, InputIt1 last1, InputIt2 first2, T value) {
-    auto vectorSize = std::distance(first1, last1);
-    if (impl::isPowerOfTwo(vectorSize)) {
-      return impl::inner_product(*this, first1, last1, first2, value,
-                                 [=](T v1, T v2) { return v1 + v2; },
-                                 [=](T v1, T v2) { return v1 * v2; });
-    } else {
-      return impl::inner_product_sequential(*this, first1, last1, first2,
-                                            value);
-    }
-  }
-
-  /* inner_product.
-  * @brief Returns the inner product of two vectors across the range [first1,
   * last1) by applying Functions op1 and op2. Implementation of the command
   * group
   * that submits an inner_product kernel.
   */
-  template <class InputIt1, class InputIt2, class T, class BinaryOperation1,
-            class BinaryOperation2>
+  template <class InputIt1, class InputIt2, class T,
+            class BinaryOperation1 = decltype(std::plus<T>()), class BinaryOperation2 = decltype(std::multiplies<T>())>
   T inner_product(InputIt1 first1, InputIt1 last1, InputIt2 first2, T value,
-                  BinaryOperation1 op1, BinaryOperation2 op2) {
+                  BinaryOperation1 op1 = std::plus<T>(), BinaryOperation2 op2 = std::multiplies<T>()) {
     auto vectorSize = std::distance(first1, last1);
     if (impl::isPowerOfTwo(vectorSize)) {
       return impl::inner_product(*this, first1, last1, first2, value, op1, op2);

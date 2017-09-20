@@ -284,7 +284,7 @@ B buffer_map2reduce(ExecutionPolicy &snp,
                        cl::sycl::access::target::local>
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
     cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(
-        cl::sycl::range<1>{rng.get_global()}, [=](cl::sycl::group<1> grp) {
+        rng.get_global(), rng.get_local(), [=](cl::sycl::group<1> grp) {
       size_t group_id = grp.get(0);
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
@@ -526,6 +526,30 @@ void buffer_mapscan(ExecutionPolicy &snp,
   });
 
   return;
+}
+
+template <class BaseKernelName, class InT1, class InT2, class OutT, class IndexT,
+          class BinaryOperation1, class BinaryOperation2>
+OutT inner_product_sequential_sycl(cl::sycl::queue q, cl::sycl::buffer<InT1, 1> input_buff1,
+                                   cl::sycl::buffer<InT2, 1> input_buff2, OutT value,
+                                   IndexT size, BinaryOperation1 op1, BinaryOperation2 op2) {
+  {
+    cl::sycl::buffer<OutT, 1> output_buff(&value, cl::sycl::range<1>(1));
+    using KernelName = cl::sycl::helpers::NameGen<0, BaseKernelName,
+                                                  BinaryOperation1, BinaryOperation2>;
+    q.submit([&](cl::sycl::handler& cgh) {
+      auto input1 = input_buff1.template get_access<cl::sycl::access::mode::read>(cgh);
+      auto input2 = input_buff2.template get_access<cl::sycl::access::mode::read>(cgh);
+      auto output = output_buff.template get_access<cl::sycl::access::mode::read_write>(cgh);
+      cgh.single_task<KernelName>([=]() {
+        for (auto i = 0; i < size; ++i) {
+          output[0] = op1(output[0], op2(input1[i], input2[i]));
+        }
+      });
+    });
+  }
+
+  return value;
 }
 
 }  // namespace impl

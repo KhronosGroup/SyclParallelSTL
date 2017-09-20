@@ -35,47 +35,71 @@
 #include <sycl/algorithm/algorithm_composite_patterns.hpp>
 #include <sycl/algorithm/buffer_algorithms.hpp>
 #include <sycl/helpers/sycl_differences.hpp>
+#include <sycl/helpers/sycl_iterator.hpp>
 
 namespace sycl {
 namespace impl {
 
-/* inner_product.
-* @brief Applies a Function across the range [first, first + n).
+template <bool UseSycl>
+struct InnerProductImpl;
+
+template <>
+struct InnerProductImpl<true> {
+  template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
+            class BinaryOperation1, class BinaryOperation2>
+  static T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
+                                    InputIt1 last1, InputIt2 first2, T value,
+                                    BinaryOperation1 op1, BinaryOperation2 op2) {
+    auto size = sycl::helpers::distance(first1, last1);
+    if (size <= 0)
+      return value;
+
+    InputIt2 last2 = std::next(first2, size);
+    auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
+    auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);
+
+    return inner_product_sequential_sycl<typename ExecutionPolicy::kernelName>(exec.get_queue(), input_buff1,
+                                                                               input_buff2, value, size, op1, op2);
+  }
+};
+
+template <>
+struct InnerProductImpl<false> {
+  template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
+            class BinaryOperation1, class BinaryOperation2>
+  static T inner_product_sequential(ExecutionPolicy& exec, InputIt1 first1,
+                                    InputIt1 last1, InputIt2 first2, T value,
+                                    BinaryOperation1 op1, BinaryOperation2 op2) {
+    while (first1 != last1) {
+      value = op1(value, op2(*first1, *first2));
+      ++first1;
+      ++first2;
+    }
+    return value;
+  }
+};
+
+/* sequential inner_product.
+* @brief Returns the inner product of two vectors across the range [first1,
+* last1) by applying Functions op1 and op2.
 * Implementation of the command group that submits a for_each_n kernel,
 * According to Parallelism TS version n4507. Section 4.3.2
 * The kernel is implemented as a lambda.
 * @param ExecutionPolicy exec : The execution policy to be used
-* @param InputIterator first : Start of the range via a forward iterator
-* @param Size n : Specifies the number of valid elements
-* @param Function  f : No restrictions
-*/
-template <class ExecutionPolicy, class InputIt1, class InputIt2, class T>
-T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
-                           InputIt1 last1, InputIt2 first2, T value) {
-  while (first1 != last1) {
-    value = value + (*first1 * *first2);
-    ++first1;
-    ++first2;
-  }
-  return value;
-}
-
-/* inner_product.
-* @brief Returns the inner product of two vectors across the range [first1,
-* last1) by applying Functions op1 and op2. Implementation of the command group
-* that submits an inner_product kernel.
+* @param InputIterator first1 : Start of the range via a forward iterator
+* @param InputIterator last1 : End of the range via a forward iterator
+* @param InputIterator first2 : Start of the second vector via a forward iterator
+* @param Function  op1 : No restrictions
+* @param Function  op2 : No restrictions
 */
 template <class ExecutionPolicy, class InputIt1, class InputIt2, class T,
           class BinaryOperation1, class BinaryOperation2>
 T inner_product_sequential(ExecutionPolicy &exec, InputIt1 first1,
                            InputIt1 last1, InputIt2 first2, T value,
                            BinaryOperation1 op1, BinaryOperation2 op2) {
-  while (first1 != last1) {
-    value = op1(value, op2(*first1, *first2));
-    ++first1;
-    ++first2;
-  }
-  return value;
+  static constexpr bool UseSycl = std::is_base_of<sycl::helpers::SyclIterator, InputIt1>::value &&
+                                  std::is_base_of<sycl::helpers::SyclIterator, InputIt2>::value;
+  return InnerProductImpl<UseSycl>::inner_product_sequential(exec, first1, last1, first2, value, op1, op2);
 }
 
 #ifdef SYCL_PSTL_USE_OLD_ALGO

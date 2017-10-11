@@ -97,15 +97,29 @@ else()
 endif()
 
 # Obtain the path to the ComputeCpp runtime library
-find_library(COMPUTECPP_RUNTIME_LIBRARY ComputeCpp PATHS ${COMPUTECPP_PACKAGE_ROOT_DIR}
+
+if (WIN32)
+  set(COMPUTECPP_RUNTIME_LIBRARY_ID "ComputeCpp_vs2015")
+  set(EXT ".lib")
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(COMPUTECPP_RUNTIME_LIBRARY_ID "${COMPUTECPP_RUNTIME_LIBRARY_ID}_d")
+  endif()
+
+else()
+  set(COMPUTECPP_RUNTIME_LIBRARY_ID "ComputeCpp")
+  set(EXT ".so")
+endif()
+
+
+find_library(COMPUTECPP_RUNTIME_LIBRARY ${COMPUTECPP_RUNTIME_LIBRARY_ID} PATHS ${COMPUTECPP_PACKAGE_ROOT_DIR}
   HINTS ${COMPUTECPP_PACKAGE_ROOT_DIR}/lib PATH_SUFFIXES lib
   DOC "ComputeCpp Runtime Library" NO_DEFAULT_PATH)
 
 if (EXISTS ${COMPUTECPP_RUNTIME_LIBRARY})
   mark_as_advanced(COMPUTECPP_RUNTIME_LIBRARY)
-  message(STATUS "libComputeCpp.so - Found")
+  message(STATUS "${COMPUTECPP_RUNTIME_LIBRARY_ID}${EXT} - Found")
 else()
-  message(FATAL_ERROR "libComputeCpp.so - Not found!")
+  message(FATAL_ERROR "${COMPUTECPP_RUNTIME_LIBRARY_ID}${EXT} - Not found!")
 endif()
 
 # Obtain the ComputeCpp include directory

@@ -62,14 +62,15 @@ the amount of information copied in and out
 * the ability to specify a queue to the SYCL policy so that the queue is used
 for the various kernels (potentially enabling asynchronous execution of the calls).
 
-Building the project
-----------------------
+## Building the project
 
 This project currently supports the SYCL beta implementation from Codeplay,
-ComputeCPP and the open-source triSYCL implementation.
+ComputeCpp and the open-source triSYCL implementation.
 
 The project uses CMake 3.5 in order to produce build files,
 but more recent versions may work.
+
+### Linux
 
 In Linux, simply create a build directory and run CMake as follows:
 
@@ -81,7 +82,7 @@ In Linux, simply create a build directory and run CMake as follows:
 Usual CMake options are available (e.g. building debug or release).
 Makefile and Ninja generators are supported on Linux.
 
-To simplify configuration, the `FindComputeCpp` cmake module from the ComputeCPP
+To simplify configuration, the `FindComputeCpp` cmake module from the ComputeCpp
 SDK is included verbatim in this package within the `cmake/Modules/` directory.
 
 If Google Mock is found in external/gmock, a set of unit tests is built.
@@ -135,6 +136,90 @@ features are used, you can ignore those messages as these features do not affect
 the benchmarks executions, if you wish you can also contribute to the triSYCL
 implementation to make those messages definitely disapear.
 
+### Microsoft Windows
+
+**Note: this is still under development, and has only been tested on Microsoft Windows 10.**
+
+**Note: these steps assume the user will be using Microsfot Visual Studio 2017. Subtle details may
+vary if you are using Microsoft Visual Studio 2015, or a version of Visual Studio released _after_
+2017. The supported compiler is Microsoft Visual C++ 2015, not Microsoft Visual C++ 2017.**
+
+1. Download and install the Microsoft Visual C++ 2015 compiler (typically achieved by installing
+[Microsoft Visual Studio 2017 Community Edition](https://www.visualstudio.com/downloads)).
+2. Download and install the [Codeplay ComputeCpp Community Edition SDK for Windows]().
+3. Open _Developer Command Prompt for VS 2017_.
+4. Enter the following commands
+```bash
+mkdir SyclParallelSTL
+cd SyclParallelSTL
+mkdir build-debug
+git clone https://github.com/KhronosGroup/SyclParallelSTL.git
+cd build-debug
+cmake -G"Visual Studio 14 2015 Win64" -DCOMPUTECPP_PACKAGE_ROOT_DIR=<path-to-ComputeCpp> ../SyclParallelSTL
+```
+
+where `<path-to-ComputeCpp>` is the path to your ComputeCpp directory. For example, a default
+installation of ComputeCpp on a 64-bit build of Windows 10 will be `C:\\Program Files\\Codeplay\\ComputeCpp`.
+
+5. Open `SyclSTL.sln` using Microsoft Visual Studio. If you are not using Visual Studio 2015, be 
+   sure not to convert the solution to a later version.
+6. Right-mouse click on `ALL_BUILD (Visual Studio 2015)` and select `Build`.
+
+### Microsoft Windows Subsystem for Linux (Bash on Windows)
+
+#### Prerequisites
+
+* Ensure that WSL has been installed after installing the Windows 10 Fall Creators Update (version
+  1709). You can do this by opening Bash on Windows and typing the command `lsb_release -a` and
+* CMake 3.5 or later (either installed natively or built from source)
+* GCC 5 or later
+
+#### Installing Windows Subsystem for Linux (a.k.a. Bash for Windows)
+
+1. Ensure that you have installed Windows 10 Fall Creators Update (version 1709), or later.
+2. Open Start Menu
+3. Type 'Developers Settings' and press Enter
+4. Under 'Use developer features', ensure that 'Developer mode' is selected.
+5. If prompted to reboot your computer, do not reboot.
+6. Open Computer
+7. Under the Computer tab, select 'Uninstall or change a program'
+8. In the left-hand pane, select 'Turn Windows features on or off'
+9. Scroll to the very bottom and select 'Windows Subsystem for Linux (Beta)'
+10. Reboot Windows
+11. Open Start Menu
+12. Type 'Bash' and press Enter. Make sure that you aren't opening a mintty client such as Git Bash or Cygwin.
+13. A command prompt window should open, and take you through the final part of the installation process.
+
+#### Install developer tools
+
+1. Type the following commands into Bash. Replace `<username>` with your Windows username.
+
+```bash
+sudo apt update && sudo apt upgrade && sudo apt update
+sudo apt install build-essentials binutils gdb git flex bison texlive-full
+mkdir /mnt/c/Users/<username>/projects; cd /mnt/c/Users/<username>/projects
+git clone https://github.com/Kitware/CMake.git
+cd CMake
+./bootstrap && make -j 4 && sudo make install
+cd ..
+sudo apt install ocl-icd-libopencl1 ocl-icd-dev opencl-headers clinfo lsb-core
+```
+
+2. [Download the latest OpenCL CPU driver for Ubuntu](https://software.intel.com/en-us/articles/opencl-drivers#latest_CPU_runtime).
+3. Run the following commands to install the OpenCL driver.
+```bash
+cd <path-to-driver>
+tar -xf <driver>.tar.gz
+cd <driver>
+sudo ./install.sh
+```
+4. [Install OpenCL SDK for Windows](https://software.intel.com/en-us/intel-opencl).
+5. Install [ComputeCpp-setup-v1.0]().
+
+#### Building SYCL ParallelSTL
+
+Once you have installed all the developer tools, follow the steps outlined for Ubuntu.
+
 Building the documentation
 ----------------------------
 
@@ -150,16 +235,18 @@ This will generate the html pages inside the doc\_output directory.
 Limitations
 ------------
 
-* The Lambda functions that you can pass to the algorithms have the same
+* The lambda expressions that you can pass to the algorithms have the same
 restrictions as any SYCL kernel. See the SYCL specification for details
 on the limitations.
 
-* While using lambda functions, the compiler needs to find a name for that lambda
-function. To provide a lambda name, the user has to do the following:
+* When using lambdas, the compiler needs to find a name for that expression.
+To provide a lambda name, the user has to do the following:
 
+```cpp
     cl::sycl::queue q;
     sycl::sycl_execution_policy<class SortAlgorithm3> snp(q);
     sort(snp, v.begin(), v.end(), [=](int a, int b) { return a >= b; });
+```
 
 * Be aware that some algorithms may run sequential versions if the number of
 elements to be computed are not power of two. The following algorithms have

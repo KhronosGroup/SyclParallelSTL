@@ -147,7 +147,7 @@ vary if you are using Microsoft Visual Studio 2015, or a version of Visual Studi
 1. Download and install the Microsoft Visual C++ 2015 compiler (typically achieved by installing
 [Microsoft Visual Studio 2017 Community Edition](https://www.visualstudio.com/downloads)).
 2. Download and install the [Codeplay ComputeCpp Community Edition SDK for Windows]().
-3. Open _Developer Command Prompt for VS 2017_.
+3. Open either _VS2015 x64 Native Tools Command Prompt_ or _Developer Command Prompt for VS 2017_.
 4. Enter the following commands
 ```bash
 mkdir SyclParallelSTL

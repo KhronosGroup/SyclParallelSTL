@@ -145,7 +145,10 @@ vary if you are using Microsoft Visual Studio 2015, or a version of Visual Studi
 2017. The supported compiler is Microsoft Visual C++ 2015, not Microsoft Visual C++ 2017.**
 
 1. Download and install the Microsoft Visual C++ 2015 compiler (typically achieved by installing
-[Microsoft Visual Studio 2017 Community Edition](https://www.visualstudio.com/downloads)).
+   [Microsoft Visual Studio 2017 Community Edition](https://www.visualstudio.com/downloads)). When
+   installing the compiler, be sure to install the relevant SDK for your operating system (for
+   example, on Windows 8.1, you will install the Windows 8.1 SDK; on Windows 10, you install the
+   latest Windows 10 SDK).
 2. Download and install the [Codeplay ComputeCpp Community Edition SDK for Windows]().
 3. Open either _VS2015 x64 Native Tools Command Prompt_ or _Developer Command Prompt for VS 2017_.
 4. Enter the following commands
@@ -196,7 +199,7 @@ installation of ComputeCpp on a 64-bit build of Windows 10 will be `C:\\Program 
 
 ```bash
 sudo apt update && sudo apt upgrade && sudo apt update
-sudo apt install build-essentials binutils gdb git flex bison texlive-full
+sudo apt install build-essentials binutils gdb git flex bison texlive-full git
 mkdir /mnt/c/Users/<username>/projects; cd /mnt/c/Users/<username>/projects
 git clone https://github.com/Kitware/CMake.git
 cd CMake

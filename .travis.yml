@@ -1,13 +1,8 @@
 language: cpp
-compiler: g++
 sudo: required
 dist: trusty
 os:
   - linux
-
-compiler:
-  - gcc
-  - clang
 
 branches:
   only:
@@ -15,8 +10,10 @@ branches:
     - travis-ci
 
 env:
-  - IMPL=TRISYCL
-  - IMPL=COMPUTECPP
+  - IMPL=TRISYCL CXX="g++-6" CC="gcc-6"
+  - IMPL=TRISYCL CXX="clang++-4.0" CC="clang-4.0"
+  - IMPL=COMPUTECPP CXX="g++-6" CC="gcc-6"
+  - IMPL=COMPUTECPP CXX="clang++-4.0" CC="clang-4.0"
 
 matrix:
   fast_finish: true
@@ -27,24 +24,20 @@ matrix:
 addons:
   apt:
     sources:
-      - llvm-toolchain-precise
       - ubuntu-toolchain-r-test
-      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
-        key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+      - llvm-toolchain-trusty-4.0
 
     packages:
       - python-yaml
-      - gcc-5
-      - g++-5
-      - clang-3.9
+      - gcc-6
+      - g++-6
+      - clang-4.0
       - libc++-dev
 
 before_install:
   - bash .travis/before_install.sh
 
 install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.9" CC="clang-3.9"; fi
   - if [ "$IMPL" = "COMPUTECPP" ]; then bash .travis/build_computecpp.sh; fi
   - if [ "$IMPL" = "TRISYCL" ]; then bash .travis/build_triSYCL.sh; fi
 

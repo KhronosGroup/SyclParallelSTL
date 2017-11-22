@@ -10,10 +10,10 @@ branches:
     - travis-ci
 
 env:
-  - IMPL=TRISYCL CXX="g++-6" CC="gcc-6"
-  - IMPL=TRISYCL CXX="clang++-4.0" CC="clang-4.0"
-  - IMPL=COMPUTECPP CXX="g++-6" CC="gcc-6"
-  - IMPL=COMPUTECPP CXX="clang++-4.0" CC="clang-4.0"
+  - IMPL=TRISYCL MATRIX_EVAL="CXX=g++-6 && CC=gcc-6"
+  - IMPL=TRISYCL MATRIX_EVAL="CXX=clang++-4.0 && CC=clang-4.0"
+  - IMPL=COMPUTECPP MATRIX_EVAL="CXX=g++-6 && CC=gcc-6"
+  - IMPL=COMPUTECPP MATRIX_EVAL="CXX=clang++-4.0 && CC=clang-4.0"
 
 matrix:
   fast_finish: true
@@ -35,6 +35,7 @@ addons:
       - libc++-dev
 
 before_install:
+  - eval "${MATRIX_EVAL}"
   - bash .travis/before_install.sh
 
 install:

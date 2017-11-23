@@ -40,7 +40,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
         "host compiler - Not found! (gcc version must be at least 4.8)")
     # Require the GCC dual ABI to be disabled for 5.1 or higher
     elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.1)
-      set(COMPUTECPP_DISABLE_GCC_DUAL_ABI "True")
+      #set(COMPUTECPP_DISABLE_GCC_DUAL_ABI "True")
       message(STATUS
         "host compiler - gcc ${CMAKE_CXX_COMPILER_VERSION} (note pre 5.1 gcc ABI enabled)")
     else()

@@ -16,10 +16,10 @@ sudo cp -rf /tmp/cmake-3.5.1-Linux-x86_64/* /usr/
 
 # Boost.Compute for triSYCL
 wget https://github.com/boostorg/compute/archive/master.zip -O /tmp/boost.compute.zip
-unzip /tmp/boost.compute.zip -d /tmp
+unzip /tmp/boost.compute.zip -d /tmp &> /dev/null
 sudo cp -rf /tmp/compute-master/include /usr/
 
 # Clang 4.0 release with OpenMP for trySYCL
 wget http://releases.llvm.org/4.0.0/clang+llvm-4.0.0-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O /tmp/clang-4.0.tar.xz
-tar -xf /tmp/clang-4.0.tar.xz -d /tmp
+tar -xJf /tmp/clang-4.0.tar.xz -d /tmp
 sudo cp -rf /tmp/clang+llvm-4.0.0-x86_64-linux-gnu-ubuntu-14.04/ /usr/lib/llvm-4.0/

@@ -43,7 +43,7 @@ ENV CXX=${cxx_compiler}
 ENV SYCL_IMPL=${impl}
 
 CMD cd /SyclParallelSTL && \
-    if [ "${SYCL_IMPL}" = 'trySYCL' ]; then \
+    if [ "${SYCL_IMPL}" = 'triSYCL' ]; then \
       ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; \
     elif [ "${SYCL_IMPL}" = 'COMPUTECPP' ]; then \
       COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \

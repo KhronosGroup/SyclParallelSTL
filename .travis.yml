@@ -29,7 +29,6 @@ addons:
 
     packages:
       - python-yaml
-      - libomp-dev
       - gcc-6
       - g++-6
       - clang-4.0

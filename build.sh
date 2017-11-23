@@ -91,8 +91,6 @@ function tst {
 function main {
   install_gmock
   configure
-  # Do not exit when an error occurs
-  set +o errexit
   mak
   tst
 }

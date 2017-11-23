@@ -7,29 +7,29 @@ ARG c_compiler
 ARG cxx_compiler
 ARG impl
 
-RUN apt-get -y update
+RUN apt-get -yq update
 
 # Utilities
-RUN apt-get install -y --allow-downgrades --allow-remove-essential             \
+RUN apt-get install -yq --allow-downgrades --allow-remove-essential            \
     --allow-change-held-packages git wget apt-utils cmake unzip                \
     libboost-all-dev software-properties-common python-software-properties libcompute-dev
 
-RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
+RUN add-apt-repository -yq ppa:ubuntu-toolchain-r/test
 
-RUN apt-get -y update
+RUN apt-get -yq update
 
 # Clang 4.0
-RUN if [ "${c_compiler}" = 'clang-4.0' ]; then apt-get install -y              \
+RUN if [ "${c_compiler}" = 'clang-4.0' ]; then apt-get install -yq             \
     --allow-downgrades --allow-remove-essential --allow-change-held-packages   \
      clang-4.0 libomp-dev; fi
 
 # GCC 6
-RUN if [ "${c_compiler}" = 'gcc-6' ]; then apt-get install -y                  \
+RUN if [ "${c_compiler}" = 'gcc-6' ]; then apt-get install -yq                 \
     --allow-downgrades --allow-remove-essential --allow-change-held-packages   \
     g++-6 gcc-6; fi
 
 # OpenCL
-RUN apt-get install -y --allow-downgrades --allow-remove-essential            \
+RUN apt-get install -yq --allow-downgrades --allow-remove-essential           \
     --allow-change-held-packages ocl-icd-opencl-dev ocl-icd-dev opencl-headers
 
 RUN git clone https://github.com/${git_slug}.git -b ${git_branch} /SyclParallelSTL

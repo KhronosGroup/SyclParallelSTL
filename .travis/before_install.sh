@@ -21,5 +21,5 @@ sudo cp -rf /tmp/compute-master/include /usr/
 
 # Clang 4.0 release with OpenMP for trySYCL
 wget http://releases.llvm.org/4.0.0/clang+llvm-4.0.0-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O /tmp/clang-4.0.tar.xz
-tar -xJf /tmp/clang-4.0.tar.xz -d /tmp
+tar -xJf /tmp/clang-4.0.tar.xz -C /tmp
 sudo cp -rf /tmp/clang+llvm-4.0.0-x86_64-linux-gnu-ubuntu-14.04/ /usr/lib/llvm-4.0/

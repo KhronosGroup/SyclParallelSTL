@@ -48,5 +48,5 @@ CMD cd /SyclParallelSTL && \
     elif [ "${SYCL_IMPL}" = 'COMPUTECPP' ]; then \
       COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
     else \
-      echo "Unknown SYCL implementation ${impl}"; return 1; \
+      echo "Unknown SYCL implementation ${SYCL_IMPL}"; return 1; \
     fi

@@ -4,16 +4,19 @@ dist: trusty
 os:
   - linux
 
+services:
+  - docker
+
 branches:
   only:
     - master
     - travis-ci
 
 env:
-  - IMPL=TRISYCL MATRIX_EVAL="CXX=g++-6 && CC=gcc-6"
-  - IMPL=TRISYCL MATRIX_EVAL="CXX=clang++-4.0 && CC=clang-4.0"
-  - IMPL=COMPUTECPP MATRIX_EVAL="CXX=g++-6 && CC=gcc-6"
-  - IMPL=COMPUTECPP MATRIX_EVAL="CXX=clang++-4.0 && CC=clang-4.0"
+  - IMPL=TRISYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
+  - IMPL=TRISYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0
+  - IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
+  - IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0
 
 matrix:
   fast_finish: true
@@ -21,31 +24,21 @@ matrix:
   allow_failures:
     - env: IMPL=TRISYCL
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-4.0
-
-    packages:
-      - python-yaml
-      - gcc-6
-      - g++-6
-      - clang-4.0
-      - libc++-dev
-
 before_install:
-  - eval "${MATRIX_EVAL}"
-  - bash .travis/before_install.sh
-
-install:
-  - if [ "$IMPL" = "COMPUTECPP" ]; then bash .travis/build_computecpp.sh; fi
-  - if [ "$IMPL" = "TRISYCL" ]; then bash .travis/build_triSYCL.sh; fi
+  - |
+    if [[ ${TRAVIS_PULL_REQUEST} == "false" ]]; then
+       export GIT_SLUG=${TRAVIS_REPO_SLUG}
+       export GIT_BRANCH=${TRAVIS_BRANCH}
+    else
+       export GIT_SLUG=${TRAVIS_PULL_REQUEST_SLUG}
+       export GIT_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}
+    fi
+  - docker build --build-arg c_compiler=${CC_COMPILER}
+                 --build-arg cxx_compiler=${CXX_COMPILER}
+                 --build-arg git_branch=${GIT_BRANCH}
+                 --build-arg git_slug=${GIT_SLUG}
+                 --build-arg impl=${IMPL}
+                 -t parallelstl .
 
 script:
-    ###########################
-    # Build parallel-stl
-    ###########################
-    - if [ "$IMPL" = "TRISYCL" ]; then ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; fi
-    - if [ "$IMPL" = "COMPUTECPP" ]; then COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest -DCOMPUTECPP_DISABLE_GCC_DUAL_ABI=1; fi
-
+  - docker run parallelstl

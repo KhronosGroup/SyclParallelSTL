@@ -14,7 +14,7 @@ RUN apt-get install -yq --allow-downgrades --allow-remove-essential            \
     --allow-change-held-packages git wget apt-utils cmake unzip                \
     libboost-all-dev software-properties-common python-software-properties libcompute-dev
 
-RUN add-apt-repository -yq ppa:ubuntu-toolchain-r/test
+RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
 RUN apt-get -yq update
 

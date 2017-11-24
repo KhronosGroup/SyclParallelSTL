@@ -22,7 +22,8 @@ matrix:
   fast_finish: true
 # Some tests are not passing on triSYCL
   allow_failures:
-    - env: IMPL=TRISYCL
+    - env: IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
+    - env: IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0
 
 before_install:
   - |

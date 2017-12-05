@@ -42,7 +42,7 @@ class cli_device_selector : public cl::sycl::device_selector {
   std::string m_device_type;
 
   static cl::sycl::info::device_type match_device_type(std::string requested) {
-    if (requested.empty()) return cl::sycl::info::device_type::defaults;
+    if (requested.empty()) return cl::sycl::info::device_type::automatic;
     std::transform(requested.begin(), requested.end(), requested.begin(),
                    ::tolower);
     if (requested == "gpu") return cl::sycl::info::device_type::gpu;
@@ -51,7 +51,7 @@ class cli_device_selector : public cl::sycl::device_selector {
     if (requested == "*" || requested == "any")
       return cl::sycl::info::device_type::all;
 
-    return cl::sycl::info::device_type::defaults;
+    return cl::sycl::info::device_type::automatic;
   }
 
  public:
@@ -69,7 +69,7 @@ class cli_device_selector : public cl::sycl::device_selector {
     cl::sycl::info::device_type rtype = match_device_type(m_device_type);
     if (rtype == dtype || rtype == cl::sycl::info::device_type::all) {
       score += 2;
-    } else if (rtype == cl::sycl::info::device_type::defaults) {
+    } else if (rtype == cl::sycl::info::device_type::automatic) {
       score += 1;
     } else {
       score -= 2;

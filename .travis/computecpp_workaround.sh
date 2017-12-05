@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=0.3.2
+VERSION=0.5.0
 
 ln -sf /tmp/ComputeCpp-CE-${VERSION}-Linux/ /tmp/ComputeCpp-latest
 

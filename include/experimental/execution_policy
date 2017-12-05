@@ -47,27 +47,26 @@ template <class T>
 struct is_execution_policy;
 
 // 2.4 sequential execution policy
-class sequential_execution_policy;
+class sequential_policy;
 
 // 2.5 parallel execution policy
-class parallel_execution_policy;
+class parallel_policy;
 
 // 2.6 vector execution policy
-class vector_execution_policy;
+class parallel_unsequenced_policy;
 
-// 2.7 dynamic execution policy
-class execution_policy;
+class unsequenced_policy;
 
 template <class T>
 struct is_execution_policy
     : integral_constant<bool,
-                        std::is_base_of<sequential_execution_policy,
+                        std::is_base_of<sequential_policy,
                                         typename decay<T>::type>::value ||
-                            std::is_base_of<parallel_execution_policy,
+                            std::is_base_of<parallel_policy,
                                             typename decay<T>::type>::value ||
-                            std::is_base_of<vector_execution_policy,
+                            std::is_base_of<parallel_unsequenced_policy,
                                             typename decay<T>::type>::value ||
-                            std::is_base_of<execution_policy,
+                            std::is_base_of<unsequenced_policy,
                                             typename decay<T>::type>::value> {};
 
 /* execution_policy.
@@ -121,7 +120,7 @@ class execution_policy {
   const type_info *m_typeInfo;
 };
 
-class sequential_execution_policy {
+class sequential_policy {
  public:
   /* sort
    */
@@ -131,7 +130,7 @@ class sequential_execution_policy {
   }
 };
 
-class parallel_execution_policy {
+class parallel_policy {
  public:
   /* sort
    */
@@ -141,7 +140,7 @@ class parallel_execution_policy {
   }
 };
 
-class vector_execution_policy {
+class parallel_unsequenced_policy {
  public:
   /* sort
    */
@@ -151,14 +150,25 @@ class vector_execution_policy {
   }
 };
 
-const sequential_execution_policy seq{};
-const parallel_execution_policy par{};
-const vector_execution_policy vec{};
+class unsequenced_policy {
+ public:
+  /* sort
+   */
+  template <class RandomAccessIterator>
+  inline void sort(RandomAccessIterator b, RandomAccessIterator e) const {
+    std::sort(b, e);
+  }
+};
+
+constexpr sequential_policy seq{};
+constexpr parallel_policy par{};
+constexpr parallel_unsequenced_policy vec{};
+constexpr unsequenced_policy unseq{};
 
 // 2.9 standard execution policy objects
-extern const sequential_execution_policy seq;
-extern const parallel_execution_policy par;
-extern const vector_execution_policy vec;
+extern const sequential_policy seq;
+extern const parallel_policy par;
+extern const parallel_unsequenced_policy vec;
 
 }  // namespace parallel
 }  // namespace experimental

@@ -47,7 +47,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce) {
   sycl::sycl_execution_policy<class ReduceAlgorithm> snp(q);
   int res = reduce(snp, v.begin(), v.end());
 
-  EXPECT_TRUE(res == result);
+  EXPECT_EQ(res, result);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce2) {
@@ -58,7 +58,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce2) {
   sycl::sycl_execution_policy<class Reduce2Algorithm> snp(q);
   auto res = reduce(snp, v.begin(), v.end(), 10);
 
-  EXPECT_TRUE(res == result[0]);
+  EXPECT_EQ(res, result[0]);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce3) {
@@ -69,7 +69,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce3) {
   sycl::sycl_execution_policy<class Reduce3Algorithm> snp(q);
   auto res = reduce(snp, v.begin(), v.end(), 10);
 
-  EXPECT_TRUE(res == result[0]);
+  EXPECT_EQ(res, result[0]);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce4) {
@@ -81,7 +81,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce4) {
   auto res = reduce(snp, v.begin(), v.end(), 10,
                     [=](int v1, int v2) { return v1 + v2; });
 
-  EXPECT_TRUE(res == result[0]);
+  EXPECT_EQ(res, result[0]);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce5) {
@@ -99,7 +99,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce5) {
   sycl::sycl_execution_policy<class Reduce5Algorithm> snp(q);
   int ressycl = reduce(snp, v.begin(), v.end());
 
-  EXPECT_TRUE(resstd == ressycl);
+  EXPECT_EQ(resstd, ressycl);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce6) {
@@ -117,7 +117,7 @@ TEST_F(ReduceAlgorithm, TestSyclReduce6) {
   sycl::sycl_execution_policy<class Reduce6Algorithm> snp(q);
   int ressycl = reduce(snp, v.begin(), v.end());
 
-  EXPECT_TRUE(resstd == ressycl);
+  EXPECT_EQ(resstd, ressycl);
 }
 
 TEST_F(ReduceAlgorithm, TestSyclReduce7) {
@@ -136,5 +136,5 @@ TEST_F(ReduceAlgorithm, TestSyclReduce7) {
   int ressycl = reduce(snp, v.begin(), v.end(), 10,
                        [=](int val1, int val2) { return val1 + val2; });
 
-  EXPECT_TRUE(resstd == ressycl);
+  EXPECT_EQ(resstd, ressycl);
 }

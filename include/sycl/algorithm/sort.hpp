@@ -195,7 +195,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
             cl::sycl::range<1>{r},
             [a, stage, passOfStage](cl::sycl::item<1> it) {
               int sortIncreasing = 1;
-              cl::sycl::id<1> id = it.get();
+              cl::sycl::id<1> id = it.get_id();
               int threadId = id.get(0);
 
               int pairDistance = 1 << (stage - passOfStage);
@@ -256,7 +256,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
             cl::sycl::range<1>{r},
             [a, stage, passOfStage, comp](cl::sycl::item<1> it) {
               int sortIncreasing = 1;
-              cl::sycl::id<1> id = it.get();
+              cl::sycl::id<1> id = it.get_id();
               int threadId = id.get(0);
 
               int pairDistance = 1 << (stage - passOfStage);

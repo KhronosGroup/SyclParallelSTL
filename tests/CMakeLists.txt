@@ -36,8 +36,8 @@ if (EXISTS ${GMOCK_LIB_PATH})
             target_link_libraries(${TEST_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
             add_sycl_to_target(${TEST_NAME} 
-                      ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_NAME}.cpp 
-                      ${CMAKE_CURRENT_BINARY_DIR})
+                      ${CMAKE_CURRENT_BINARY_DIR}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_NAME}.cpp)
 
             add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     endforeach()

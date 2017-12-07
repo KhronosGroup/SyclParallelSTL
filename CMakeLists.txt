@@ -36,7 +36,10 @@ include_directories("include")
 
 add_subdirectory (src)
 add_subdirectory (examples)
-add_subdirectory (tests)
+
+if (NOT WIN32)
+  add_subdirectory (tests)
+endif()
 
 if (PARALLEL_STL_BENCHMARKS)
   add_subdirectory (benchmarks)

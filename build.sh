@@ -84,7 +84,7 @@ function mak  {
 
 function tst {
   pushd build/tests
-  ctest  -VV --timeout 10
+  ctest  -VV --timeout 20
   popd
 }
 

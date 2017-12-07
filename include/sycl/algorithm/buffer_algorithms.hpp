@@ -197,7 +197,7 @@ B buffer_mapreduce(ExecutionPolicy &snp,
       //assert(group_begin < group_end); //< as we properly selected the
                                        //  number of work_group
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id = id.get(0) % d.nb_work_item;
+        size_t local_id = id.get_id(0) % d.nb_work_item;
         size_t local_pos = group_begin + local_id;
         if (local_pos < group_end) {
           //we peal the first iteration
@@ -292,7 +292,7 @@ B buffer_map2reduce(ExecutionPolicy &snp,
       //assert(group_begin < group_end); // as we properly selected the
                                          // number of work_group
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id = id.get(0) % d.nb_work_item;
+        size_t local_id = id.get_id(0) % d.nb_work_item;
         size_t local_pos = group_begin + local_id;
         if (local_pos < group_end) {
           //we peal the first iteration
@@ -404,7 +404,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
       // each work_item copy a piece of data
       // map is applied during the process
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id  = id.get(0) % d.nb_work_item;
+        size_t local_id  = id.get_id(0) % d.nb_work_item;
         // gpos: position in the global vector
         // lpos: position in the local vector
         for (size_t gpos = group_begin + local_id, lpos = local_id;
@@ -417,7 +417,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
       // Step 1:
       // each work_item scan a piece of data
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id  = id.get(0) % d.nb_work_item;
+        size_t local_id  = id.get_id(0) % d.nb_work_item;
         size_t local_pos = local_id * d.size_per_work_item;
         size_t local_end = min((local_id+1) * d.size_per_work_item, local_size);
         if (local_pos < local_end) {
@@ -448,7 +448,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
       // Step 3:
       // (except for group = 0) add the last element of the previous block
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id  = id.get(0) % d.nb_work_item;
+        size_t local_id  = id.get_id(0) % d.nb_work_item;
         if (local_id > 0) {
           size_t local_pos = local_id * d.size_per_work_item;
           size_t local_end = min((local_id+1) * d.size_per_work_item - 1,
@@ -465,7 +465,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
       // Step 4:
       // each work_item copy a piece of data
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id = id.get(0) % d.nb_work_item;
+        size_t local_id = id.get_id(0) % d.nb_work_item;
         // lpos: position in the local vector
         for (size_t gpos = group_begin + local_id, lpos = local_id;
             gpos < group_end;
@@ -512,7 +512,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
                                          //  number of work_group
 
       parallel_for_work_item(grp, [&](cl::sycl::item<1> id) {
-        size_t local_id = id.get(0) % d.nb_work_item;
+        size_t local_id = id.get_id(0) % d.nb_work_item;
         // gpos: position in the global vector
         // lpos: position in the local vector
         for (size_t gpos = group_begin + local_id;

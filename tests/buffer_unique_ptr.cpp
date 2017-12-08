@@ -49,7 +49,7 @@ struct foo {
 };
 
 TEST_F(UniquePTRAlgorithm, TestSyclUniquePTR) {
-  constexpr size_t N = 16;
+  constexpr size_t N = 8;
 
   std::unique_ptr<foo> p(new foo(16, 3.0f));
   std::shared_ptr<foo> sP{std::move(p)};

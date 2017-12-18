@@ -28,7 +28,7 @@ RUN if [ "${c_compiler}" = 'gcc-6' ]; then apt-get install -yq                 \
     --allow-downgrades --allow-remove-essential --allow-change-held-packages   \
     g++-6 gcc-6; fi
 
-# OpenCL
+# OpenCL ICD Loader
 RUN apt-get install -yq --allow-downgrades --allow-remove-essential           \
     --allow-change-held-packages ocl-icd-opencl-dev ocl-icd-dev opencl-headers
 

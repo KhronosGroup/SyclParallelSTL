@@ -7,11 +7,6 @@ os:
 services:
   - docker
 
-branches:
-  only:
-    - master
-    - travis-ci
-
 env:
   - IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
   - IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0

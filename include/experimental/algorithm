@@ -376,6 +376,26 @@ void generate_n(ExecutionPolicy &&exec, ForwardIt first, Size count,
   return exec.generate_n(first, count, g);
 }
 
+/**reverse
+ * @brief Reverses the order of the elements in the range ``[first,last)``.
+ * The function calls ``swap`` to swap the elements to their new locations.
+ */
+template <class ExecutionPolicy, class BidirIt>
+void reverse(ExecutionPolicy &&exec, BidirIt first, BidirIt last) {
+  return exec.reverse(first, last);
+}
+
+/** reverse_copy
+ * @brief Copies the elements from the range [first, last) to another range
+ * beginning at d_first in such a way that the elements in the new range are in
+ * reverse order.
+ */
+template <class ExecutionPolicy, class BidirIt, class ForwardIt>
+ForwardIt reverse_copy(ExecutionPolicy &&exec, BidirIt first, BidirIt last,
+                       ForwardIt d_first) {
+  return exec.reverse_copy(first, last, d_first);
+}
+
 }  // namespace parallel
 }  // namespace experimental
 }  // namespace std

@@ -59,6 +59,8 @@
 #include <sycl/algorithm/find.hpp>
 #include <sycl/algorithm/fill.hpp>
 #include <sycl/algorithm/generate.hpp>
+#include <sycl/algorithm/reverse.hpp>
+#include <sycl/algorithm/reverse_copy.hpp>
 
 namespace sycl {
 
@@ -427,6 +429,25 @@ class sycl_execution_policy {
       auto last(first + count);
       return impl::generate(*this, first, last, g);
     }
+  }
+
+  /** reverse
+  * @brief Reverses the order of the elements in the range ``[first,last)``.
+  * The function calls ``swap`` to swap the elements to their new locations.
+  */
+  template <class BidirIt>
+  void reverse(BidirIt first, BidirIt last) {
+    return impl::reverse(*this, first, last);
+  }
+
+  /** reverse_copy
+  * @brief Copies the elements from the range [first, last) to another range
+  * beginning at d_first in such a way that the elements in the new range are in
+  * reverse order.
+  */
+  template <class BidirIt, class ForwardIt>
+  ForwardIt reverse_copy(BidirIt first, BidirIt last, ForwardIt d_first) {
+    return impl::reverse_copy(*this, first, last, d_first);
   }
 };
 

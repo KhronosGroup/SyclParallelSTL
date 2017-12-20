@@ -59,7 +59,6 @@
 #include <sycl/algorithm/find.hpp>
 #include <sycl/algorithm/fill.hpp>
 #include <sycl/algorithm/generate.hpp>
-#include <sycl/algorithm/generate_n.hpp>
 
 namespace sycl {
 
@@ -410,7 +409,10 @@ class sycl_execution_policy {
   */
   template <class ForwardIt, class Size, class Generator>
   void generate_n(ForwardIt first, Size count, Generator g) {
-    return impl::generate_n(*this, first, count, g);
+    if (count > 0) {
+      auto last (first + count);
+      return impl::generate(*this, first, last, g);
+    }
   }
 };
 

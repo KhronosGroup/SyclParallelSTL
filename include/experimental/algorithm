@@ -335,12 +335,24 @@ InputIt find_if_not(ExecutionPolicy &&exec, InputIt first, InputIt last,
 
 /** fill.
 * @brief Fills the range specified by [first, last) with the value given in
-* value. Implementation of the command groupt hat submits a fill kernel.
+* value. Implementation of the command group that submits a fill kernel.
 */
 template <class ExecutionPolicy, class ForwardIt, class T>
 void fill(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
           const T &value) {
   return exec.fill(first, last, value);
+}
+
+/** fill_n.
+* @brief Fills the range specified by [first, first + count) with the value
+* given in
+* value if count > 0. Does nothing otherwise. Implementation of the command
+* group that submits a fill kernel.
+*/
+template <class ExecutionPolicy, class ForwardIt, class Size, class T>
+void fill_n(ExecutionPolicy &&exec, ForwardIt first, Size count,
+            const T &value) {
+  return exec.fill_n(first, count, value);
 }
 
 /** generate.

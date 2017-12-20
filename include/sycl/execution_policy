@@ -258,6 +258,19 @@ class sycl_execution_policy {
                                   binary_op);
   }
 
+  /* count.
+  * Returns the number of elements in the range [first, last)
+  * that are equal to value. Implementation of the command group
+  * that submits a count_if kernel.
+  */
+  template <class InputIt, class T>
+  typename std::iterator_traits<InputIt>::difference_type count(
+      InputIt first, InputIt last, T value) {
+    typedef typename std::iterator_traits<InputIt>::value_type type_;
+    return impl::count_if(*this, first, last, [=](T other) { return value == other; },
+                          [=](type_ v1, type_ v2) { return v1 + v2; });
+  }
+
   /* count_if.
   * @brief Returns the count_if of one vector across the range [first,
   * last) by applying UnaryPredicate p. Implementation of the command group

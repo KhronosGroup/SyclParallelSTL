@@ -50,6 +50,7 @@ Currently, only some STL algorithms are implemented, such as:
 * transform : Parallel iteration (one thread per element) on the device.
 * for\_each  : Parallel iteration (one thread per element) on the device.
 * for\_each\_n : Parallel iteration (one work-item per element) on the device.
+* count : Parallel iteration (one work-item per 2 elements) on device.
 * count\_if : Parallel iteration (one work-item per 2 elements) on device.
 * reduce : Parallel iteration (one work-item per 2 elements) on device.
 * inner\_product: Parallel iteration (one work-item per 2 elements) on device.

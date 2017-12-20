@@ -224,6 +224,17 @@ T transform_reduce(ExecutionPolicy &&exec, InputIterator first,
   return exec.transform_reduce(first, last, unary_op, init, binary_op);
 }
 
+/* count.
+* Returns the number of elements in the range [first, last)
+* that are equal to value. Implementation of the command group
+* that submits a count_if kernel.
+*/
+template <class ExecutionPolicy, class InputIt, class T>
+typename iterator_traits<InputIt>::difference_type count(
+    ExecutionPolicy &&exec, InputIt first, InputIt last, T value) {
+  return exec.count(first, last, value);
+}
+
 /* count_if.
 * @brief Returns the count_if of one vector across the range [first,
 * last) by applying UnaryPredicate p. Implementation of the command group

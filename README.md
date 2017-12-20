@@ -48,6 +48,8 @@ Currently, only some STL algorithms are implemented, such as:
 * sort : Bitonic sort for ranges where the size is a power of two, or sequential
   sort otherwise.
 * transform : Parallel iteration (one thread per element) on the device.
+* generate : Parallel iteration (one thread per element) on the device.
+* generate\_n : Parallel iteration (one thread per element) on the device.
 * for\_each  : Parallel iteration (one thread per element) on the device.
 * for\_each\_n : Parallel iteration (one work-item per element) on the device.
 * count : Parallel iteration (one work-item per 2 elements) on device.

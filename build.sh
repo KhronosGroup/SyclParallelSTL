@@ -84,15 +84,13 @@ function mak  {
 
 function tst {
   pushd build/tests
-  ctest  -VV --timeout 3
+  ctest -VV --timeout 60
   popd
 }
 
 function main {
   install_gmock
   configure
-  # Do not exit when an error occurs
-  set +o errexit
   mak
   tst
 }

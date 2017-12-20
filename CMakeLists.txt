@@ -15,6 +15,7 @@ if (USE_COMPUTECPP)
 
   message(STATUS " Path to ComputeCpp implementation: ${COMPUTECPP_PACKAGE_ROOT_DIR} ")
 
+  set(CMAKE_CXX_STANDARD 11)
 
   include(FindOpenCL)
   include(FindComputeCpp)

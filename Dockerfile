@@ -54,7 +54,7 @@ CMD cd /SyclParallelSTL && \
       if [ "${TARGET}" = 'host' ]; then \
         COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
       else \
-        ./build.sh /tmp/ComputeCpp-latest; \
+        COMPUTECPP_TARGET="intel:cpu" ./build.sh /tmp/ComputeCpp-latest; \
       fi \
     else \
       echo "Unknown SYCL implementation ${SYCL_IMPL}"; return 1; \

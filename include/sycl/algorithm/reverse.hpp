@@ -64,7 +64,9 @@ void reverse(ExecutionPolicy &sep, BidirIt first, BidirIt last) {
         r, [aI, vectorSize](cl::sycl::nd_item<1> id) {
           auto global_id = id.get_global(0);
           if (global_id < vectorSize / 2) {
-            std::swap(aI[global_id], aI[vectorSize - global_id - 1]);
+            auto tmp = std::move(aI[global_id]);
+            aI[global_id] = std::move(aI[vectorSize - global_id - 1]);
+            aI[vectorSize - global_id - 1] = std::move(tmp);
           }
         });
   };

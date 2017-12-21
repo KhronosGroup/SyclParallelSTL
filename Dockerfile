@@ -36,7 +36,7 @@ RUN apt-get install -yq --allow-downgrades --allow-remove-essential           \
 RUN git clone https://github.com/${git_slug}.git -b ${git_branch} /SyclParallelSTL
 
 # Intel OpenCL Runtime
-RUN cd /SyclParallelSTL && bash /SyclParallelSTL/.travis/install_intel_opencl.sh
+RUN if [ "${target}" = 'opencl' ]; then bash /SyclParallelSTL/.travis/install_intel_opencl.sh; fi
 
 # SYCL
 RUN if [ "${impl}" = 'triSYCL' ]; then cd /SyclParallelSTL && bash /SyclParallelSTL/.travis/build_triSYCL.sh; fi

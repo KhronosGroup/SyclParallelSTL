@@ -54,6 +54,7 @@ CMD cd /SyclParallelSTL && \
       if [ "${TARGET}" = 'host' ]; then \
         COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
       else \
+        /tmp/ComputeCpp-latest/bin/computecpp_info && \
         COMPUTECPP_TARGET="intel:cpu" ./build.sh /tmp/ComputeCpp-latest; \
       fi \
     else \

@@ -6,6 +6,7 @@ ARG git_slug
 ARG c_compiler
 ARG cxx_compiler
 ARG impl
+ARG target
 
 RUN apt-get -yq update
 
@@ -44,12 +45,17 @@ RUN if [ "${impl}" = 'COMPUTECPP' ]; then cd /SyclParallelSTL && bash /SyclParal
 ENV CC=${c_compiler}
 ENV CXX=${cxx_compiler}
 ENV SYCL_IMPL=${impl}
+ENV TARGET=${target}
 
 CMD cd /SyclParallelSTL && \
     if [ "${SYCL_IMPL}" = 'triSYCL' ]; then \
       ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; \
     elif [ "${SYCL_IMPL}" = 'COMPUTECPP' ]; then \
-      COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
+      if [ "${TARGET}" = 'host' ]; then \
+        COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
+      else \
+        ./build.sh /tmp/ComputeCpp-latest; \
+      fi \
     else \
       echo "Unknown SYCL implementation ${SYCL_IMPL}"; return 1; \
     fi

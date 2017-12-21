@@ -32,10 +32,10 @@ RUN if [ "${c_compiler}" = 'gcc-6' ]; then apt-get install -yq                 \
 RUN apt-get install -yq --allow-downgrades --allow-remove-essential           \
     --allow-change-held-packages ocl-icd-opencl-dev ocl-icd-dev opencl-headers
 
-# Intel OpenCL Runtime
-RUN wget http://registrationcenter-download.intel.com/akdlm/irc_nas/12513/opencl_runtime_16.1.2_x64_rh_6.4.0.37.tgz -O /tmp/opencl_runtime.tgz && tar xzf /tmp/opencl_runtime.tgz -C /tmp && sed 's/decline/accept/g' -i /tmp/opencl_runtime_16.1.2_x64_rh_6.4.0.37/silent.cfg && apt-get install -yq cpio clinfo && /tmp/opencl_runtime_16.1.2_x64_rh_6.4.0.37/install.sh -s /tmp/opencl_runtime_16.1.2_x64_rh_6.4.0.37/silent.cfg && clinfo
-
 RUN git clone https://github.com/${git_slug}.git -b ${git_branch} /SyclParallelSTL
+
+# Intel OpenCL Runtime
+RUN cd /SyclParallelSTL && bash /SyclParallelSTL/.travis/install_intel_opencl.sh
 
 # SYCL
 RUN if [ "${impl}" = 'triSYCL' ]; then cd /SyclParallelSTL && bash /SyclParallelSTL/.travis/build_triSYCL.sh; fi

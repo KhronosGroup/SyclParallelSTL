@@ -396,6 +396,26 @@ ForwardIt reverse_copy(ExecutionPolicy &&exec, BidirIt first, BidirIt last,
   return exec.reverse_copy(first, last, d_first);
 }
 
+/** replace_if
+* @brief  Replaces all elements for which predicate ``p`` returns ``true``
+* with ``new_value`` in the range ``[first, last)``.
+*/
+template <class ExecutionPolicy, class ForwardIt, class UnaryPredicate, class T>
+void replace_if(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
+                UnaryPredicate p, const T &new_value) {
+  return exec.replace_if(first, last, p, new_value);
+}
+
+/** replace
+* @brief  Replaces all elements that are equal to ``old_value`` with
+* ``new_value`` in the range ``[first, last)``.
+*/
+template <class ExecutionPolicy, class ForwardIt, class T>
+void replace(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
+             const T &old_value, const T &new_value) {
+  return exec.replace(first, last, old_value, new_value);
+}
+
 }  // namespace parallel
 }  // namespace experimental
 }  // namespace std

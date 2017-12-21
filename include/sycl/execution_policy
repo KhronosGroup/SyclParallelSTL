@@ -61,6 +61,7 @@
 #include <sycl/algorithm/generate.hpp>
 #include <sycl/algorithm/reverse.hpp>
 #include <sycl/algorithm/reverse_copy.hpp>
+#include <sycl/algorithm/replace_if.hpp>
 
 namespace sycl {
 
@@ -448,6 +449,30 @@ class sycl_execution_policy {
   template <class BidirIt, class ForwardIt>
   ForwardIt reverse_copy(BidirIt first, BidirIt last, ForwardIt d_first) {
     return impl::reverse_copy(*this, first, last, d_first);
+  }
+
+  /** replace_if
+  * @brief  Replaces all elements for which predicate ``p`` returns ``true``
+  * with ``new_value`` in the range ``[first, last)``.
+  */
+  template <class ForwardIt, class UnaryPredicate, class T>
+  void replace_if(ForwardIt first, ForwardIt last, UnaryPredicate p,
+                       const T& new_value) {
+    return impl::replace_if(*this, first, last, p, new_value);
+  }
+
+  /** replace
+  * @brief  Replaces all elements that are equal to ``old_value`` with
+  * ``new_value`` in the range ``[first, last)``.
+  */
+  template <class ForwardIt, class T>
+  void replace(ForwardIt first, ForwardIt last, const T& old_value,
+               const T& new_value) {
+    // copy old_value, as we cannot capture it by reference
+    T old_val = old_value;
+    return impl::replace_if(*this, first, last,
+                            [=](T other) { return other == old_val; },
+                            new_value);
   }
 };
 

@@ -68,6 +68,7 @@ Currently, only some STL algorithms are implemented, such as:
 * all\_of: Parallel iteration (one work-item per 2 elements) on device.
 * any\_of: Parallel iteration (one work-item per 2 elements) on device.
 * none\_of: Parallel iteration (one work-item per 2 elements) on device.
+* equal: Parallel iteration (one work-item per 2 elements) on device.
 
 Some optimizations are implemented. For example:
 

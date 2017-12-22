@@ -56,6 +56,8 @@ Currently, only some STL algorithms are implemented, such as:
 * for\_each\_n : Parallel iteration (one work-item per element) on the device.
 * replace : Parallel iteration (one thread per element) on the device.
 * replace\_if : Parallel iteration (one thread per element) on the device.
+* replace\_copy : Parallel iteration (one thread per element) on the device.
+* replace\_copy\_if : Parallel iteration (one thread per element) on the device.
 * reverse: Parallel iteration (one work-item per 2 elements) on device.
 * reverse\_copy : Parallel iteration (one work-item per element) on the device.
 * count : Parallel iteration (one work-item per 2 elements) on device.

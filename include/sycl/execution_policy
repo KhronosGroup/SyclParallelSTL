@@ -62,6 +62,7 @@
 #include <sycl/algorithm/reverse.hpp>
 #include <sycl/algorithm/reverse_copy.hpp>
 #include <sycl/algorithm/replace_if.hpp>
+#include <sycl/algorithm/replace_copy_if.hpp>
 
 namespace sycl {
 
@@ -473,6 +474,33 @@ class sycl_execution_policy {
     return impl::replace_if(*this, first, last,
                             [=](T other) { return other == old_val; },
                             new_value);
+  }
+
+  /** replace_copy_if
+  * @brief Copies the all elements from the range ``[first, last)`` to another
+  * range beginning at ``d_first`` replacing all elements for which predicate
+  * ``p`` returns ``true`` with ``new_value``.
+  */
+  template <class ForwardIt1, class ForwardIt2, class UnaryPredicate, class T>
+  ForwardIt2 replace_copy_if(ForwardIt1 first, ForwardIt1 last,
+                             ForwardIt2 d_first, UnaryPredicate p,
+                             const T& new_value) {
+    return impl::replace_copy_if(*this, first, last, d_first, p, new_value);
+  }
+
+  /** replace_copy
+  * @brief Copies the all elements from the range ``[first, last)`` to another
+  * range beginning at ``d_first`` replacing all elements that are equal to
+  * ``old_value`` with ``new_value``.
+  */
+  template <class ForwardIt1, class ForwardIt2, class T>
+  ForwardIt2 replace_copy(ForwardIt1 first, ForwardIt1 last, ForwardIt2 d_first,
+                          const T& old_value, const T& new_value) {
+    // copy old_value, as we cannot capture it by reference
+    T old_val = old_value;
+    return impl::replace_copy_if(*this, first, last, d_first,
+                                 [=](T other) { return other == old_val; },
+                                 new_value);
   }
 };
 

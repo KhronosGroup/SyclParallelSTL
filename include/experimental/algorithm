@@ -441,6 +441,36 @@ ForwardIt2 replace_copy(ExecutionPolicy &&exec, ForwardIt1 first,
   return exec.replace_copy(first, last, d_first, old_value, new_value);
 }
 
+/** all_of
+ * @brief Checks if unary predicate ``p`` returns ``true`` for all elements in
+ * the range ``[first, last)``.
+ */
+template <class ExecutionPolicy, class ForwardIt, class UnaryPredicate>
+bool all_of(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
+            UnaryPredicate p) {
+  return exec.all_of(first, last, p);
+}
+
+/** any_of
+ * @brief Checks if unary predicate ``p`` returns ``true`` for at least one
+ * element in the range ``[first, last)``.
+ */
+template <class ExecutionPolicy, class ForwardIt, class UnaryPredicate>
+bool any_of(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
+            UnaryPredicate p) {
+  return exec.any_of(first, last, p);
+}
+
+/** none_of
+  * @brief Checks if unary predicate ``p`` returns ``true`` for no elements in
+  * the range ``[first, last)``.
+  */
+template <class ExecutionPolicy, class ForwardIt, class UnaryPredicate>
+bool none_of(ExecutionPolicy &&exec, ForwardIt first, ForwardIt last,
+             UnaryPredicate p) {
+  return exec.none_of(first, last, p);
+}
+
 }  // namespace parallel
 }  // namespace experimental
 }  // namespace std

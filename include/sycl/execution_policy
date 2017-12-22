@@ -502,6 +502,35 @@ class sycl_execution_policy {
                                  [=](T other) { return other == old_val; },
                                  new_value);
   }
+
+  /** all_of
+   * @brief Checks if unary predicate ``p`` returns ``true`` for all elements in
+   * the range ``[first, last)``.
+   */
+  template <class ForwardIt, class UnaryPredicate>
+  bool all_of(ForwardIt first, ForwardIt last, UnaryPredicate p) {
+    return impl::transform_reduce(*this, first, last, p, true,
+                                  [](bool a, bool b) { return a && b; });
+  }
+
+  /** any_of
+   * @brief Checks if unary predicate ``p`` returns ``true`` for at least one
+   * element in the range ``[first, last)``.
+   */
+  template <class InputIt, class UnaryPredicate>
+  bool any_of(InputIt first, InputIt last, UnaryPredicate p) {
+    return impl::transform_reduce(*this, first, last, p, false,
+                                  [](bool a, bool b) { return a || b; });
+  }
+
+  /** none_of
+   * @brief Checks if unary predicate ``p`` returns ``true`` for no elements in
+   * the range ``[first, last)``.
+   */
+  template <class InputIt, class UnaryPredicate>
+  bool none_of(InputIt first, InputIt last, UnaryPredicate p) {
+    return !any_of(first, last, p);
+  }
 };
 
 /** getNamedPolicy.

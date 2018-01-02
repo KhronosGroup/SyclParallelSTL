@@ -125,7 +125,7 @@ TEST_F(MismatchAlgorithm, TestMismatchBothEmpty) {
 
   auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
 
-  sycl::sycl_execution_policy<class EqualAlgorithmSecondEmpty> snp{};
+  sycl::sycl_execution_policy<class EqualAlgorithmBothEmpty> snp{};
   auto actual = std::experimental::parallel::mismatch(
       snp, v.begin(), v.begin(), v.begin(), v.begin(),
       [](int a, int b) { return a == b; });

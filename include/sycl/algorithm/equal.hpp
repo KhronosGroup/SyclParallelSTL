@@ -68,7 +68,7 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
 
   auto buf1 = sycl::helpers::make_const_buffer(first1, last1);
   auto buf2 = sycl::helpers::make_const_buffer(first2, last2);
-  auto bufR = cl::sycl::buffer<int, 1>(cl::sycl::range<1>(size1));
+  auto bufR = cl::sycl::buffer<bool, 1>(cl::sycl::range<1>(size1));
 
   do {
     int passes = 0;

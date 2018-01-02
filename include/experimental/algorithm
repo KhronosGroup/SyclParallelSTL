@@ -521,6 +521,23 @@ bool equal(ExecutionPolicy &&exec, ForwardIt1 first1, ForwardIt1 last1,
   return exec.equal(first1, last1, first2, last2, p);
 }
 
+/* mismatch
+ * @brief Returns the first mismatching pair of elements from two ranges: one
+ * defined by ``[first1, last1)`` and another defined by ``[first2,last2)``.
+ * Elements are compared using the given binary predicate ``p``. If no
+ * mismatches are found when the comparison reaches ``last1`` or ``last2``,
+ * whichever happens first, the pair holds the end iterator and the
+ * corresponding iterator from the other range.
+ */
+template <class ExecutionPolicy, class ForwardIt1, class ForwardIt2,
+          class BinaryPredicate>
+std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy &&exec,
+                                           ForwardIt1 first1, ForwardIt1 last1,
+                                           ForwardIt2 first2, ForwardIt2 last2,
+                                           BinaryPredicate p) {
+  return exec.mismatch(first1, last1, first2, last2, p);
+}
+
 }  // namespace parallel
 }  // namespace experimental
 }  // namespace std

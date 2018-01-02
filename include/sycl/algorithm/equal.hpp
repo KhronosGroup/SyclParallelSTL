@@ -56,11 +56,9 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
   auto size1 = sycl::helpers::distance(first1, last1);
   auto size2 = sycl::helpers::distance(first2, last2);
 
-  if (size1 != size2)
-    return false;
+  if (size1 != size2) return false;
 
-  if (size1 < 1)
-    return true;
+  if (size1 < 1) return true;
 
   auto device = q.get_device();
 
@@ -120,17 +118,19 @@ template <class ExecutionPolicy, class ForwardIt1, class ForwardIt2,
           class BinaryPredicate>
 bool equal(ExecutionPolicy&& exec, ForwardIt1 first1, ForwardIt1 last1,
            ForwardIt2 first2, ForwardIt2 last2, BinaryPredicate p) {
-  auto q = snp.get_queue();
+  auto q = exec.get_queue();
   auto size1 = sycl::helpers::distance(first1, last1);
   auto size2 = sycl::helpers::distance(first2, last2);
 
   if (size1 != size2) return false;
 
-  auto device = q.get_device();
-  using value_type1 = typename std::iterator_traits<InputIt>::value_type;
-  using value_type2 = typename std::iterator_traits<InputIt>::value_type;
+  if (size1 < 1) return true;
 
-  auto d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+  auto device = q.get_device();
+  using value_type1 = typename std::iterator_traits<ForwardIt1>::value_type;
+  using value_type2 = typename std::iterator_traits<ForwardIt2>::value_type;
+
+  auto d = compute_mapreduce_descriptor(device, size1, sizeof(size_t));
 
   auto input_buff1 = sycl::helpers::make_const_buffer(first1, last1);
   auto input_buff2 = sycl::helpers::make_const_buffer(first2, last2);
@@ -139,8 +139,8 @@ bool equal(ExecutionPolicy&& exec, ForwardIt1 first1, ForwardIt1 last1,
 
   auto binary_op = [](bool a, bool b) { return a && b; };
 
-  return buffer_mapreduce(snp, q, input_buff1, input_buff2, 0, d, map,
-                          binary_op);
+  return buffer_map2reduce(exec, q, input_buff1, input_buff2, true, d, map,
+                           binary_op);
 }
 
 #endif

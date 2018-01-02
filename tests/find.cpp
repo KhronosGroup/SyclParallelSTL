@@ -198,3 +198,18 @@ TEST_F(FindAlgorithm, TestSyclListFindIfNot) {
 
   EXPECT_TRUE(res_std == res_sycl);
 }
+
+TEST_F(FindAlgorithm, TestSyclFindNotFound) {
+  int n_elems = 128;
+  std::vector<float> v(n_elems, 9.0f);
+  float search_val = 10.0f;
+
+  auto res_std = std::find(v.begin(), v.end(), search_val);
+
+  cl::sycl::queue q;
+  sycl::sycl_execution_policy<class FindAlgorithmNotFound> snp(q);
+  auto res_sycl = find(snp, v.begin(), v.end(), search_val);
+
+  EXPECT_EQ(res_sycl, res_std);
+}
+

@@ -45,15 +45,6 @@ namespace impl {
 
 #ifdef SYCL_PSTL_USE_OLD_ALGO
 
-// a struct to store the result of a predicate comparison, and an index
-// we have to declare this here instead of in the function so that the sycl
-// kernel can see it
-typedef struct search_result {
-  bool result;
-  int index;
-  search_result(bool r, int i) : result(r), index(i) {}
-} search_result;
-
 // Implementation of a generic find algorithn to be used for implementing
 // the various interfaces specified by the stl
 template <class ExecutionPolicy, class InputIt, class UnaryPredicate>
@@ -69,7 +60,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   auto vectorSize = buf.get_count();
 
   // construct a buffer to store the result of the predicate mapping stage
-  auto t_buf = sycl::helpers::make_temp_buffer<search_result>(vectorSize);
+  auto t_buf = sycl::helpers::make_temp_buffer<size_t>(vectorSize);
 
   if (vectorSize < 1) {
     return e;
@@ -82,8 +73,8 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
 
   // map across the input testing whether they match the predicate
   // store the result of the predicate and the index in the array of the result
-  auto eqf = [vectorSize, localRange, globalRange, &buf, &t_buf, p](
-      cl::sycl::handler &h) {
+  auto eqf = [vectorSize, localRange, globalRange, &buf, &t_buf,
+              p](cl::sycl::handler &h) {
     cl::sycl::nd_range<1> r{
         cl::sycl::range<1>{std::max(globalRange, localRange)},
         cl::sycl::range<1>{localRange}};
@@ -93,32 +84,20 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
         r, [aI, aO, vectorSize, p](cl::sycl::nd_item<1> id) {
           size_t m_id = id.get_global(0);
-          // build a pair of equality and index, so that we can find the
+          // store index or the vector length, so that we can find the
           // _first_ index which is true, as opposed to just "one" of them
-          aO[m_id] = search_result(p(aI[m_id]), m_id);
+          if (m_id < vectorSize) {
+            aO[m_id] = p(aI[m_id]) ? m_id : vectorSize;
+          }
         });
   };
   q.submit(eqf);
 
-  // Perform a reduction across the pairs of (predicate result, index), to find
-  // the pair with the lowest index where predicate result is true
+  // Perform a reduction across the indices, to find
+  // lowest index where predicate result is true
   // manually implemented, as we can't call currently use sycl buffers with
   // the parallel stl algorithms directly
-
-  // Build a lambda for the reduction, comparing pairs of (result, index) pairs
-  // we wish to return the minimum of the two indices where the predicate
-  // is "true", or the maximum of the indicies if it is true at neither.
-  auto bop = [=](search_result val1, search_result val2) {
-    if (val1.result && val2.result) {
-      return search_result(true, std::min(val1.index, val2.index));
-    } else if (val1.result && !val2.result) {
-      return val1;
-    } else if (!val1.result && val2.result) {
-      return val2;
-    } else {
-      return search_result(false, std::max(val1.index, val2.index));
-    }
-  };
+  auto bop = [=](size_t val1, size_t val2) { return std::min(val1, val2); };
 
   // more or less copied from the reduction implementation
   // TODO: refactor out the implementation details from both into a separate
@@ -132,14 +111,14 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
           cl::sycl::range<1>{localRange}};
       auto aI =
           t_buf.template get_access<cl::sycl::access::mode::read_write>(h);
-      cl::sycl::accessor<search_result, 1, cl::sycl::access::mode::read_write,
+      cl::sycl::accessor<size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
           scratch(cl::sycl::range<1>(localRange), h);
 
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
           r, [aI, scratch, localRange, length, bop](cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<search_result>(localRange, length, id,
+            auto r = ReductionStrategy<size_t>(localRange, length, id,
                                                       scratch);
             r.workitem_get_from(aI);
             r.combine_threads(bop);
@@ -157,7 +136,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   // there's probably a cleaner way to do this, but essentially once we have
   // the "search index", we need to increment the begin iterator until
   // it reaches that point - we use std::advance, as not all iterators support +
-  int search_index = hI[0].index;
+  int search_index = hI[0];
   auto r_iter = b;
   std::advance(r_iter, search_index);
   return r_iter;

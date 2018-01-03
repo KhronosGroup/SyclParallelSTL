@@ -50,7 +50,7 @@ ForwardIt2 replace_copy_if(ExecutionPolicy &sep, ForwardIt1 first,
                            UnaryPredicate p, const T &new_value) {
   cl::sycl::queue q{sep.get_queue()};
   auto device = q.get_device();
-  size_t localRange =
+  auto localRange =
       device.get_info<cl::sycl::info::device::max_work_group_size>();
   auto bufI = helpers::make_buffer(first, last);
   auto d_last(d_first + bufI.get_count());
@@ -59,7 +59,7 @@ ForwardIt2 replace_copy_if(ExecutionPolicy &sep, ForwardIt1 first,
   T new_val = new_value;
 
   auto vectorSize = bufI.get_count();
-  size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
   auto f = [vectorSize, p, new_val, localRange, globalRange, &bufI,
             &bufO](cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<1> r{

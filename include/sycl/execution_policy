@@ -103,8 +103,8 @@ class sycl_execution_policy {
   * @param global : The problem size
   * @param local  : The local size
   */
-  int calculateGlobalSize(int global, int local) {
-    size_t newGlobal = 0;
+  std::size_t calculateGlobalSize(std::size_t global, std::size_t local) {
+    std::size_t newGlobal = 0;
 
     if (global % local == 0) {
       newGlobal = global;

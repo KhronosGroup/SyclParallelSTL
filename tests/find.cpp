@@ -33,7 +33,7 @@
 #include <sycl/execution_policy>
 #include <experimental/algorithm>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 class FindAlgorithm : public testing::Test {
  public:
@@ -60,7 +60,7 @@ TEST_F(FindAlgorithm, TestSyclFind) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindAlgorithm> snp(q);
-  auto res_sycl = find(snp, v.begin(), v.end(), search_val);
+  auto res_sycl = parallel::find(snp, v.begin(), v.end(), search_val);
 
   EXPECT_TRUE(res_std == res_sycl);
 }
@@ -86,7 +86,7 @@ TEST_F(FindAlgorithm, TestSyclListFind) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindAlgorithm2> snp(q);
-  auto res_sycl = find(snp, v.begin(), v.end(), search_val);
+  auto res_sycl = parallel::find(snp, v.begin(), v.end(), search_val);
 
   EXPECT_TRUE(res_std == res_sycl);
 }
@@ -112,7 +112,7 @@ TEST_F(FindAlgorithm, TestSyclFindIf) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfAlgorithm> snp(q);
-  auto res_sycl = find_if(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if(snp, v.begin(), v.end(),
                           [=](float v) { return v == search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -139,7 +139,7 @@ TEST_F(FindAlgorithm, TestSyclListFindIf) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfAlgorithm2> snp(q);
-  auto res_sycl = find_if(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if(snp, v.begin(), v.end(),
                           [=](float v) { return v == search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -166,7 +166,7 @@ TEST_F(FindAlgorithm, TestSyclFindIfNot) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfNotAlgorithm> snp(q);
-  auto res_sycl = find_if_not(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if_not(snp, v.begin(), v.end(),
                               [=](float v) { return v != search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -193,7 +193,7 @@ TEST_F(FindAlgorithm, TestSyclListFindIfNot) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfNotAlgorithm2> snp(q);
-  auto res_sycl = find_if_not(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if_not(snp, v.begin(), v.end(),
                               [=](float v) { return v != search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -208,7 +208,7 @@ TEST_F(FindAlgorithm, TestSyclFindNotFound) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindAlgorithmNotFound> snp(q);
-  auto res_sycl = find(snp, v.begin(), v.end(), search_val);
+  auto res_sycl = parallel::find(snp, v.begin(), v.end(), search_val);
 
   EXPECT_EQ(res_sycl, res_std);
 }

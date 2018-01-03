@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct ReverseAlgorithm : public testing::Test {};
 
@@ -44,7 +44,7 @@ TEST_F(ReverseAlgorithm, TestSyclReverseEven) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmEven> snp(q);
-  reverse(snp, input.begin(), input.end());
+  parallel::reverse(snp, input.begin(), input.end());
 
   EXPECT_TRUE(std::equal(input.begin(), input.end(), expected.begin()));
 }
@@ -57,7 +57,7 @@ TEST_F(ReverseAlgorithm, TestSyclReverseOdd) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmOdd> snp(q);
-  reverse(snp, input.begin(), input.end());
+  parallel::reverse(snp, input.begin(), input.end());
 
   EXPECT_TRUE(std::equal(input.begin(), input.end(), expected.begin()));
 }

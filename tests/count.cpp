@@ -33,7 +33,7 @@
 #include <sycl/execution_policy>
 #include <experimental/algorithm>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 class CountAlgorithm : public testing::Test {
  public:
@@ -51,7 +51,7 @@ TEST_F(CountAlgorithm, TestSyclCount) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class CountAlgorithm2> snp(q);
-  int res_sycl = count(snp, v.begin(), v.end(), 5);
+  int res_sycl = parallel::count(snp, v.begin(), v.end(), 5);
 
   EXPECT_TRUE(res_std == res_sycl);
 }

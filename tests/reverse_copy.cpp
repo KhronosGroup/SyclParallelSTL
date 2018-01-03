@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct ReverseCopyAlgorithm : public testing::Test {};
 
@@ -46,7 +46,7 @@ TEST_F(ReverseCopyAlgorithm, TestSyclReverseCopyEven) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmEven> snp(q);
   auto reverse_end =
-      reverse_copy(snp, input.begin(), input.end(), output.begin());
+      parallel::reverse_copy(snp, input.begin(), input.end(), output.begin());
 
   EXPECT_EQ(output.end(), reverse_end);
   EXPECT_TRUE(std::equal(output.begin(), output.end(), expected.begin()));
@@ -62,7 +62,7 @@ TEST_F(ReverseCopyAlgorithm, TestSyclReverseCopyOdd) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmOdd> snp(q);
   auto reverse_end =
-      reverse_copy(snp, input.begin(), input.end(), output.begin());
+      parallel::reverse_copy(snp, input.begin(), input.end(), output.begin());
 
   EXPECT_EQ(output.end(), reverse_end);
   EXPECT_TRUE(std::equal(output.begin(), output.end(), expected.begin()));

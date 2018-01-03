@@ -33,7 +33,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 class MismatchAlgorithm : public testing::Test {
  public:
@@ -45,7 +45,7 @@ TEST_F(MismatchAlgorithm, TestMismatchEqual) {
   auto expected = std::mismatch(v.begin(), v.end(), v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqual> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end(), v.begin(), v.end(),
       [](int a, int b) { return a == b; });
 
@@ -60,7 +60,7 @@ TEST_F(MismatchAlgorithm, TestMismatchMatchCustomPredicate) {
       [](int a, int b) { return a < b; });
 
   sycl::sycl_execution_policy<class MismatchAlgorithmMatchCustomPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v1.begin(), v1.end(), v2.begin(), v2.end(),
       [](int a, int b) { return a < b; });
 
@@ -75,7 +75,7 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqualCustomPredicate) {
       [](int a, int b) { return a < b; });
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNotEqualCustomPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v1.begin(), v1.end(), v2.begin(), v2.end(),
       [](int a, int b) { return a < b; });
 
@@ -88,7 +88,7 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualOneRange) {
   auto expected = std::mismatch(v.begin(), v.end(), v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualOneRange> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end(), v.begin(), v.end(),
       [](int a, int b) { return a == b; });
 
@@ -103,7 +103,7 @@ TEST_F(MismatchAlgorithm, TestMismatchMatchOneRangeCustomPredicate) {
       [](int a, int b) { return a < b; });
 
   sycl::sycl_execution_policy<class MismatchAlgorithmMatchOneRangeCustomPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v1.begin(), v1.end(), v2.begin(),
       [](int a, int b) { return a < b; });
 
@@ -118,7 +118,7 @@ TEST_F(MismatchAlgorithm, TestMismatchNoMatchOneRangeCustomPredicate) {
       [](int a, int b) { return a < b; });
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNoMatchOneRangeCustomPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v1.begin(), v1.end(), v2.begin(),
       [](int a, int b) { return a < b; });
 
@@ -131,7 +131,7 @@ TEST_F(MismatchAlgorithm, TestMismatchMatchOneRangeNoPredicate) {
   auto expected = std::mismatch(v.begin(), v.end(), v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmMatchNoPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end(), v.begin());
 
   EXPECT_EQ(actual, expected);
@@ -143,7 +143,7 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualNoPredicate) {
   auto expected = std::mismatch(v.begin(), v.end(), v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualNoPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end(), v.begin(), v.end());
 
   EXPECT_EQ(actual, expected);
@@ -155,7 +155,7 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualFirstSmaller) {
   auto expected = std::mismatch(v.begin(), v.end() - 2, v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualFirstSmaller> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end() - 2, v.begin(), v.end(),
       [](int a, int b) { return a == b; });
 
@@ -169,7 +169,7 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualSecondSmaller) {
   std::swap(std::get<0>(expected), std::get<1>(expected));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualSecondSmaller> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end(), v.begin(), v.end() - 2,
       [](int a, int b) { return a == b; });
 
@@ -183,7 +183,7 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqual) {
   auto expected = std::mismatch(v1.begin(), v1.end(), v2.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNotEqual> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v1.begin(), v1.end(), v2.begin(), v2.end(),
       [](int a, int b) { return a == b; });
 
@@ -197,7 +197,7 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqualNoPredicate) {
   auto expected = std::mismatch(v1.begin(), v1.end(), v2.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNotEqualNoPredicate> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v1.begin(), v1.end(), v2.begin(), v2.end());
 
   EXPECT_EQ(actual, expected);
@@ -209,7 +209,7 @@ TEST_F(MismatchAlgorithm, TestMismatchFirstEmpty) {
   auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmFirstEmpty> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.begin(), v.begin(), v.end(),
       [](int a, int b) { return a == b; });
 
@@ -223,7 +223,7 @@ TEST_F(MismatchAlgorithm, TestMismatchSecondEmpty) {
   std::swap(std::get<0>(expected), std::get<1>(expected));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmSecondEmpty> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.end(), v.begin(), v.begin(),
       [](int a, int b) { return a == b; });
 
@@ -236,7 +236,7 @@ TEST_F(MismatchAlgorithm, TestMismatchBothEmpty) {
   auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
 
   sycl::sycl_execution_policy<class MismatchAlgorithmBothEmpty> snp{};
-  auto actual = std::experimental::parallel::mismatch(
+  auto actual = parallel::mismatch(
       snp, v.begin(), v.begin(), v.begin(), v.begin(),
       [](int a, int b) { return a == b; });
 

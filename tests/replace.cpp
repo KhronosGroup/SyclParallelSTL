@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct ReplaceAlgorithm : public testing::Test {};
 
@@ -44,7 +44,7 @@ TEST_F(ReplaceAlgorithm, TestSyclReplace) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReplaceAlgorithm> snp(q);
-  replace(snp, input.begin(), input.end(), 1, 10);
+  parallel::replace(snp, input.begin(), input.end(), 1, 10);
 
   EXPECT_TRUE(std::equal(input.begin(), input.end(), expected.begin()));
 }

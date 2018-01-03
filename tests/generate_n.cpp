@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct GenerateNAlgorithm : public testing::Test {};
 
@@ -70,7 +70,7 @@ TEST_F(GenerateNAlgorithm, TestSyclGenerateN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateNAlgorithm> snp(q);
-  generate_n(snp, v.begin(), v.size(), []() { return 1; });
+  parallel::generate_n(snp, v.begin(), v.size(), []() { return 1; });
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
@@ -81,7 +81,7 @@ TEST_F(GenerateNAlgorithm, TestSycl2GenerateN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateN2Algorithm> snp(q);
-  generate_n(snp, v.begin(), 4, []() { return 1; });
+  parallel::generate_n(snp, v.begin(), 4, []() { return 1; });
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
@@ -93,7 +93,7 @@ TEST_F(GenerateNAlgorithm, TestSycl3GenerateN) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateN3Algorithm> snp(q);
   int negative_count = -v.size();
-  generate_n(snp, v.begin(), negative_count, []() { return 1; });
+  parallel::generate_n(snp, v.begin(), negative_count, []() { return 1; });
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }

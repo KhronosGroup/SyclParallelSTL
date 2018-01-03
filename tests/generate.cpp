@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct GenerateAlgorithm : public testing::Test {};
 
@@ -51,7 +51,7 @@ TEST_F(GenerateAlgorithm, TestSyclGenerate) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateAlgorithm> snp(q);
-  generate(snp, v.begin(), v.end(), []() { return 1; });
+  parallel::generate(snp, v.begin(), v.end(), []() { return 1; });
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }

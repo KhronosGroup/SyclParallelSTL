@@ -33,7 +33,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct AllOfAlgorithm : public testing::Test {};
 
@@ -41,8 +41,8 @@ TEST_F(AllOfAlgorithm, TestSyclAllOfTrue) {
   std::vector<int> input = {2, 4, 6, 8, 10, 12, 14, 16};
 
   sycl::sycl_execution_policy<class AllOfAlgorithmTrue> snp;
-  auto result =
-      all_of(snp, input.begin(), input.end(), [](int a) { return a % 2 == 0; });
+  auto result = parallel::all_of(snp, input.begin(), input.end(),
+                                 [](int a) { return a % 2 == 0; });
 
   EXPECT_TRUE(result);
 }
@@ -51,8 +51,8 @@ TEST_F(AllOfAlgorithm, TestSyclAllOfFalse) {
   std::vector<int> input = {1, 2, 3, 4, 5, 6, 7, 8};
 
   sycl::sycl_execution_policy<class AllOfAlgorithmFalse> snp;
-  auto result =
-      all_of(snp, input.begin(), input.end(), [](int a) { return a % 2 == 0; });
+  auto result = parallel::all_of(snp, input.begin(), input.end(),
+                                 [](int a) { return a % 2 == 0; });
 
   EXPECT_FALSE(result);
 }
@@ -61,8 +61,8 @@ TEST_F(AllOfAlgorithm, TestSyclAllOfEmpty) {
   std::vector<int> input{};
 
   sycl::sycl_execution_policy<class AllOfAlgorithmEmpty> snp;
-  auto result =
-      all_of(snp, input.begin(), input.end(), [](int) { return false; });
+  auto result = parallel::all_of(snp, input.begin(), input.end(),
+                                 [](int) { return false; });
   auto expected =
       std::all_of(input.begin(), input.end(), [](int) { return false; });
 

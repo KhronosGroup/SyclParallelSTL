@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct ReplaceCopyAlgorithm : public testing::Test {};
 
@@ -45,8 +45,8 @@ TEST_F(ReplaceCopyAlgorithm, TestSyclReplaceCopy) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReplaceIfAlgorithmEven> snp(q);
-  auto reverse_end =
-      replace_copy(snp, input.begin(), input.end(), output.begin(), 1, 10);
+  auto reverse_end = parallel::replace_copy(snp, input.begin(), input.end(),
+                                            output.begin(), 1, 10);
 
   EXPECT_EQ(output.end(), reverse_end);
   EXPECT_TRUE(std::equal(output.begin(), output.end(), expected.begin()));

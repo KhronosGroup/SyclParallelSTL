@@ -32,7 +32,7 @@
 #include <experimental/algorithm>
 #include <sycl/execution_policy>
 
-using namespace std::experimental::parallel;
+namespace parallel = std::experimental::parallel;
 
 struct FillNAlgorithm : public testing::Test {};
 
@@ -70,7 +70,7 @@ TEST_F(FillNAlgorithm, TestSyclFillN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FillNAlgorithm> snp(q);
-  fill_n(snp, v.begin(), v.size(), 1);
+  parallel::fill_n(snp, v.begin(), v.size(), 1);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
@@ -81,7 +81,7 @@ TEST_F(FillNAlgorithm, TestSycl2FillN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FillN2Algorithm> snp(q);
-  fill_n(snp, v.begin(), 4, 1);
+  parallel::fill_n(snp, v.begin(), 4, 1);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }
@@ -93,7 +93,7 @@ TEST_F(FillNAlgorithm, TestSycl3FillN) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FillN3Algorithm> snp(q);
   int negative_count = -v.size();
-  fill_n(snp, v.begin(), negative_count, 1);
+  parallel::fill_n(snp, v.begin(), negative_count, 1);
 
   EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
 }

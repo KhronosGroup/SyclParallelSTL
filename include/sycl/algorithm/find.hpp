@@ -60,16 +60,16 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   auto vectorSize = buf.get_count();
 
   // construct a buffer to store the result of the predicate mapping stage
-  auto t_buf = sycl::helpers::make_temp_buffer<size_t>(vectorSize);
+  auto t_buf = sycl::helpers::make_temp_buffer<std::size_t>(vectorSize);
 
   if (vectorSize < 1) {
     return e;
   }
 
-  size_t localRange =
+  auto localRange =
       std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
                vectorSize);
-  size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
 
   // map across the input testing whether they match the predicate
   // store the result of the predicate and the index in the array of the result
@@ -97,12 +97,12 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   // lowest index where predicate result is true
   // manually implemented, as we can't call currently use sycl buffers with
   // the parallel stl algorithms directly
-  auto bop = [=](size_t val1, size_t val2) { return std::min(val1, val2); };
+  auto bop = [](std::size_t val1, std::size_t val2) { return std::min(val1, val2); };
 
   // more or less copied from the reduction implementation
   // TODO: refactor out the implementation details from both into a separate
   // module
-  size_t length = vectorSize;
+  auto length = vectorSize;
   do {
     auto rf = [length, localRange, globalRange, &t_buf, bop](
         cl::sycl::handler &h) {
@@ -111,14 +111,14 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
           cl::sycl::range<1>{localRange}};
       auto aI =
           t_buf.template get_access<cl::sycl::access::mode::read_write>(h);
-      cl::sycl::accessor<size_t, 1, cl::sycl::access::mode::read_write,
+      cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
           scratch(cl::sycl::range<1>(localRange), h);
 
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
           r, [aI, scratch, localRange, length, bop](cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<size_t>(localRange, length, id,
+            auto r = ReductionStrategy<std::size_t>(localRange, length, id,
                                                       scratch);
             r.workitem_get_from(aI);
             r.combine_threads(bop);
@@ -136,7 +136,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   // there's probably a cleaner way to do this, but essentially once we have
   // the "search index", we need to increment the begin iterator until
   // it reaches that point - we use std::advance, as not all iterators support +
-  int search_index = hI[0];
+  auto search_index = hI[0];
   auto r_iter = b;
   std::advance(r_iter, search_index);
   return r_iter;
@@ -157,19 +157,19 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
-  auto d = compute_mapreduce_descriptor(device, size, sizeof(size_t));
+  auto d = compute_mapreduce_descriptor(device, size, sizeof(std::size_t));
 
   auto input_buff = sycl::helpers::make_const_buffer(b, e);
 
-  auto map = [=](size_t pos, value_type x) {
+  auto map = [=](std::size_t pos, value_type x) {
     return (p(x)) ? pos : size;
   };
 
-  auto red = [](size_t x, size_t y){
+  auto red = [](std::size_t x, std::size_t y){
     return std::min(x, y);
   };
 
-  size_t pos = buffer_mapreduce( snp, q, input_buff, size, d, map, red );
+  auto pos = buffer_mapreduce( snp, q, input_buff, size, d, map, red );
 
   if (pos==size) {
     return e;

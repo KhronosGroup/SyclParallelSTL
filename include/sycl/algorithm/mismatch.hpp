@@ -60,20 +60,23 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   auto size1 = sycl::helpers::distance(first1, last1);
   auto size2 = sycl::helpers::distance(first2, last2);
 
-  cl::sycl::buffer<size_t, 1> bufR((cl::sycl::range<1>(size1)));
   if (size1 < 1 || size2 < 1) {
     return std::make_pair(first1, first2);
   }
 
   auto device = q.get_device();
 
-  size_t length = std::min(size1, size2);
+  auto length = std::min(size1, size2);
   auto local = std::min(
       device.template get_info<cl::sycl::info::device::max_work_group_size>(),
       length);
+  auto global = exec.calculateGlobalSize(length, local);
+
   auto buf1 = sycl::helpers::make_const_buffer(first1, first1 + length);
   auto buf2 = sycl::helpers::make_const_buffer(first2, first2 + length);
-  size_t global = exec.calculateGlobalSize(length, local);
+
+  cl::sycl::buffer<std::size_t, 1> bufR((cl::sycl::range<1>(size1)));
+
   int passes = 0;
 
   // map across the input testing whether they match the predicate
@@ -87,14 +90,16 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
         r, [a1, a2, aR, length, p](cl::sycl::nd_item<1> id) {
-          size_t m_id = id.get_global(0);
+          auto m_id = id.get_global(0);
 
-          if (m_id < length) aR[m_id] = p(a1[m_id], a2[m_id]) ? length : m_id;
+          if (m_id < length) {
+            aR[m_id] = p(a1[m_id], a2[m_id]) ? length : m_id;
+          }
         });
   };
   q.submit(eqf);
 
-  auto binary_op = [](size_t x, size_t y) { return std::min(x, y); };
+  auto binary_op = [](std::size_t x, std::size_t y) { return std::min(x, y); };
 
   do {
     auto f = [passes, length, local, global, &bufR,
@@ -102,21 +107,21 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
       cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
                               cl::sycl::range<1>{local}};
       auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
-      cl::sycl::accessor<size_t, 1, cl::sycl::access::mode::read_write,
+      cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
           scratch(cl::sycl::range<1>(local), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           r, [aR, scratch, passes, local, length,
               binary_op](cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<size_t>(local, length, id, scratch);
+            auto r = ReductionStrategy<std::size_t>(local, length, id, scratch);
             r.workitem_get_from(aR);
             r.combine_threads(binary_op);
             r.workgroup_write_to(aR);
           });
     };
     q.submit(f);
-    passes++;
+    ++passes;
     length = length / local;
   } while (length > 1);
   q.wait_and_throw();
@@ -138,9 +143,11 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   auto size1 = sycl::helpers::distance(first1, last1);
   auto size2 = sycl::helpers::distance(first2, last2);
 
-  if (size1 <= 0 || size2 <= 0) std::make_pair(first1, first2);
+  if (size1 <= 0 || size2 <= 0) {
+    return std::make_pair(first1, first2);
+  }
 
-  size_t length = std::min(size1, size2);
+  auto length = std::min(size1, size2);
 
   auto q = exec.get_queue();
 
@@ -153,15 +160,14 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   auto input_buff1 = sycl::helpers::make_const_buffer(first1, first1 + length);
   auto input_buff2 = sycl::helpers::make_const_buffer(first2, first2 + length);
 
-  auto map = [=](size_t pos, value_type1 x, value_type2 y) {
+  auto map = [p, length](std::size_t pos, value_type1 x, value_type2 y) {
     return p(x, y) ? length : pos;
   };
 
-  auto red = [](size_t x, size_t y){
-    return std::min(x, y);
-  };
+  auto red = [](std::size_t x, std::size_t y) { return std::min(x, y); };
 
-  auto pos = buffer_map2reduce(exec, q, input_buff1, input_buff2, length, d, map, red);
+  auto pos =
+      buffer_map2reduce(exec, q, input_buff1, input_buff2, length, d, map, red);
 
   return std::make_pair(std::next(first1, pos), std::next(first2, pos));
 }

@@ -119,3 +119,16 @@ TEST_F(EqualAlgorithm, EqualEmpty) {
 
   EXPECT_EQ(result, expected);
 }
+
+TEST_F(EqualAlgorithm, NotEqualFloat) {
+  std::vector<float> input1{ 1.0f, 1.5f, 2.0f, 4.0f};
+  std::vector<float> input2{ 1.0f, 1.2f, 2.0f, 4.0f};
+
+  sycl::sycl_execution_policy<class EqualAlgorithmNotEqualFloat> snp;
+  auto result = equal(snp, input1.begin(), input1.end(), input2.begin(),
+                      input2.end(), [](int a, int b) { return a == b; });
+  auto expected = std::equal(input1.begin(), input1.end(), input2.begin(),
+                             [](int a, int b) { return a == b; });
+
+  EXPECT_EQ(result, expected);
+}

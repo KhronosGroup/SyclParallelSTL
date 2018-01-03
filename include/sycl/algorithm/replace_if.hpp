@@ -47,26 +47,27 @@ template <class ExecutionPolicy, class ForwardIt, class UnaryPredicate, class T>
 void replace_if(ExecutionPolicy &sep, ForwardIt first, ForwardIt last,
                 UnaryPredicate p, const T &new_value) {
   cl::sycl::queue q{sep.get_queue()};
-  auto device = q.get_device();
-  auto localRange =
-      device.get_info<cl::sycl::info::device::max_work_group_size>();
+  const auto device = q.get_device();
   auto bufI = helpers::make_buffer(first, last);
 
   // copy new_value, as we cannot capture it by reference
-  T new_val = new_value;
+  const T new_val = new_value;
 
-  auto vectorSize = bufI.get_count();
-  auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
-  auto f = [vectorSize, p, new_val, localRange, globalRange,
+  const auto vectorSize = bufI.get_count();
+  const auto localRange =
+      device.get_info<cl::sycl::info::device::max_work_group_size>();
+  const auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+
+  const auto f = [vectorSize, p, new_val, localRange, globalRange,
             &bufI](cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<1> r{
         cl::sycl::range<1>{std::max(globalRange, localRange)},
         cl::sycl::range<1>{localRange}};
 
-    auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
+    const auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         r, [aI, vectorSize, p, new_val](cl::sycl::nd_item<1> id) {
-          auto global_id = id.get_global(0);
+          const auto global_id = id.get_global(0);
           if (global_id < vectorSize) {
             if(p(aI[global_id])) {
               aI[global_id] = new_val;

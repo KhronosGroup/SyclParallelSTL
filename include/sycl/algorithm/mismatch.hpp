@@ -57,40 +57,38 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
                                            ForwardIt2 first2, ForwardIt2 last2,
                                            BinaryPredicate p) {
   cl::sycl::queue q(exec.get_queue());
-  auto size1 = sycl::helpers::distance(first1, last1);
-  auto size2 = sycl::helpers::distance(first2, last2);
+  const auto size1 = sycl::helpers::distance(first1, last1);
+  const auto size2 = sycl::helpers::distance(first2, last2);
 
   if (size1 < 1 || size2 < 1) {
     return std::make_pair(first1, first2);
   }
 
-  auto device = q.get_device();
+  const auto device = q.get_device();
 
-  auto length = std::min(size1, size2);
-  auto local = std::min(
+  const auto length = std::min(size1, size2);
+  const auto local = std::min(
       device.template get_info<cl::sycl::info::device::max_work_group_size>(),
       length);
-  auto global = exec.calculateGlobalSize(length, local);
+  const auto global = exec.calculateGlobalSize(length, local);
 
   auto buf1 = sycl::helpers::make_const_buffer(first1, first1 + length);
   auto buf2 = sycl::helpers::make_const_buffer(first2, first2 + length);
 
   cl::sycl::buffer<std::size_t, 1> bufR((cl::sycl::range<1>(size1)));
 
-  int passes = 0;
-
   // map across the input testing whether they match the predicate
-  auto eqf = [length, local, global, &buf1, &buf2, &bufR,
+  const auto eqf = [length, local, global, &buf1, &buf2, &bufR,
               p](cl::sycl::handler& h) {
     cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
                             cl::sycl::range<1>{local}};
-    auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
-    auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
-    auto aR = bufR.template get_access<cl::sycl::access::mode::write>(h);
+    const auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
+    const auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
+    const auto aR = bufR.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
         r, [a1, a2, aR, length, p](cl::sycl::nd_item<1> id) {
-          auto m_id = id.get_global(0);
+          const auto m_id = id.get_global(0);
 
           if (m_id < length) {
             aR[m_id] = p(a1[m_id], a2[m_id]) ? length : m_id;
@@ -99,22 +97,24 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   };
   q.submit(eqf);
 
-  auto binary_op = [](std::size_t x, std::size_t y) { return std::min(x, y); };
+  const auto binary_op = [](std::size_t x, std::size_t y) { return std::min(x, y); };
+  auto current_length = length;
+  int passes = 0;
 
   do {
-    auto f = [passes, length, local, global, &bufR,
+    const auto f = [passes, current_length, local, global, &bufR,
               binary_op](cl::sycl::handler& h) mutable {
       cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
                               cl::sycl::range<1>{local}};
-      auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
+      const auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
           scratch(cl::sycl::range<1>(local), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aR, scratch, passes, local, length,
+          r, [aR, scratch, passes, local, current_length,
               binary_op](cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<std::size_t>(local, length, id, scratch);
+            auto r = ReductionStrategy<std::size_t>(local, current_length, id, scratch);
             r.workitem_get_from(aR);
             r.combine_threads(binary_op);
             r.workgroup_write_to(aR);
@@ -122,13 +122,13 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
     };
     q.submit(f);
     ++passes;
-    length = length / local;
-  } while (length > 1);
+    current_length = current_length / local;
+  } while (current_length > 1);
   q.wait_and_throw();
-  auto hR = bufR.template get_access<cl::sycl::access::mode::read,
+  const auto hR = bufR.template get_access<cl::sycl::access::mode::read,
                                      cl::sycl::access::target::host_buffer>();
 
-  auto mismatch_id = hR[0];
+  const auto mismatch_id = hR[0];
   return std::make_pair(first1 + mismatch_id, first2 + mismatch_id);
 }
 
@@ -140,33 +140,33 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
                                            ForwardIt1 first1, ForwardIt1 last1,
                                            ForwardIt2 first2, ForwardIt2 last2,
                                            BinaryPredicate p) {
-  auto size1 = sycl::helpers::distance(first1, last1);
-  auto size2 = sycl::helpers::distance(first2, last2);
+  const auto size1 = sycl::helpers::distance(first1, last1);
+  const auto size2 = sycl::helpers::distance(first2, last2);
 
   if (size1 <= 0 || size2 <= 0) {
     return std::make_pair(first1, first2);
   }
 
-  auto length = std::min(size1, size2);
+  const auto length = std::min(size1, size2);
 
-  auto q = exec.get_queue();
+  const auto q = exec.get_queue();
 
-  auto device = q.get_device();
+  const auto device = q.get_device();
   using value_type1 = typename std::iterator_traits<ForwardIt1>::value_type;
   using value_type2 = typename std::iterator_traits<ForwardIt2>::value_type;
 
-  auto d = compute_mapreduce_descriptor(device, length, sizeof(value_type1));
+  const auto d = compute_mapreduce_descriptor(device, length, sizeof(value_type1));
 
-  auto input_buff1 = sycl::helpers::make_const_buffer(first1, first1 + length);
-  auto input_buff2 = sycl::helpers::make_const_buffer(first2, first2 + length);
+  const auto input_buff1 = sycl::helpers::make_const_buffer(first1, first1 + length);
+  const auto input_buff2 = sycl::helpers::make_const_buffer(first2, first2 + length);
 
-  auto map = [p, length](std::size_t pos, value_type1 x, value_type2 y) {
+  const auto map = [p, length](const std::size_t pos, const value_type1 x, const value_type2 y) {
     return p(x, y) ? length : pos;
   };
 
-  auto red = [](std::size_t x, std::size_t y) { return std::min(x, y); };
+  const auto red = [](const std::size_t x, const std::size_t y) { return std::min(x, y); };
 
-  auto pos =
+  const auto pos =
       buffer_map2reduce(exec, q, input_buff1, input_buff2, length, d, map, red);
 
   return std::make_pair(std::next(first1, pos), std::next(first2, pos));

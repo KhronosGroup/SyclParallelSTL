@@ -47,19 +47,21 @@ template <class ExecutionPolicy, class ForwardIt, class Generator>
 void generate(ExecutionPolicy &sep, ForwardIt first, ForwardIt last,
               Generator g) {
   cl::sycl::queue q{sep.get_queue()};
-  auto device = q.get_device();
-  auto localRange =
-      device.get_info<cl::sycl::info::device::max_work_group_size>();
-  auto bufI = helpers::make_buffer(first, last);
+  const auto device = q.get_device();
 
-  auto vectorSize = bufI.get_count();
-  auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
-  auto f = [vectorSize, localRange, globalRange, &bufI,
+  auto bufI = helpers::make_buffer(first, last);
+  const auto vectorSize = bufI.get_count();
+
+  const auto localRange =
+      device.get_info<cl::sycl::info::device::max_work_group_size>();
+  const auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+
+  const auto f = [vectorSize, localRange, globalRange, &bufI,
             g](cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<1> r{
         cl::sycl::range<1>{std::max(globalRange, localRange)},
         cl::sycl::range<1>{localRange}};
-    auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
+    const auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         r, [aI, g, vectorSize](cl::sycl::nd_item<1> id) {
           if (id.get_global(0) < vectorSize) {

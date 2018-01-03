@@ -49,29 +49,32 @@ ForwardIt2 replace_copy_if(ExecutionPolicy &sep, ForwardIt1 first,
                            ForwardIt1 last, ForwardIt2 d_first,
                            UnaryPredicate p, const T &new_value) {
   cl::sycl::queue q{sep.get_queue()};
-  auto device = q.get_device();
-  auto localRange =
-      device.get_info<cl::sycl::info::device::max_work_group_size>();
+  const auto device = q.get_device();
   auto bufI = helpers::make_buffer(first, last);
-  auto d_last(d_first + bufI.get_count());
-  auto bufO = sycl::helpers::make_buffer(d_first, d_last);
-  // copy new_value, as we cannot capture it by reference
-  T new_val = new_value;
 
-  auto vectorSize = bufI.get_count();
-  auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
-  auto f = [vectorSize, p, new_val, localRange, globalRange, &bufI,
+  const auto d_last(d_first + bufI.get_count());
+  auto bufO = sycl::helpers::make_buffer(d_first, d_last);
+
+  // copy new_value, as we cannot capture it by reference
+  const T new_val = new_value;
+
+  const auto vectorSize = bufI.get_count();
+  const auto localRange =
+      device.get_info<cl::sycl::info::device::max_work_group_size>();
+  const auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+
+  const auto f = [vectorSize, p, new_val, localRange, globalRange, &bufI,
             &bufO](cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<1> r{
         cl::sycl::range<1>{std::max(globalRange, localRange)},
         cl::sycl::range<1>{localRange}};
 
-    auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
-    auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
+    const auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
+    const auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         r, [aI, aO, vectorSize, p, new_val](cl::sycl::nd_item<1> id) {
-          auto global_id = id.get_global(0);
-          auto orig_value = aI[global_id];
+          const auto global_id = id.get_global(0);
+          const auto orig_value = aI[global_id];
           if (global_id < vectorSize) {
             if (p(orig_value)) {
               aO[global_id] = new_val;

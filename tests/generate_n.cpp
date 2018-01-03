@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -40,18 +41,18 @@ TEST_F(GenerateNAlgorithm, TestStdGenerateN) {
   std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> result = {1, 1, 1, 1, 1, 1, 1, 1};
 
-  std::generate_n(v.begin(), v.size(), []() { return 1; });
+  std::generate_n(begin(v), v.size(), []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(GenerateNAlgorithm, TestStd2GenerateN) {
   std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> result = {1, 1, 1, 1, 5, 6, 7, 8};
 
-  std::generate_n(v.begin(), 4, []() { return 1; });
+  std::generate_n(begin(v), 4, []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(GenerateNAlgorithm, TestStd3GenerateN) {
@@ -59,9 +60,9 @@ TEST_F(GenerateNAlgorithm, TestStd3GenerateN) {
   std::vector<int> result = v;
 
   int negative_count = -v.size();
-  std::generate_n(v.begin(), negative_count, []() { return 1; });
+  std::generate_n(begin(v), negative_count, []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(GenerateNAlgorithm, TestSyclGenerateN) {
@@ -70,9 +71,9 @@ TEST_F(GenerateNAlgorithm, TestSyclGenerateN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateNAlgorithm> snp(q);
-  parallel::generate_n(snp, v.begin(), v.size(), []() { return 1; });
+  parallel::generate_n(snp, begin(v), v.size(), []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(GenerateNAlgorithm, TestSycl2GenerateN) {
@@ -81,9 +82,9 @@ TEST_F(GenerateNAlgorithm, TestSycl2GenerateN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateN2Algorithm> snp(q);
-  parallel::generate_n(snp, v.begin(), 4, []() { return 1; });
+  parallel::generate_n(snp, begin(v), 4, []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(GenerateNAlgorithm, TestSycl3GenerateN) {
@@ -93,7 +94,7 @@ TEST_F(GenerateNAlgorithm, TestSycl3GenerateN) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateN3Algorithm> snp(q);
   int negative_count = -v.size();
-  parallel::generate_n(snp, v.begin(), negative_count, []() { return 1; });
+  parallel::generate_n(snp, begin(v), negative_count, []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }

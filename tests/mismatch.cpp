@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -43,10 +44,10 @@ class MismatchAlgorithm : public testing::Test {
 TEST_F(MismatchAlgorithm, TestMismatchEqual) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.end(), v.begin());
+  auto expected = std::mismatch(begin(v), end(v), begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqual> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(), v.end(),
+  auto actual = parallel::mismatch(snp, begin(v), end(v), begin(v), end(v),
                                    std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
@@ -57,12 +58,12 @@ TEST_F(MismatchAlgorithm, TestMismatchMatchCustomPredicate) {
   std::vector<int> v2{1, 2, 3, 4, 5, 6, 7, 8};
 
   auto expected =
-      std::mismatch(v1.begin(), v1.end(), v2.begin(), std::less<int>{});
+      std::mismatch(begin(v1), end(v1), begin(v2), std::less<int>{});
 
   sycl::sycl_execution_policy<class MismatchAlgorithmMatchCustomPredicate>
       snp{};
-  auto actual = parallel::mismatch(snp, v1.begin(), v1.end(), v2.begin(),
-                                   v2.end(), std::less<int>{});
+  auto actual = parallel::mismatch(snp, begin(v1), end(v1), begin(v2), end(v2),
+                                   std::less<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -72,12 +73,12 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqualCustomPredicate) {
   std::vector<int> v2{1, 2, 3, 4, 5, 6, 7, 8};
 
   auto expected =
-      std::mismatch(v1.begin(), v1.end(), v2.begin(), std::less<int>{});
+      std::mismatch(begin(v1), end(v1), begin(v2), std::less<int>{});
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNotEqualCustomPredicate>
       snp{};
-  auto actual = parallel::mismatch(snp, v1.begin(), v1.end(), v2.begin(),
-                                   v2.end(), std::less<int>{});
+  auto actual = parallel::mismatch(snp, begin(v1), end(v1), begin(v2), end(v2),
+                                   std::less<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -85,10 +86,10 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqualCustomPredicate) {
 TEST_F(MismatchAlgorithm, TestMismatchEqualOneRange) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.end(), v.begin());
+  auto expected = std::mismatch(begin(v), end(v), begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualOneRange> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(), v.end(),
+  auto actual = parallel::mismatch(snp, begin(v), end(v), begin(v), end(v),
                                    std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
@@ -99,13 +100,13 @@ TEST_F(MismatchAlgorithm, TestMismatchMatchOneRangeCustomPredicate) {
   std::vector<int> v2{1, 2, 3, 4, 5, 6, 7, 8};
 
   auto expected =
-      std::mismatch(v1.begin(), v1.end(), v2.begin(), std::less<int>{});
+      std::mismatch(begin(v1), end(v1), begin(v2), std::less<int>{});
 
   sycl::sycl_execution_policy<
       class MismatchAlgorithmMatchOneRangeCustomPredicate>
       snp{};
-  auto actual = parallel::mismatch(snp, v1.begin(), v1.end(), v2.begin(),
-                                   std::less<int>{});
+  auto actual =
+      parallel::mismatch(snp, begin(v1), end(v1), begin(v2), std::less<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -115,13 +116,13 @@ TEST_F(MismatchAlgorithm, TestMismatchNoMatchOneRangeCustomPredicate) {
   std::vector<int> v2{1, 2, 3, 4, 5, 6, 7, 8};
 
   auto expected =
-      std::mismatch(v1.begin(), v1.end(), v2.begin(), std::less<int>{});
+      std::mismatch(begin(v1), end(v1), begin(v2), std::less<int>{});
 
   sycl::sycl_execution_policy<
       class MismatchAlgorithmNoMatchOneRangeCustomPredicate>
       snp{};
-  auto actual = parallel::mismatch(snp, v1.begin(), v1.end(), v2.begin(),
-                                   std::less<int>{});
+  auto actual =
+      parallel::mismatch(snp, begin(v1), end(v1), begin(v2), std::less<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -129,10 +130,10 @@ TEST_F(MismatchAlgorithm, TestMismatchNoMatchOneRangeCustomPredicate) {
 TEST_F(MismatchAlgorithm, TestMismatchMatchOneRangeNoPredicate) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.end(), v.begin());
+  auto expected = std::mismatch(begin(v), end(v), begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmMatchNoPredicate> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin());
+  auto actual = parallel::mismatch(snp, begin(v), end(v), begin(v));
 
   EXPECT_EQ(actual, expected);
 }
@@ -140,10 +141,10 @@ TEST_F(MismatchAlgorithm, TestMismatchMatchOneRangeNoPredicate) {
 TEST_F(MismatchAlgorithm, TestMismatchEqualNoPredicate) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.end(), v.begin());
+  auto expected = std::mismatch(begin(v), end(v), begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualNoPredicate> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(), v.end());
+  auto actual = parallel::mismatch(snp, begin(v), end(v), begin(v), end(v));
 
   EXPECT_EQ(actual, expected);
 }
@@ -151,11 +152,11 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualNoPredicate) {
 TEST_F(MismatchAlgorithm, TestMismatchEqualFirstSmaller) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.end() - 2, v.begin());
+  auto expected = std::mismatch(begin(v), end(v) - 2, begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualFirstSmaller> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end() - 2, v.begin(),
-                                   v.end(), std::equal_to<int>{});
+  auto actual = parallel::mismatch(snp, begin(v), end(v) - 2, begin(v), end(v),
+                                   std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -163,13 +164,13 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualFirstSmaller) {
 TEST_F(MismatchAlgorithm, TestMismatchEqualSecondSmaller) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.end() - 2, v.begin());
+  auto expected = std::mismatch(begin(v), end(v) - 2, begin(v));
   using std::swap;
   swap(std::get<0>(expected), std::get<1>(expected));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualSecondSmaller> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(),
-                                   v.end() - 2, std::equal_to<int>{});
+  auto actual = parallel::mismatch(snp, begin(v), end(v), begin(v), end(v) - 2,
+                                   std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -178,11 +179,11 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqual) {
   std::vector<int> v1{0, 1, 2, 3, 4, 5, 6, 7};
   std::vector<int> v2{0, 1, 2, 3, 6, 5, 6, 7};
 
-  auto expected = std::mismatch(v1.begin(), v1.end(), v2.begin());
+  auto expected = std::mismatch(begin(v1), end(v1), begin(v2));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNotEqual> snp{};
-  auto actual = parallel::mismatch(snp, v1.begin(), v1.end(), v2.begin(),
-                                   v2.end(), std::equal_to<int>{});
+  auto actual = parallel::mismatch(snp, begin(v1), end(v1), begin(v2), end(v2),
+                                   std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -191,11 +192,10 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqualNoPredicate) {
   std::vector<int> v1{0, 1, 2, 3, 4, 5, 6, 7};
   std::vector<int> v2{0, 1, 2, 3, 6, 5, 6, 7};
 
-  auto expected = std::mismatch(v1.begin(), v1.end(), v2.begin());
+  auto expected = std::mismatch(begin(v1), end(v1), begin(v2));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmNotEqualNoPredicate> snp{};
-  auto actual =
-      parallel::mismatch(snp, v1.begin(), v1.end(), v2.begin(), v2.end());
+  auto actual = parallel::mismatch(snp, begin(v1), end(v1), begin(v2), end(v2));
 
   EXPECT_EQ(actual, expected);
 }
@@ -203,11 +203,11 @@ TEST_F(MismatchAlgorithm, TestMismatchNotEqualNoPredicate) {
 TEST_F(MismatchAlgorithm, TestMismatchFirstEmpty) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
+  auto expected = std::mismatch(begin(v), begin(v), begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmFirstEmpty> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.begin(), v.begin(),
-                                   v.end(), std::equal_to<int>{});
+  auto actual = parallel::mismatch(snp, begin(v), begin(v), begin(v), end(v),
+                                   std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -215,13 +215,13 @@ TEST_F(MismatchAlgorithm, TestMismatchFirstEmpty) {
 TEST_F(MismatchAlgorithm, TestMismatchSecondEmpty) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
+  auto expected = std::mismatch(begin(v), begin(v), begin(v));
   using std::swap;
   swap(std::get<0>(expected), std::get<1>(expected));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmSecondEmpty> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(),
-                                   v.begin(), std::equal_to<int>{});
+  auto actual = parallel::mismatch(snp, begin(v), end(v), begin(v), begin(v),
+                                   std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
 }
@@ -229,11 +229,11 @@ TEST_F(MismatchAlgorithm, TestMismatchSecondEmpty) {
 TEST_F(MismatchAlgorithm, TestMismatchBothEmpty) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
-  auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
+  auto expected = std::mismatch(begin(v), begin(v), begin(v));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmBothEmpty> snp{};
-  auto actual = parallel::mismatch(snp, v.begin(), v.begin(), v.begin(),
-                                   v.begin(), std::equal_to<int>{});
+  auto actual = parallel::mismatch(snp, begin(v), begin(v), begin(v), begin(v),
+                                   std::equal_to<int>{});
 
   EXPECT_EQ(actual, expected);
 }

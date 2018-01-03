@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <vector>
+#include <iterator>
 #include <list>
 #include <algorithm>
 
@@ -56,11 +57,11 @@ TEST_F(FindAlgorithm, TestSyclFind) {
   }
   v.push_back(0);  // add a value that we're not searching for
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindAlgorithm> snp(q);
-  auto res_sycl = parallel::find(snp, v.begin(), v.end(), search_val);
+  auto res_sycl = parallel::find(snp, begin(v), end(v), search_val);
 
   EXPECT_TRUE(res_std == res_sycl);
 }
@@ -82,11 +83,11 @@ TEST_F(FindAlgorithm, TestSyclListFind) {
   }
   v.push_back(0);  // add a value that we're not searching for
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindAlgorithm2> snp(q);
-  auto res_sycl = parallel::find(snp, v.begin(), v.end(), search_val);
+  auto res_sycl = parallel::find(snp, begin(v), end(v), search_val);
 
   EXPECT_TRUE(res_std == res_sycl);
 }
@@ -108,11 +109,11 @@ TEST_F(FindAlgorithm, TestSyclFindIf) {
   }
   v.push_back(0);  // add a value that we're not searching for
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfAlgorithm> snp(q);
-  auto res_sycl = parallel::find_if(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if(snp, begin(v), end(v),
                           [=](float v) { return v == search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -135,11 +136,11 @@ TEST_F(FindAlgorithm, TestSyclListFindIf) {
   }
   v.push_back(0);  // add a value that we're not searching for
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfAlgorithm2> snp(q);
-  auto res_sycl = parallel::find_if(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if(snp, begin(v), end(v),
                           [=](float v) { return v == search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -162,11 +163,11 @@ TEST_F(FindAlgorithm, TestSyclFindIfNot) {
   }
   v.push_back(0);  // add a value that we're not searching for
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfNotAlgorithm> snp(q);
-  auto res_sycl = parallel::find_if_not(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if_not(snp, begin(v), end(v),
                               [=](float v) { return v != search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -189,11 +190,11 @@ TEST_F(FindAlgorithm, TestSyclListFindIfNot) {
   }
   v.push_back(0);  // add a value that we're not searching for
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindIfNotAlgorithm2> snp(q);
-  auto res_sycl = parallel::find_if_not(snp, v.begin(), v.end(),
+  auto res_sycl = parallel::find_if_not(snp, begin(v), end(v),
                               [=](float v) { return v != search_val; });
 
   EXPECT_TRUE(res_std == res_sycl);
@@ -204,11 +205,11 @@ TEST_F(FindAlgorithm, TestSyclFindNotFound) {
   std::vector<float> v(n_elems, 9.0f);
   float search_val = 10.0f;
 
-  auto res_std = std::find(v.begin(), v.end(), search_val);
+  auto res_std = std::find(begin(v), end(v), search_val);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FindAlgorithmNotFound> snp(q);
-  auto res_sycl = parallel::find(snp, v.begin(), v.end(), search_val);
+  auto res_sycl = parallel::find(snp, begin(v), end(v), search_val);
 
   EXPECT_EQ(res_sycl, res_std);
 }

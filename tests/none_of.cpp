@@ -28,6 +28,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -41,7 +42,7 @@ TEST_F(NoneOfAlgorithm, TestSyclNoneOfTrue) {
   std::vector<int> input = {2, 4, 6, 8, 10, 12, 14, 16};
 
   sycl::sycl_execution_policy<class NoneOfAlgorithmTrue> snp;
-  auto result = parallel::none_of(snp, input.begin(), input.end(),
+  auto result = parallel::none_of(snp, begin(input), end(input),
                                   [](int a) { return a % 2 == 1; });
 
   EXPECT_TRUE(result);
@@ -51,7 +52,7 @@ TEST_F(NoneOfAlgorithm, TestSyclNoneOfFalse) {
   std::vector<int> input = {1, 2, 3, 4, 5, 6, 7, 8};
 
   sycl::sycl_execution_policy<class NoneOfAlgorithmFalse> snp;
-  auto result = parallel::none_of(snp, input.begin(), input.end(),
+  auto result = parallel::none_of(snp, begin(input), end(input),
                                   [](int a) { return a % 2 == 0; });
 
   EXPECT_FALSE(result);
@@ -61,10 +62,10 @@ TEST_F(NoneOfAlgorithm, TestSyclNoneOfEmpty) {
   std::vector<int> input{};
 
   sycl::sycl_execution_policy<class NoneOfAlgorithmEmpty> snp;
-  auto result = parallel::none_of(snp, input.begin(), input.end(),
+  auto result = parallel::none_of(snp, begin(input), end(input),
                                   [](int) { return false; });
   auto expected =
-      std::none_of(input.begin(), input.end(), [](int) { return false; });
+      std::none_of(begin(input), end(input), [](int) { return false; });
 
   EXPECT_EQ(result, expected);
 }

@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -41,13 +42,13 @@ TEST_F(ReplaceCopyAlgorithm, TestSyclReplaceCopy) {
   std::vector<int> output(input.size());
   std::vector<int> expected(input.size());
 
-  std::replace_copy(input.begin(), input.end(), expected.begin(), 1, 10);
+  std::replace_copy(begin(input), end(input), begin(expected), 1, 10);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReplaceIfAlgorithmEven> snp(q);
-  auto reverse_end = parallel::replace_copy(snp, input.begin(), input.end(),
-                                            output.begin(), 1, 10);
+  auto reverse_end = parallel::replace_copy(snp, begin(input), end(input),
+                                            begin(output), 1, 10);
 
-  EXPECT_EQ(output.end(), reverse_end);
-  EXPECT_TRUE(std::equal(output.begin(), output.end(), expected.begin()));
+  EXPECT_EQ(end(output), reverse_end);
+  EXPECT_TRUE(std::equal(begin(output), end(output), begin(expected)));
 }

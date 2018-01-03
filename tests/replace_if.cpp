@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -40,13 +41,13 @@ TEST_F(ReplaceIfAlgorithm, TestSyclReplaceIf) {
   std::vector<int> input = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> expected(input.size());
 
-  std::replace_copy_if(input.begin(), input.end(), expected.begin(),
+  std::replace_copy_if(begin(input), end(input), begin(expected),
                        [](int a) { return a % 2 == 0; }, 10);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReplaceIfAlgorithmEven> snp(q);
-  parallel::replace_if(snp, input.begin(), input.end(),
+  parallel::replace_if(snp, begin(input), end(input),
                        [](int a) { return a % 2 == 0; }, 10);
 
-  EXPECT_TRUE(std::equal(input.begin(), input.end(), expected.begin()));
+  EXPECT_TRUE(std::equal(begin(input), end(input), begin(expected)));
 }

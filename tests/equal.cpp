@@ -28,6 +28,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -42,8 +43,8 @@ TEST_F(EqualAlgorithm, EqualTrue) {
 
   sycl::sycl_execution_policy<class EqualAlgorithmTrue> snp;
   auto result =
-      parallel::equal(snp, input.begin(), input.end(), input.begin(),
-                      input.end(), [](int a, int b) { return a == b; });
+      parallel::equal(snp, begin(input), end(input), begin(input),
+                      end(input), [](int a, int b) { return a == b; });
 
   EXPECT_TRUE(result);
 }
@@ -52,7 +53,7 @@ TEST_F(EqualAlgorithm, EqualTrueJustBegin) {
   std::vector<int> input = {2, 4, 6, 8, 10, 12, 14, 16};
 
   sycl::sycl_execution_policy<class EqualAlgorithmTrueJustBegin> snp;
-  auto result = parallel::equal(snp, input.begin(), input.end(), input.begin(),
+  auto result = parallel::equal(snp, begin(input), end(input), begin(input),
                                 [](int a, int b) { return a == b; });
 
   EXPECT_TRUE(result);
@@ -64,8 +65,8 @@ TEST_F(EqualAlgorithm, EqualFalse) {
 
   sycl::sycl_execution_policy<class EqualAlgorithmFalse> snp;
   auto result =
-      parallel::equal(snp, input1.begin(), input1.end(), input2.begin(),
-                      input2.end(), [](int a, int b) { return a == b; });
+      parallel::equal(snp, begin(input1), end(input1), begin(input2),
+                      end(input2), [](int a, int b) { return a == b; });
 
   EXPECT_FALSE(result);
 }
@@ -76,8 +77,8 @@ TEST_F(EqualAlgorithm, EqualCustomPredicate) {
 
   sycl::sycl_execution_policy<class EqualAlgorithmCustomPredicate> snp;
   auto result =
-      parallel::equal(snp, input1.begin(), input1.end(), input2.begin(),
-                      input2.end(), [](int a, int b) { return a != b; });
+      parallel::equal(snp, begin(input1), end(input1), begin(input2),
+                      end(input2), [](int a, int b) { return a != b; });
 
   EXPECT_TRUE(result);
 }
@@ -86,8 +87,8 @@ TEST_F(EqualAlgorithm, EqualNoPredicate) {
   std::vector<int> input = {2, 4, 6, 8, 10, 12, 14, 16};
 
   sycl::sycl_execution_policy<class EqualAlgorithmNoPredicate> snp;
-  auto result = parallel::equal(snp, input.begin(), input.end(), input.begin(),
-                                input.end());
+  auto result = parallel::equal(snp, begin(input), end(input), begin(input),
+                                end(input));
 
   EXPECT_TRUE(result);
 }
@@ -96,7 +97,7 @@ TEST_F(EqualAlgorithm, EqualNoPredicateJustBegin) {
   std::vector<int> input = {2, 4, 6, 8, 10, 12, 14, 16};
 
   sycl::sycl_execution_policy<class EqualAlgorithmNoPredicateJustBegin> snp;
-  auto result = parallel::equal(snp, input.begin(), input.end(), input.begin());
+  auto result = parallel::equal(snp, begin(input), end(input), begin(input));
 
   EXPECT_TRUE(result);
 }
@@ -106,8 +107,8 @@ TEST_F(EqualAlgorithm, EqualDifferentLength) {
 
   sycl::sycl_execution_policy<class EqualAlgorithmShorter> snp;
   auto result =
-      parallel::equal(snp, input.begin(), input.end(), input.begin(),
-                      input.end() - 1, [](int a, int b) { return a == b; });
+      parallel::equal(snp, begin(input), end(input), begin(input),
+                      end(input) - 1, [](int a, int b) { return a == b; });
 
   EXPECT_FALSE(result);
 }
@@ -117,9 +118,9 @@ TEST_F(EqualAlgorithm, EqualEmpty) {
 
   sycl::sycl_execution_policy<class EqualAlgorithmEmpty> snp;
   auto result =
-      parallel::equal(snp, input.begin(), input.end(), input.begin(),
-                      input.end(), [](int a, int b) { return a == b; });
-  auto expected = std::equal(input.begin(), input.end(), input.begin(),
+      parallel::equal(snp, begin(input), end(input), begin(input),
+                      end(input), [](int a, int b) { return a == b; });
+  auto expected = std::equal(begin(input), end(input), begin(input),
                              [](int a, int b) { return a == b; });
 
   EXPECT_EQ(result, expected);
@@ -131,9 +132,9 @@ TEST_F(EqualAlgorithm, NotEqualFloat) {
 
   sycl::sycl_execution_policy<class EqualAlgorithmNotEqualFloat> snp;
   auto result =
-      parallel::equal(snp, input1.begin(), input1.end(), input2.begin(),
-                      input2.end(), [](int a, int b) { return a == b; });
-  auto expected = std::equal(input1.begin(), input1.end(), input2.begin(),
+      parallel::equal(snp, begin(input1), end(input1), begin(input2),
+                      end(input2), [](int a, int b) { return a == b; });
+  auto expected = std::equal(begin(input1), end(input1), begin(input2),
                              [](int a, int b) { return a == b; });
 
   EXPECT_EQ(result, expected);

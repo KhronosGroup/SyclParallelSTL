@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -40,24 +41,24 @@ TEST_F(ReverseAlgorithm, TestSyclReverseEven) {
   std::vector<int> input = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> expected(input.size());
 
-  std::reverse_copy(input.begin(), input.end(), expected.begin());
+  std::reverse_copy(begin(input), end(input), begin(expected));
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmEven> snp(q);
-  parallel::reverse(snp, input.begin(), input.end());
+  parallel::reverse(snp, begin(input), end(input));
 
-  EXPECT_TRUE(std::equal(input.begin(), input.end(), expected.begin()));
+  EXPECT_TRUE(std::equal(begin(input), end(input), begin(expected)));
 }
 
 TEST_F(ReverseAlgorithm, TestSyclReverseOdd) {
   std::vector<int> input = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::vector<int> expected(input.size());
 
-  std::reverse_copy(input.begin(), input.end(), expected.begin());
+  std::reverse_copy(begin(input), end(input), begin(expected));
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmOdd> snp(q);
-  parallel::reverse(snp, input.begin(), input.end());
+  parallel::reverse(snp, begin(input), end(input));
 
-  EXPECT_TRUE(std::equal(input.begin(), input.end(), expected.begin()));
+  EXPECT_TRUE(std::equal(begin(input), end(input), begin(expected)));
 }

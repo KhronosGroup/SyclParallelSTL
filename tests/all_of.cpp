@@ -28,6 +28,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -41,7 +42,7 @@ TEST_F(AllOfAlgorithm, TestSyclAllOfTrue) {
   std::vector<int> input = {2, 4, 6, 8, 10, 12, 14, 16};
 
   sycl::sycl_execution_policy<class AllOfAlgorithmTrue> snp;
-  auto result = parallel::all_of(snp, input.begin(), input.end(),
+  auto result = parallel::all_of(snp, begin(input), end(input),
                                  [](int a) { return a % 2 == 0; });
 
   EXPECT_TRUE(result);
@@ -51,7 +52,7 @@ TEST_F(AllOfAlgorithm, TestSyclAllOfFalse) {
   std::vector<int> input = {1, 2, 3, 4, 5, 6, 7, 8};
 
   sycl::sycl_execution_policy<class AllOfAlgorithmFalse> snp;
-  auto result = parallel::all_of(snp, input.begin(), input.end(),
+  auto result = parallel::all_of(snp, begin(input), end(input),
                                  [](int a) { return a % 2 == 0; });
 
   EXPECT_FALSE(result);
@@ -61,10 +62,10 @@ TEST_F(AllOfAlgorithm, TestSyclAllOfEmpty) {
   std::vector<int> input{};
 
   sycl::sycl_execution_policy<class AllOfAlgorithmEmpty> snp;
-  auto result = parallel::all_of(snp, input.begin(), input.end(),
+  auto result = parallel::all_of(snp, begin(input), end(input),
                                  [](int) { return false; });
   auto expected =
-      std::all_of(input.begin(), input.end(), [](int) { return false; });
+      std::all_of(begin(input), end(input), [](int) { return false; });
 
   EXPECT_EQ(result, expected);
 }

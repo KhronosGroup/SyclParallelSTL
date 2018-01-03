@@ -26,12 +26,13 @@
 */
 #include "gmock/gmock.h"
 
-#include <vector>
 #include <algorithm>
+#include <iterator>
 #include <numeric>
+#include <vector>
 
-#include <sycl/execution_policy>
 #include <experimental/algorithm>
+#include <sycl/execution_policy>
 
 namespace parallel = std::experimental::parallel;
 
@@ -47,11 +48,11 @@ TEST_F(CountAlgorithm, TestSyclCount) {
     v.push_back(std::rand() % 8);
   }
 
-  int res_std = std::count(v.begin(), v.end(), 5);
+  int res_std = std::count(begin(v), end(v), 5);
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class CountAlgorithm2> snp(q);
-  int res_sycl = parallel::count(snp, v.begin(), v.end(), 5);
+  int res_sycl = parallel::count(snp, begin(v), end(v), 5);
 
   EXPECT_TRUE(res_std == res_sycl);
 }

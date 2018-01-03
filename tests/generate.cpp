@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -40,9 +41,9 @@ TEST_F(GenerateAlgorithm, TestStdGenerate) {
   std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> result = {1, 1, 1, 1, 1, 1, 1, 1};
 
-  std::generate(v.begin(), v.end(), []() { return 1; });
+  std::generate(begin(v), end(v), []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(GenerateAlgorithm, TestSyclGenerate) {
@@ -51,7 +52,7 @@ TEST_F(GenerateAlgorithm, TestSyclGenerate) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class GenerateAlgorithm> snp(q);
-  parallel::generate(snp, v.begin(), v.end(), []() { return 1; });
+  parallel::generate(snp, begin(v), end(v), []() { return 1; });
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }

@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -40,18 +41,18 @@ TEST_F(FillNAlgorithm, TestStdFillN) {
   std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> result = {1, 1, 1, 1, 1, 1, 1, 1};
 
-  std::fill_n(v.begin(), v.size(), 1);
+  std::fill_n(begin(v), v.size(), 1);
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(FillNAlgorithm, TestStd2FillN) {
   std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<int> result = {1, 1, 1, 1, 5, 6, 7, 8};
 
-  std::fill_n(v.begin(), 4, 1);
+  std::fill_n(begin(v), 4, 1);
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(FillNAlgorithm, TestStd3FillN) {
@@ -59,9 +60,9 @@ TEST_F(FillNAlgorithm, TestStd3FillN) {
   std::vector<int> result = v;
 
   int negative_count = -v.size();
-  std::fill_n(v.begin(), negative_count, 1);
+  std::fill_n(begin(v), negative_count, 1);
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(FillNAlgorithm, TestSyclFillN) {
@@ -70,9 +71,9 @@ TEST_F(FillNAlgorithm, TestSyclFillN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FillNAlgorithm> snp(q);
-  parallel::fill_n(snp, v.begin(), v.size(), 1);
+  parallel::fill_n(snp, begin(v), v.size(), 1);
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(FillNAlgorithm, TestSycl2FillN) {
@@ -81,9 +82,9 @@ TEST_F(FillNAlgorithm, TestSycl2FillN) {
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FillN2Algorithm> snp(q);
-  parallel::fill_n(snp, v.begin(), 4, 1);
+  parallel::fill_n(snp, begin(v), 4, 1);
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }
 
 TEST_F(FillNAlgorithm, TestSycl3FillN) {
@@ -93,7 +94,7 @@ TEST_F(FillNAlgorithm, TestSycl3FillN) {
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class FillN3Algorithm> snp(q);
   int negative_count = -v.size();
-  parallel::fill_n(snp, v.begin(), negative_count, 1);
+  parallel::fill_n(snp, begin(v), negative_count, 1);
 
-  EXPECT_TRUE(std::equal(v.begin(), v.end(), result.begin()));
+  EXPECT_TRUE(std::equal(begin(v), end(v), begin(result)));
 }

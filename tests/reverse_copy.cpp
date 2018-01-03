@@ -27,6 +27,7 @@
 #include "gmock/gmock.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <experimental/algorithm>
@@ -41,15 +42,15 @@ TEST_F(ReverseCopyAlgorithm, TestSyclReverseCopyEven) {
   std::vector<int> output(input.size());
   std::vector<int> expected(input.size());
 
-  std::reverse_copy(input.begin(), input.end(), expected.begin());
+  std::reverse_copy(begin(input), end(input), begin(expected));
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmEven> snp(q);
   auto reverse_end =
-      parallel::reverse_copy(snp, input.begin(), input.end(), output.begin());
+      parallel::reverse_copy(snp, begin(input), end(input), begin(output));
 
-  EXPECT_EQ(output.end(), reverse_end);
-  EXPECT_TRUE(std::equal(output.begin(), output.end(), expected.begin()));
+  EXPECT_EQ(end(output), reverse_end);
+  EXPECT_TRUE(std::equal(begin(output), end(output), begin(expected)));
 }
 
 TEST_F(ReverseCopyAlgorithm, TestSyclReverseCopyOdd) {
@@ -57,13 +58,13 @@ TEST_F(ReverseCopyAlgorithm, TestSyclReverseCopyOdd) {
   std::vector<int> output(input.size());
   std::vector<int> expected(input.size());
 
-  std::reverse_copy(input.begin(), input.end(), expected.begin());
+  std::reverse_copy(begin(input), end(input), begin(expected));
 
   cl::sycl::queue q;
   sycl::sycl_execution_policy<class ReverseAlgorithmOdd> snp(q);
   auto reverse_end =
-      parallel::reverse_copy(snp, input.begin(), input.end(), output.begin());
+      parallel::reverse_copy(snp, begin(input), end(input), begin(output));
 
   EXPECT_EQ(output.end(), reverse_end);
-  EXPECT_TRUE(std::equal(output.begin(), output.end(), expected.begin()));
+  EXPECT_TRUE(std::equal(begin(output), end(output), begin(expected)));
 }

@@ -48,14 +48,14 @@ ForwardIt reverse_copy(ExecutionPolicy &sep, BidirIt first, BidirIt last,
                        ForwardIt d_first) {
   cl::sycl::queue q{sep.get_queue()};
   auto device = q.get_device();
-  size_t localRange =
+  auto localRange =
       device.get_info<cl::sycl::info::device::max_work_group_size>();
   auto bufI = helpers::make_buffer(first, last);
   auto d_last(d_first + bufI.get_count());
   auto bufO = sycl::helpers::make_buffer(d_first, d_last);
 
   auto vectorSize = bufI.get_count();
-  size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
   auto f = [vectorSize, localRange, globalRange, &bufI,
             &bufO](cl::sycl::handler &h) mutable {
     cl::sycl::nd_range<1> r{

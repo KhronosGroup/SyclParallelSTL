@@ -164,7 +164,8 @@ TEST_F(MismatchAlgorithm, TestMismatchEqualSecondSmaller) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
   auto expected = std::mismatch(v.begin(), v.end() - 2, v.begin());
-  std::swap(std::get<0>(expected), std::get<1>(expected));
+  using std::swap;
+  swap(std::get<0>(expected), std::get<1>(expected));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmEqualSecondSmaller> snp{};
   auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(),
@@ -215,7 +216,8 @@ TEST_F(MismatchAlgorithm, TestMismatchSecondEmpty) {
   std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7};
 
   auto expected = std::mismatch(v.begin(), v.begin(), v.begin());
-  std::swap(std::get<0>(expected), std::get<1>(expected));
+  using std::swap;
+  swap(std::get<0>(expected), std::get<1>(expected));
 
   sycl::sycl_execution_policy<class MismatchAlgorithmSecondEmpty> snp{};
   auto actual = parallel::mismatch(snp, v.begin(), v.end(), v.begin(),

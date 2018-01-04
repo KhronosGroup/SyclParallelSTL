@@ -93,21 +93,13 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   };
   q.submit(eqf);
 
-  // Perform a reduction across the indices, to find
-  // lowest index where predicate result is true
-  // manually implemented, as we can't call currently use sycl buffers with
-  // the parallel stl algorithms directly
-  const auto bop = [](const std::size_t val1, const std::size_t val2) {
-    return std::min(val1, val2);
-  };
-
   // more or less copied from the reduction implementation
   // TODO: refactor out the implementation details from both into a separate
   // module
   auto length = vectorSize;
   do {
-    const auto rf = [length, localRange, globalRange, &t_buf,
-                     bop](cl::sycl::handler &h) {
+    const auto rf = [length, localRange, globalRange,
+                     &t_buf](cl::sycl::handler &h) {
       cl::sycl::nd_range<1> r{
           cl::sycl::range<1>{std::max(globalRange, localRange)},
           cl::sycl::range<1>{localRange}};
@@ -119,11 +111,13 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
 
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
-          r, [aI, scratch, localRange, length, bop](cl::sycl::nd_item<1> id) {
+          r, [aI, scratch, localRange, length](cl::sycl::nd_item<1> id) {
             auto r =
                 ReductionStrategy<std::size_t>(localRange, length, id, scratch);
             r.workitem_get_from(aI);
-            r.combine_threads(bop);
+            r.combine_threads([](std::size_t val1, std::size_t val2) {
+              return std::min(val1, val2);
+            });
             r.workgroup_write_to(aI);
           });
     };
@@ -159,14 +153,15 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   const auto device = q.get_device();
   using value_type = typename std::iterator_traits<InputIt>::value_type;
 
-  const auto d = compute_mapreduce_descriptor(device, size, sizeof(std::size_t));
+  const auto d =
+      compute_mapreduce_descriptor(device, size, sizeof(std::size_t));
 
   const auto input_buff = sycl::helpers::make_const_buffer(b, e);
 
-  const auto map = [=](std::size_t pos, value_type x) { return (p(x)) ? pos : size; };
-  const auto red = [](std::size_t x, std::size_t y) { return std::min(x, y); };
-
-  const auto pos = buffer_mapreduce(snp, q, input_buff, size, d, map, red);
+  const auto pos = buffer_mapreduce(
+      snp, q, input_buff, size, d,
+      [p, size](std::size_t pos, value_type x) { return p(x) ? pos : size; },
+      [](std::size_t x, std::size_t y) { return std::min(x, y); });
 
   if (pos == size) {
     return e;

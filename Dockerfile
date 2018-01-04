@@ -6,6 +6,7 @@ ARG git_slug
 ARG c_compiler
 ARG cxx_compiler
 ARG impl
+ARG target
 
 RUN apt-get -yq update
 
@@ -34,6 +35,9 @@ RUN apt-get install -yq --allow-downgrades --allow-remove-essential           \
 
 RUN git clone https://github.com/${git_slug}.git -b ${git_branch} /SyclParallelSTL
 
+# Intel OpenCL Runtime
+RUN if [ "${target}" = 'opencl' ]; then bash /SyclParallelSTL/.travis/install_intel_opencl.sh; fi
+
 # SYCL
 RUN if [ "${impl}" = 'triSYCL' ]; then cd /SyclParallelSTL && bash /SyclParallelSTL/.travis/build_triSYCL.sh; fi
 RUN if [ "${impl}" = 'COMPUTECPP' ]; then cd /SyclParallelSTL && bash /SyclParallelSTL/.travis/build_computecpp.sh; fi
@@ -41,12 +45,18 @@ RUN if [ "${impl}" = 'COMPUTECPP' ]; then cd /SyclParallelSTL && bash /SyclParal
 ENV CC=${c_compiler}
 ENV CXX=${cxx_compiler}
 ENV SYCL_IMPL=${impl}
+ENV TARGET=${target}
 
 CMD cd /SyclParallelSTL && \
     if [ "${SYCL_IMPL}" = 'triSYCL' ]; then \
       ./build.sh --trisycl -DTRISYCL_INCLUDE_DIR=/tmp/triSYCL-master/include; \
     elif [ "${SYCL_IMPL}" = 'COMPUTECPP' ]; then \
-      COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
+      if [ "${TARGET}" = 'host' ]; then \
+        COMPUTECPP_TARGET="host" ./build.sh /tmp/ComputeCpp-latest; \
+      else \
+        /tmp/ComputeCpp-latest/bin/computecpp_info && \
+        COMPUTECPP_TARGET="intel:cpu" ./build.sh /tmp/ComputeCpp-latest; \
+      fi \
     else \
       echo "Unknown SYCL implementation ${SYCL_IMPL}"; return 1; \
     fi

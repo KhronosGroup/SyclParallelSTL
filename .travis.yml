@@ -7,23 +7,20 @@ os:
 services:
   - docker
 
-branches:
-  only:
-    - master
-    - travis-ci
-
 env:
-  - IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
-  - IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0
-  - IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
-  - IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0
+  - IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=host
+  - IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=host
+  - IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=host
+  - IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=host
+  - IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=opencl
+  - IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=opencl
 
 matrix:
   fast_finish: true
 # Some tests are not passing on triSYCL
   allow_failures:
-    - env: IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6
-    - env: IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0
+    - env: IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=host
+    - env: IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=host
 
 before_install:
   - |
@@ -39,6 +36,7 @@ before_install:
                  --build-arg git_branch=${GIT_BRANCH}
                  --build-arg git_slug=${GIT_SLUG}
                  --build-arg impl=${IMPL}
+                 --build-arg target=${TARGET}
                  -t parallelstl .
 
 script:

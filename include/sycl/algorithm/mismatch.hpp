@@ -117,8 +117,9 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
             auto r = ReductionStrategy<std::size_t>(local, current_length, id,
                                                     scratch);
             r.workitem_get_from(aR);
-            r.combine_threads(
-                [](std::size_t x, std::size_t y) { return std::min(x, y); });
+            r.combine_threads([](std::size_t x, std::size_t y) {
+              return cl::sycl::min(x, y);
+            });
             r.workgroup_write_to(aR);
           });
     };
@@ -171,7 +172,9 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
       [p, length](std::size_t pos, value_type1 x, value_type2 y) {
         return p(x, y) ? length : pos;
       },
-      [](const std::size_t x, const std::size_t y) { return std::min(x, y); });
+      [](const std::size_t x, const std::size_t y) {
+        return cl::sycl::min(x, y);
+      });
 
   return std::make_pair(std::next(first1, pos), std::next(first2, pos));
 }

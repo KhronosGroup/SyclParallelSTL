@@ -116,7 +116,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
                 ReductionStrategy<std::size_t>(localRange, length, id, scratch);
             r.workitem_get_from(aI);
             r.combine_threads([](std::size_t val1, std::size_t val2) {
-              return std::min(val1, val2);
+              return cl::sycl::min(val1, val2);
             });
             r.workgroup_write_to(aI);
           });
@@ -161,7 +161,7 @@ InputIt find_impl(ExecutionPolicy &snp, InputIt b, InputIt e,
   const auto pos = buffer_mapreduce(
       snp, q, input_buff, size, d,
       [p, size](std::size_t pos, value_type x) { return p(x) ? pos : size; },
-      [](std::size_t x, std::size_t y) { return std::min(x, y); });
+      [](std::size_t x, std::size_t y) { return cl::sycl::min(x, y); });
 
   if (pos == size) {
     return e;

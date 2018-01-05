@@ -41,11 +41,8 @@
 namespace sycl {
 namespace impl {
 
-/* transform_reduce.
-* @brief Returns the transform_reduce of one vector across the range [first1,
-* last1) by applying Functions op1 and op2. Implementation of the command
-* group
-* that submits a transform_reduce kernel.
+/* mismatch.
+* @brief Implementation of the command group that submits a mismatch kernel.
 */
 
 #ifdef SYCL_PSTL_USE_OLD_ALGO

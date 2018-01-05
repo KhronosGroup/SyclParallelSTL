@@ -111,7 +111,8 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
   } while (global_size > 1);
   q.wait_and_throw();
   auto hr = bufR.template get_access<cl::sycl::access::mode::read,
-                                     cl::sycl::access::target::host_buffer>();
+                                     cl::sycl::access::target::host_buffer>(
+      cl::sycl::id<1>{0}, cl::sycl::range<1>{1});
   return hr[0];
 }
 

@@ -125,9 +125,9 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
     current_length = current_length / local;
   } while (current_length > 1);
   q.wait_and_throw();
-  const auto hR =
-      bufR.template get_access<cl::sycl::access::mode::read,
-                               cl::sycl::access::target::host_buffer>();
+  const auto hR = bufR.get_access<cl::sycl::access::mode::read,
+                                  cl::sycl::access::target::host_buffer>(
+      cl::sycl::id<1>{0}, cl::sycl::range<1>{1});
 
   const auto mismatch_id = hR[0];
   return std::make_pair(first1 + mismatch_id, first2 + mismatch_id);

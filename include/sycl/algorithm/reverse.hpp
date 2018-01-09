@@ -35,6 +35,7 @@
 
 // SYCL helpers header
 #include <sycl/helpers/sycl_buffers.hpp>
+#include <sycl/helpers/sycl_swap.hpp>
 
 namespace sycl {
 namespace impl {
@@ -64,9 +65,7 @@ void reverse(ExecutionPolicy &sep, BidirIt first, BidirIt last) {
         r, [aI, vectorSize](cl::sycl::nd_item<1> id) {
           const auto global_id = id.get_global(0);
           if (global_id < vectorSize / 2) {
-            const auto tmp = std::move(aI[global_id]);
-            aI[global_id] = std::move(aI[vectorSize - global_id - 1]);
-            aI[vectorSize - global_id - 1] = std::move(tmp);
+            helpers::swap(aI[global_id], aI[vectorSize - global_id - 1]);
           }
         });
   };

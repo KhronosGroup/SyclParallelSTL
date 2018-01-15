@@ -48,12 +48,27 @@ Currently, only some STL algorithms are implemented, such as:
 * sort : Bitonic sort for ranges where the size is a power of two, or sequential
   sort otherwise.
 * transform : Parallel iteration (one thread per element) on the device.
+* fill : Parallel iteration (one thread per element) on the device.
+* fill\_n : Parallel iteration (one thread per element) on the device.
+* generate : Parallel iteration (one thread per element) on the device.
+* generate\_n : Parallel iteration (one thread per element) on the device.
 * for\_each  : Parallel iteration (one thread per element) on the device.
 * for\_each\_n : Parallel iteration (one work-item per element) on the device.
+* replace : Parallel iteration (one thread per element) on the device.
+* replace\_if : Parallel iteration (one thread per element) on the device.
+* replace\_copy : Parallel iteration (one thread per element) on the device.
+* replace\_copy\_if : Parallel iteration (one thread per element) on the device.
+* reverse: Parallel iteration (one work-item per 2 elements) on device.
+* reverse\_copy : Parallel iteration (one work-item per element) on the device.
+* count : Parallel iteration (one work-item per 2 elements) on device.
 * count\_if : Parallel iteration (one work-item per 2 elements) on device.
 * reduce : Parallel iteration (one work-item per 2 elements) on device.
 * inner\_product: Parallel iteration (one work-item per 2 elements) on device.
 * transform\_reduce : Parallel iteration (one work-item per 2 elements) on device.
+* all\_of: Parallel iteration (one work-item per 2 elements) on device.
+* any\_of: Parallel iteration (one work-item per 2 elements) on device.
+* none\_of: Parallel iteration (one work-item per 2 elements) on device.
+* equal: Parallel iteration (one work-item per 2 elements) on device.
 
 Some optimizations are implemented. For example:
 

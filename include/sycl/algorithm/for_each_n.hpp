@@ -33,6 +33,9 @@
 #include <algorithm>
 #include <iostream>
 
+// SYCL helpers header
+#include <sycl/helpers/sycl_buffers.hpp>
+
 namespace sycl {
 namespace impl {
 

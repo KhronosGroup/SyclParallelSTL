@@ -190,7 +190,7 @@ B buffer_mapreduce(ExecutionPolicy &snp,
                        cl::sycl::access::target::local>
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
     cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(rg, ri, [=](cl::sycl::group<1> grp) {
-      size_t group_id = grp.get(0);
+      size_t group_id = grp.get_id(0);
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
       size_t group_end   = min((group_id+1) * d.size_per_work_group, d.size);
@@ -285,7 +285,7 @@ B buffer_map2reduce(ExecutionPolicy &snp,
       sum { cl::sycl::range<1>(d.nb_work_item), cgh };
     cgh.parallel_for_work_group<typename ExecutionPolicy::kernelName>(
         rng.get_global(), rng.get_local(), [=](cl::sycl::group<1> grp) {
-      size_t group_id = grp.get(0);
+      size_t group_id = grp.get_id(0);
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;
       size_t group_end = min((group_id+1) * d.size_per_work_group, d.size);
@@ -395,7 +395,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
 
     cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {
-      size_t group_id = grp.get(0);
+      size_t group_id = grp.get_id(0);
       size_t group_begin = group_id * d.size_per_work_group;
       size_t group_end   = min((group_id+1) * d.size_per_work_group, d.size);
       size_t local_size = group_end - group_begin;
@@ -503,7 +503,7 @@ void buffer_mapscan(ExecutionPolicy &snp,
       <cl::sycl::access::mode::read>(cgh);
     cgh.parallel_for_work_group<cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName>>(rng_wg, rng_wi,
                                           [=](cl::sycl::group<1> grp) {
-      size_t group_id = grp.get(0);
+      size_t group_id = grp.get_id(0);
       B acc = read_scan[group_id];
       //assert(group_id < d.nb_work_group);
       size_t group_begin = group_id * d.size_per_work_group;

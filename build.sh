@@ -73,7 +73,7 @@ function install_gmock  {(
 
 function configure  {
   mkdir -p build && pushd build
-  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON 
+  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON
   popd
 }
 

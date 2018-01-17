@@ -47,7 +47,6 @@ Currently, only some STL algorithms are implemented, such as:
 
 * sort : Bitonic sort for ranges where the size is a power of two, or sequential
   sort otherwise.
-
 * transform : Parallel iteration (one thread per element) on the device.
 * fill : Parallel iteration (one thread per element) on the device.
 * fill\_n : Parallel iteration (one thread per element) on the device.

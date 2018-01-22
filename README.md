@@ -65,6 +65,9 @@ Currently, only some STL algorithms are implemented, such as:
 * reduce : Parallel iteration (one work-item per 2 elements) on device.
 * inner\_product: Parallel iteration (one work-item per 2 elements) on device.
 * transform\_reduce : Parallel iteration (one work-item per 2 elements) on device.
+* inclusive\_scan : Parallel iteration (one work-item per 2 elements) on device.
+* exclusive\_scan : Parallel iteration (one work-item per 2 elements) on device.
+* mismatch : Parallel iteration (one work-item per 2 elements) on device.
 * all\_of: Parallel iteration (one work-item per 2 elements) on device.
 * any\_of: Parallel iteration (one work-item per 2 elements) on device.
 * none\_of: Parallel iteration (one work-item per 2 elements) on device.

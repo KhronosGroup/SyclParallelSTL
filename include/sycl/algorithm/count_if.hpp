@@ -100,8 +100,7 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
     passes++;
   } while (length > 1);
   q.wait_and_throw();
-  auto hr = bufR.template get_access<cl::sycl::access::mode::read,
-                                     cl::sycl::access::target::host_buffer>();
+  auto hr = bufR.template get_access<cl::sycl::access::mode::read>();
   return hr[0];
 }
 

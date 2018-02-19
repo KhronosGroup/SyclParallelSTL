@@ -100,8 +100,7 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
     length = length / local;
   } while (length > 1);
   q.wait_and_throw();
-  auto hR = bufR.template get_access<cl::sycl::access::mode::read,
-                                     cl::sycl::access::target::host_buffer>();
+  auto hR = bufR.template get_access<cl::sycl::access::mode::read>();
   return binary_op(hR[0], init);
 }
 

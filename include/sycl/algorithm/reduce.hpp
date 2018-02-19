@@ -96,8 +96,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
     length = length / local;
   } while (length > 1);
   q.wait_and_throw();
-  auto hI = bufI.template get_access<cl::sycl::access::mode::read,
-                                     cl::sycl::access::target::host_buffer>();
+  auto hI = bufI.template get_access<cl::sycl::access::mode::read>();
   return bop(hI[0], init);
 }
 #else

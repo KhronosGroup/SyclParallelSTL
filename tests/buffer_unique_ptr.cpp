@@ -70,8 +70,7 @@ TEST_F(UniquePTRAlgorithm, TestSyclUniquePTR) {
         });
   });
 
-  auto result = b.get_access<cl::sycl::access::mode::read,
-                             cl::sycl::access::target::host_buffer>();
+  auto result = b.get_access<cl::sycl::access::mode::read>();
   for (int i = 0; i != N; ++i) {
     EXPECT_TRUE(result[i] == 2 * 16 * 3.0f);
   }

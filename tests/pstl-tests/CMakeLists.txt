@@ -1,6 +1,5 @@
 function(compile_test source)
     set(test_name "pstl.${source}")
-    message("Adding test ${test_name}")
     set(source "${source}.cpp")
     add_executable(${test_name} ${source})
     target_link_libraries(${test_name} PUBLIC ${gtest_BINARY_DIR}/libgtest.a

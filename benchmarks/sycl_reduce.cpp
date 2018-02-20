@@ -99,8 +99,7 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
     } while (length > 1);
     q.wait_and_throw();
 
-    auto hI = bufI.template get_access<cl::sycl::access::mode::read,
-                                       cl::sycl::access::target::host_buffer>();
+    auto hI = bufI.template get_access<cl::sycl::access::mode::read>();
     std::cout << "SYCL Result of Reduction is: " << hI[0] << std::endl;
   };
 

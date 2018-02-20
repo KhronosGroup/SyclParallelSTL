@@ -127,8 +127,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   q.wait_and_throw();
 
   const auto hI =
-      t_buf.template get_access<cl::sycl::access::mode::read,
-                                cl::sycl::access::target::host_buffer>();
+      t_buf.template get_access<cl::sycl::access::mode::read>();
 
   // there's probably a cleaner way to do this, but essentially once we have
   // the "search index", we need to increment the begin iterator until

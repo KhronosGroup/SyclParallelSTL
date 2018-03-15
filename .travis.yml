@@ -8,19 +8,19 @@ services:
   - docker
 
 env:
-  # - IMPL=triSYCL CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=host
-  - IMPL=triSYCL CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=host
-  - IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=host
-  - IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=host
-  - IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=opencl
-  - IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=opencl
+  - IMPL=triSYCL CXX_COMPILER=g++-7 CC_COMPILER=gcc-7 TARGET=host
+  - IMPL=triSYCL CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 TARGET=host
+  - IMPL=COMPUTECPP CXX_COMPILER=g++-7 CC_COMPILER=gcc-7 TARGET=host
+  - IMPL=COMPUTECPP CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 TARGET=host
+  - IMPL=COMPUTECPP CXX_COMPILER=g++-7 CC_COMPILER=gcc-7 TARGET=opencl
+  - IMPL=COMPUTECPP CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 TARGET=opencl
 
 matrix:
   fast_finish: true
-# Some tests are not passing on triSYCL
+# Some tests are not passing because of Intel OpenCL download failures
   allow_failures:
-    - env: IMPL=COMPUTECPP CXX_COMPILER=g++-6 CC_COMPILER=gcc-6 TARGET=opencl
-    - env: IMPL=COMPUTECPP CXX_COMPILER=clang++-4.0 CC_COMPILER=clang-4.0 TARGET=opencl
+    - env: IMPL=COMPUTECPP CXX_COMPILER=g++-7 CC_COMPILER=gcc-7 TARGET=opencl
+    - env: IMPL=COMPUTECPP CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 TARGET=opencl
 
 
 before_install:
@@ -42,4 +42,3 @@ before_install:
 
 script:
   - docker run parallelstl
-

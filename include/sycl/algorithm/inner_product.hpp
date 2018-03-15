@@ -166,8 +166,7 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
       length = length / local;
     } while (length > 1);  // end do-while
     q.wait_and_throw();
-    auto hb = bufr.template get_access<cl::sycl::access::mode::read,
-                                       cl::sycl::access::target::host_buffer>();
+    auto hb = bufr.template get_access<cl::sycl::access::mode::read>();
     return op1(value, hb[0]);
   }
 }

@@ -49,8 +49,7 @@ TEST_F(SyclHostIteratorTest, TestIteratorsOnHostAccessor) {
   {
     // A host vector is just a vector that contains a host_accessor
     // The data of the vector is the host accessor
-    auto hostAcc = sv.get_access<cl::sycl::access::mode::read_write,
-                                 cl::sycl::access::target::host_buffer>();
+    auto hostAcc = sv.get_access<cl::sycl::access::mode::read_write>();
 
     auto vI = v.begin();
     int count = 0;
@@ -78,8 +77,7 @@ TEST_F(SyclHostIteratorTest, TestUsingStlAlgorithm) {
   // cl::sycl::buffer<float> sv(cl::sycl::range<1>(v.size()));
   cl::sycl::buffer<float> sv(v.begin(), v.end());
 
-  auto hostAcc = sv.get_access<cl::sycl::access::mode::read_write,
-                               cl::sycl::access::target::host_buffer>();
+  auto hostAcc = sv.get_access<cl::sycl::access::mode::read_write>();
 
   std::transform(begin(hostAcc), end(hostAcc), begin(hostAcc),
                  [=](float e) { return e * 2; });

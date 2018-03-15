@@ -132,11 +132,11 @@ mark_as_advanced(TRISYCL_DEBUG_STRUCTORS)
 mark_as_advanced(TRISYCL_TRACE_KERNEL)
 
 #triSYCL definitions
-set(CL_SYCL_LANGUAGE_VERSION 220 CACHE VERSION
-  "Host language version to be used by triSYCL (default is: 220)")
-set(TRISYCL_CL_LANGUAGE_VERSION 220 CACHE VERSION
-  "Device language version to be used by triSYCL (default is: 220)")
-set(CMAKE_CXX_STANDARD 14)
+set(CL_SYCL_LANGUAGE_VERSION 121 CACHE VERSION
+  "Host language version to be used by triSYCL (default is: 121)")
+set(TRISYCL_CL_LANGUAGE_VERSION 121 CACHE VERSION
+  "Device language version to be used by triSYCL (default is: 121)")
+set(CMAKE_CXX_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)
 
 

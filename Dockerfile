@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:artful
 
 # Default values for the build
 ARG git_branch
@@ -13,21 +13,21 @@ RUN apt-get -yq update
 # Utilities
 RUN apt-get install -yq --allow-downgrades --allow-remove-essential            \
     --allow-change-held-packages git wget apt-utils cmake unzip                \
-    libboost-all-dev software-properties-common python-software-properties libcompute-dev
+    libboost-all-dev software-properties-common python-software-properties
 
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
 RUN apt-get -yq update
 
-# Clang 4.0
-RUN if [ "${c_compiler}" = 'clang-4.0' ]; then apt-get install -yq             \
+# Clang 5.0
+RUN if [ "${c_compiler}" = 'clang-5.0' ]; then apt-get install -yq             \
     --allow-downgrades --allow-remove-essential --allow-change-held-packages   \
-     clang-4.0 libomp-dev; fi
+     clang-5.0 libomp-dev; fi
 
-# GCC 6
-RUN if [ "${c_compiler}" = 'gcc-6' ]; then apt-get install -yq                 \
+# GCC 7
+RUN if [ "${c_compiler}" = 'gcc-7' ]; then apt-get install -yq                 \
     --allow-downgrades --allow-remove-essential --allow-change-held-packages   \
-    g++-6 gcc-6; fi
+    g++-7 gcc-7; fi
 
 # OpenCL ICD Loader
 RUN apt-get install -yq --allow-downgrades --allow-remove-essential           \

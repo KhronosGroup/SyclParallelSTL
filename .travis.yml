@@ -17,10 +17,6 @@ env:
 
 matrix:
   fast_finish: true
-# Some tests are not passing because of Intel OpenCL download failures
-  allow_failures:
-    - env: IMPL=COMPUTECPP CXX_COMPILER=g++-7 CC_COMPILER=gcc-7 TARGET=opencl
-    - env: IMPL=COMPUTECPP CXX_COMPILER=clang++-5.0 CC_COMPILER=clang-5.0 TARGET=opencl
 
 
 before_install:

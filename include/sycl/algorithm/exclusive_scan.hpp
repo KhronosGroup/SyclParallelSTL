@@ -56,10 +56,7 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
   // declare a temporary "swap" buffer
   auto bufO = sycl::helpers::make_buffer(o, o + vectorSize);
 
-  size_t localRange =
-      std::min(device.template get_info<cl::sycl::info::device::max_work_group_size>(),
-               vectorSize);
-  size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  const auto ndRange = sep.calculateNdRange(vectorSize);
   // calculate iteration count, with extra if not a power of two size buffer
   int iterations = 0;
   for (size_t vs = vectorSize >> 1; vs > 0; vs >>= 1) {
@@ -78,16 +75,13 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
   // do a parallel shift right, and set the first element to the initial value.
   // this works, as an exclusive scan is equivalent to a shift
   // (with initial set at element 0) followed by an inclusive scan
-  auto shr = [vectorSize, localRange, globalRange, inBuf, outBuf, init](
+  auto shr = [vectorSize, ndRange, inBuf, outBuf, init](
       cl::sycl::handler &h) {
-    cl::sycl::nd_range<1> r{
-        cl::sycl::range<1>{std::max(globalRange, localRange)},
-        cl::sycl::range<1>{localRange}};
     auto aI = inBuf->template get_access<cl::sycl::access::mode::read>(h);
     auto aO = outBuf->template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
-        r, [aI, aO, init, vectorSize](cl::sycl::nd_item<1> id) {
+        ndRange, [aI, aO, init, vectorSize](cl::sycl::nd_item<1> id) {
           size_t m_id = id.get_global(0);
           if (m_id > 0) {
             aO[m_id] = aI[m_id - 1];
@@ -102,18 +96,15 @@ OutputIterator exclusive_scan(ExecutionPolicy &sep, InputIterator b,
   // perform an inclusive scan on the shifted array
   int i = 1;
   do {
-    auto f = [vectorSize, i, localRange, globalRange, inBuf, outBuf, bop](
+    auto f = [vectorSize, i, ndRange, inBuf, outBuf, bop](
         cl::sycl::handler &h) {
-      cl::sycl::nd_range<1> r{
-          cl::sycl::range<1>{std::max(globalRange, localRange)},
-          cl::sycl::range<1>{localRange}};
       auto aI =
           inBuf->template get_access<cl::sycl::access::mode::read_write>(h);
       auto aO =
           outBuf->template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
-          r, [aI, aO, bop, vectorSize, i](cl::sycl::nd_item<1> id) {
+          ndRange, [aI, aO, bop, vectorSize, i](cl::sycl::nd_item<1> id) {
             size_t td = 1 << (i - 1);
             size_t m_id = id.get_global(0);
             if (m_id < vectorSize && m_id >= td) {

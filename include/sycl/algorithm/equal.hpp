@@ -67,9 +67,9 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
 
   auto device = q.get_device();
 
-  auto local_size = std::min(
-      device.get_info<cl::sycl::info::device::max_work_group_size>(), size1);
-  auto global_size = exec.calculateGlobalSize(size1, local_size);
+  size_t length = size1;
+  auto ndRange = exec.calculateNdRange(size1);
+  const auto local = ndRange.get_local()[0];
 
   auto buf1 = sycl::helpers::make_const_buffer(first1, last1);
   auto buf2 = sycl::helpers::make_const_buffer(first2, last2);
@@ -78,23 +78,20 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
   do {
     int passes = 0;
 
-    auto f = [global_size, local_size, passes, &buf1, &buf2, &bufR,
+    auto f = [passes, length, ndRange, local, &buf1, &buf2, &bufR,
               p](cl::sycl::handler& h) mutable {
-      cl::sycl::nd_range<1> r{
-          cl::sycl::range<1>{std::max(global_size, local_size)},
-          cl::sycl::range<1>{local_size}};
       auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
       auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
       auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<bool, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(cl::sycl::range<1>(local_size), h);
+          scratch(ndRange.get_local(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [a1, a2, aR, scratch, local_size, global_size, passes,
+          ndRange, [a1, a2, aR, scratch, passes, local, length,
               p](cl::sycl::nd_item<1> id) {
             auto r =
-                ReductionStrategy<bool>(local_size, global_size, id, scratch);
+                ReductionStrategy<bool>(local, length, id, scratch);
             if (passes == 0) {
               r.workitem_get_from(p, a1, a2);
             } else {
@@ -106,9 +103,11 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
     };         // end command group
 
     q.submit(f);
-    global_size = global_size / local_size;
+    length = length / local;
+    ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
+                                    ndRange.get_local()};
     ++passes;
-  } while (global_size > 1);
+  } while (length > 1);
   q.wait_and_throw();
   auto hr = bufR.template get_access<cl::sycl::access::mode::read>(
       cl::sycl::range<1>{1}, cl::sycl::id<1>{0});

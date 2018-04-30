@@ -148,17 +148,15 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
   auto mainLoop = [&]() {
     auto d_bodies = sycl::helpers::make_buffer(begin(bodies), end(bodies));
     cl::sycl::queue q(cds);
+    sycl::sycl_execution_policy<class UpdateAlgorithm> snp2(q);
     // Main loop
     auto vectorSize = d_bodies.get_count();
-    auto f = [vectorSize, &d_bodies](cl::sycl::handler& h) mutable {
-      const size_t localRange = 128;
-      cl::sycl::nd_range<3> r{
-          cl::sycl::range<3>{std::max(vectorSize, localRange), 1, 1},
-          cl::sycl::range<3>{localRange, 1, 1}};
+    const auto ndRange = snp2.calculateNdRange(vectorSize);
+    auto f = [vectorSize, ndRange, &d_bodies](cl::sycl::handler& h) mutable {
       auto a_bodies =
           d_bodies.get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<class NBodyAlgorithm>(
-          r, [a_bodies, vectorSize](cl::sycl::nd_item<3> id) {
+          ndRange, [a_bodies, vectorSize](cl::sycl::nd_item<3> id) {
             if (id.get_global(0) < vectorSize) {
               for (size_t i = 0; i < vectorSize; i++) {
                 a_bodies[id.get_global(0)].addForce(a_bodies[i]);
@@ -169,7 +167,6 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
     q.submit(f);
 
     // Update loop
-    sycl::sycl_execution_policy<class UpdateAlgorithm> snp2(q);
     std::experimental::parallel::for_each(snp2, begin(d_bodies), end(d_bodies),
                                           [=](Body& body) {
                                             body.update();

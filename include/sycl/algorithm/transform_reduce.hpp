@@ -63,27 +63,23 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
   }
 
   auto device = q.get_device();
-  auto local =
-      std::min(device.template get_info<cl::sycl::info::device::max_work_group_size>(),
-               vectorSize);
   auto bufI = sycl::helpers::make_const_buffer(first, last);
   size_t length = vectorSize;
-  size_t global = exec.calculateGlobalSize(vectorSize, local);
+  auto ndRange = exec.calculateNdRange(vectorSize);
+  const auto local = ndRange.get_local()[0];
   int passes = 0;
 
   do {
-    auto f = [passes, length, local, global, &bufI, &bufR, unary_op, binary_op](
+    auto f = [passes, length, ndRange, local, &bufI, &bufR, unary_op, binary_op](
         cl::sycl::handler& h) mutable {
-      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
-                              cl::sycl::range<1>{local}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
       auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(cl::sycl::range<1>(local), h);
+          scratch(ndRange.get_local(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
+          ndRange, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
                  cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<T>(local, length, id, scratch);
             if (passes == 0) {
@@ -98,6 +94,8 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
     q.submit(f);
     passes++;
     length = length / local;
+    ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
+                                    ndRange.get_local()};
   } while (length > 1);
   q.wait_and_throw();
   auto hR = bufR.template get_access<cl::sycl::access::mode::read>();

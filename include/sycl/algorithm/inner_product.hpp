@@ -121,9 +121,6 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
     return value;
   } else {
     auto device = q.get_device();
-    auto local =
-        std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
-                 vectorSize);
 
     InputIt2 last2(first2);
     std::advance(last2, vectorSize);
@@ -132,10 +129,11 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
     auto buf2 = sycl::helpers::make_const_buffer(first2, last2);
     cl::sycl::buffer<T, 1> bufr((cl::sycl::range<1>(vectorSize)));
     size_t length = vectorSize;
-    size_t global = exec.calculateGlobalSize(length, local);
+    auto ndRange = exec.calculateNdRange(length);
+    const auto local = ndRange.get_local()[0];
     int passes = 0;
     do {
-      auto cg = [passes, length, local, global, &buf1, &buf2, &bufr, op1, op2](
+      auto cg = [passes, length, ndRange, local, &buf1, &buf2, &bufr, op1, op2](
           cl::sycl::handler &h) mutable {
         auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
         auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
@@ -143,13 +141,10 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
             bufr.template get_access<cl::sycl::access::mode::read_write>(h);
         cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
                            cl::sycl::access::target::local>
-            scratch(cl::sycl::range<1>(local), h);
-        cl::sycl::nd_range<1> r{
-            cl::sycl::range<1>{std::max(global, local)},
-            cl::sycl::range<1>{local}};
+            scratch(ndRange.get_local(), h);
 
         h.parallel_for<typename ExecutionPolicy::kernelName>(
-            r, [a1, a2, aR, scratch, length, local, passes, op1, op2](
+            ndRange, [a1, a2, aR, scratch, length, local, passes, op1, op2](
                    cl::sycl::nd_item<1> id) {
               auto r = ReductionStrategy<T>(local, length, id, scratch);
               if (passes == 0) {
@@ -164,6 +159,8 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
       q.submit(cg);
       passes++;
       length = length / local;
+      ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
+                                      ndRange.get_local()};
     } while (length > 1);  // end do-while
     q.wait_and_throw();
     auto hb = bufr.template get_access<cl::sycl::access::mode::read>();

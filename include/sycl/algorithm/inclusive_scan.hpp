@@ -55,10 +55,7 @@ OutputIterator inclusive_scan(ExecutionPolicy &sep, InputIterator b,
   // declare a temporary "swap" buffer
   auto bufO = sycl::helpers::make_buffer(o, o + vectorSize);
 
-  size_t localRange =
-      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
-               vectorSize);
-  size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  const auto ndRange = sep.calculateNdRange(vectorSize);
   // calculate iteration count, with extra if not a power of two size buffer
   int iterations = 0;
   for (size_t vs = vectorSize >> 1; vs > 0; vs >>= 1) {
@@ -80,17 +77,14 @@ OutputIterator inclusive_scan(ExecutionPolicy &sep, InputIterator b,
 
   int i = 1;
   do {
-    auto f = [vectorSize, i, localRange, globalRange, inBuf, outBuf, bop](
+    auto f = [vectorSize, i, ndRange, inBuf, outBuf, bop](
         cl::sycl::handler &h) {
-      cl::sycl::nd_range<1> r{
-          cl::sycl::range<1>{std::max(globalRange, localRange)},
-          cl::sycl::range<1>{localRange}};
       auto aI =
           inBuf->template get_access<cl::sycl::access::mode::read_write>(h);
       auto aO =
           outBuf->template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, aO, bop, vectorSize, i](cl::sycl::nd_item<1> id) {
+          ndRange, [aI, aO, bop, vectorSize, i](cl::sycl::nd_item<1> id) {
             size_t td = 1 << (i - 1);
             size_t m_id = id.get_global(0);
 

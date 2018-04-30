@@ -48,19 +48,14 @@ void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction op) {
   {
     cl::sycl::queue q(sep.get_queue());
     auto device = q.get_device();
-    size_t localRange =
-        device.get_info<cl::sycl::info::device::max_work_group_size>();
     auto bufI = sycl::helpers::make_buffer(b, e);
     auto vectorSize = bufI.get_count();
-    size_t globalRange = sep.calculateGlobalSize(vectorSize, localRange);
-    auto f = [vectorSize, localRange, globalRange, &bufI, op](
+    const auto ndRange = sep.calculateNdRange(vectorSize);
+    auto f = [vectorSize, ndRange, &bufI, op](
         cl::sycl::handler &h) mutable {
-      cl::sycl::nd_range<1> r{
-          cl::sycl::range<1>{std::max(globalRange, localRange)},
-          cl::sycl::range<1>{localRange}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, op, vectorSize](cl::sycl::nd_item<1> id) {
+          ndRange, [aI, op, vectorSize](cl::sycl::nd_item<1> id) {
             if (id.get_global(0) < vectorSize) {
               op(aI[id.get_global(0)]);
             }

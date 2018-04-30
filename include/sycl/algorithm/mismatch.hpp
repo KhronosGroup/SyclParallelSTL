@@ -64,10 +64,8 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   const auto device = q.get_device();
 
   const auto length = std::min(size1, size2);
-  const auto local = std::min(
-      device.template get_info<cl::sycl::info::device::max_work_group_size>(),
-      length);
-  const auto global = exec.calculateGlobalSize(length, local);
+  auto ndRange = exec.calculateNdRange(length);
+  const auto local = ndRange.get_local()[0];
 
   auto buf1 = sycl::helpers::make_const_buffer(first1, first1 + length);
   auto buf2 = sycl::helpers::make_const_buffer(first2, first2 + length);
@@ -75,16 +73,14 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   cl::sycl::buffer<std::size_t, 1> bufR((cl::sycl::range<1>(size1)));
 
   // map across the input testing whether they match the predicate
-  const auto eqf = [length, local, global, &buf1, &buf2, &bufR,
+  const auto eqf = [length, ndRange, &buf1, &buf2, &bufR,
                     p](cl::sycl::handler& h) {
-    cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
-                            cl::sycl::range<1>{local}};
     const auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
     const auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
     const auto aR = bufR.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
-        r, [a1, a2, aR, length, p](cl::sycl::nd_item<1> id) {
+        ndRange, [a1, a2, aR, length, p](cl::sycl::nd_item<1> id) {
           const auto m_id = id.get_global(0);
 
           if (m_id < length) {
@@ -98,18 +94,16 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   int passes = 0;
 
   do {
-    const auto f = [passes, current_length, local, global,
+    const auto f = [passes, current_length, ndRange, local,
                     &bufR](cl::sycl::handler& h) mutable {
-      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
-                              cl::sycl::range<1>{local}};
       const auto aR =
           bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(cl::sycl::range<1>(local), h);
+          scratch(ndRange.get_local(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aR, scratch, passes, local,
+          ndRange, [aR, scratch, passes, local,
               current_length](cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<std::size_t>(local, current_length, id,
                                                     scratch);
@@ -123,6 +117,8 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
     q.submit(f);
     ++passes;
     current_length = current_length / local;
+    ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(current_length, local)),
+                                    ndRange.get_local()};
   } while (current_length > 1);
   q.wait_and_throw();
   const auto hR = bufR.get_access<cl::sycl::access::mode::read>(

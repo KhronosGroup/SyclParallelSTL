@@ -51,18 +51,12 @@ void reverse(ExecutionPolicy &sep, BidirIt first, BidirIt last) {
   auto bufI = helpers::make_buffer(first, last);
 
   const auto vectorSize = bufI.get_count();
-  const auto localRange =
-      device.get_info<cl::sycl::info::device::max_work_group_size>();
-  const auto globalRange = sep.calculateGlobalSize(vectorSize / 2, localRange);
-  const auto f = [vectorSize, localRange, globalRange,
+  const auto ndRange = sep.calculateNdRange(vectorSize / 2);
+  const auto f = [vectorSize, ndRange,
             &bufI](cl::sycl::handler &h) mutable {
-    cl::sycl::nd_range<1> r{
-        cl::sycl::range<1>{std::max(globalRange, localRange)},
-        cl::sycl::range<1>{localRange}};
-
     const auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
-        r, [aI, vectorSize](cl::sycl::nd_item<1> id) {
+        ndRange, [aI, vectorSize](cl::sycl::nd_item<1> id) {
           const auto global_id = id.get_global(0);
           if (global_id < vectorSize / 2) {
             helpers::swap(aI[global_id], aI[vectorSize - global_id - 1]);

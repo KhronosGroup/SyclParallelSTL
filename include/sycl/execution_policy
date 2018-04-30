@@ -98,22 +98,27 @@ class sycl_execution_policy {
   // Returns the queue, if any
   cl::sycl::queue get_queue() const { return m_q; }
 
-  /* Calculate GlobalSize.
-  * @brief Calculates a divisible global size
-  * @param global : The problem size
-  * @param local  : The local size
+  /* Calculate NdRange.
+  * @brief Calculates an nd_range with a global size divisable by problemSize
+  * @param problemSize : The problem size
   */
-  std::size_t calculateGlobalSize(std::size_t global, std::size_t local) {
-    std::size_t newGlobal = 0;
+  cl::sycl::nd_range<1> calculateNdRange(size_t problemSize) {
+    const auto& d = m_q.get_device();
+    size_t localSize = std::min(problemSize,
+        std::min(
+          d.template get_info<cl::sycl::info::device::max_work_group_size>(),
+          d.template get_info<cl::sycl::info::device::max_work_item_sizes>()[0]
+        ));
 
-    if (global % local == 0) {
-      newGlobal = global;
+    size_t globalSize;
+    if (problemSize % localSize == 0) {
+      globalSize = problemSize;
     } else {
-      newGlobal = global / local;
-      newGlobal = (newGlobal + 1) * local;
+      globalSize = (problemSize / localSize + 1) * localSize;
     }
 
-    return newGlobal;
+    return cl::sycl::nd_range<1>{cl::sycl::range<1>{globalSize},
+                                 cl::sycl::range<1>{localSize}};
   }
 
   /** reduce

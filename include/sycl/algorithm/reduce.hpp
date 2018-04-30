@@ -66,26 +66,22 @@ typename std::iterator_traits<Iterator>::value_type reduce(
   }
 
   auto device = q.get_device();
-  auto local =
-      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
-               vectorSize);
 
   typedef typename std::iterator_traits<Iterator>::value_type type_;
   auto bufI = sycl::helpers::make_const_buffer(b, e);
   size_t length = vectorSize;
-  size_t global = sep.calculateGlobalSize(length, local);
+  auto ndRange = sep.calculateNdRange(length);
+  const auto local = ndRange.get_local()[0];
 
   do {
-    auto f = [length, local, global, &bufI, bop](cl::sycl::handler &h) mutable {
-      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
-                              cl::sycl::range<1>{local}};
+    auto f = [length, ndRange, local, &bufI, bop](cl::sycl::handler &h) mutable {
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<type_, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(cl::sycl::range<1>(local), h);
+          scratch(ndRange.get_local(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
+          ndRange, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
             auto r = ReductionStrategy<T>(local, length, id, scratch);
             r.workitem_get_from(aI);
             r.combine_threads(bop);
@@ -94,6 +90,8 @@ typename std::iterator_traits<Iterator>::value_type reduce(
     };
     q.submit(f);
     length = length / local;
+    cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
+                            ndRange.get_local()};
   } while (length > 1);
   q.wait_and_throw();
   auto hI = bufI.template get_access<cl::sycl::access::mode::read>();

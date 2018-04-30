@@ -66,23 +66,18 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
     return e;
   }
 
-  const auto localRange =
-      std::min(device.get_info<cl::sycl::info::device::max_work_group_size>(),
-               vectorSize);
-  const auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  auto ndRange = sep.calculateNdRange(vectorSize);
+  const auto local = ndRange.get_local()[0];
 
   // map across the input testing whether they match the predicate
   // store the result of the predicate and the index in the array of the result
-  const auto eqf = [vectorSize, localRange, globalRange, &buf, &t_buf,
+  const auto eqf = [vectorSize, ndRange, &buf, &t_buf,
                     p](cl::sycl::handler &h) {
-    cl::sycl::nd_range<1> r{
-        cl::sycl::range<1>{std::max(globalRange, localRange)},
-        cl::sycl::range<1>{localRange}};
     const auto aI = buf.template get_access<cl::sycl::access::mode::read>(h);
     const auto aO = t_buf.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
-        r, [aI, aO, vectorSize, p](cl::sycl::nd_item<1> id) {
+        ndRange, [aI, aO, vectorSize, p](cl::sycl::nd_item<1> id) {
           const auto m_id = id.get_global(0);
           // store index or the vector length, so that we can find the
           // _first_ index which is true, as opposed to just "one" of them
@@ -98,22 +93,19 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   // module
   auto length = vectorSize;
   do {
-    const auto rf = [length, localRange, globalRange,
+    const auto rf = [length, ndRange, local,
                      &t_buf](cl::sycl::handler &h) {
-      cl::sycl::nd_range<1> r{
-          cl::sycl::range<1>{std::max(globalRange, localRange)},
-          cl::sycl::range<1>{localRange}};
       const auto aI =
           t_buf.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(cl::sycl::range<1>(localRange), h);
+          scratch(ndRange.get_local(), h);
 
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
-          r, [aI, scratch, localRange, length](cl::sycl::nd_item<1> id) {
+          ndRange, [aI, scratch, local, length](cl::sycl::nd_item<1> id) {
             auto r =
-                ReductionStrategy<std::size_t>(localRange, length, id, scratch);
+                ReductionStrategy<std::size_t>(local, length, id, scratch);
             r.workitem_get_from(aI);
             r.combine_threads([](std::size_t val1, std::size_t val2) {
               return cl::sycl::min(val1, val2);
@@ -122,7 +114,9 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
           });
     };
     q.submit(rf);
-    length = length / localRange;
+    length = length / local;
+    ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
+                                    ndRange.get_local()};
   } while (length > 1);
   q.wait_and_throw();
 

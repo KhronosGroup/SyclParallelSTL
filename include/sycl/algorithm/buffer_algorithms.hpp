@@ -88,8 +88,9 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
     device.get_info<cl::sycl::info::device::max_compute_units>();
 
   //maximal number of work item per work group
-  size_t max_work_item =
-    device.get_info<cl::sycl::info::device::max_work_group_size>();
+  size_t max_work_item = min(
+    device.get_info<cl::sycl::info::device::max_work_group_size>(),
+    device.get_info<cl::sycl::info::device::max_work_item_sizes>()[0]);
 
   size_t local_mem_size =
     device.get_info<cl::sycl::info::device::local_mem_size>();
@@ -345,8 +346,9 @@ sycl_algorithm_descriptor compute_mapscan_descriptor(cl::sycl::device device,
   size_t nb_work_group = up_rounded_division(size, size_per_work_group);
   //std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
 
-  size_t max_work_item =
-    device.get_info<cl::sycl::info::device::max_work_group_size>();
+  size_t max_work_item = min(
+    device.get_info<cl::sycl::info::device::max_work_group_size>(),
+    device.get_info<cl::sycl::info::device::max_work_item_sizes>()[0]);
   //std::cout << "max_work_item=\t" << max_work_item << std::endl;
   size_t nb_work_item = min(max_work_item, size_per_work_group);
   //std::cout << "nb_work_item=\t" << nb_work_item << std::endl;

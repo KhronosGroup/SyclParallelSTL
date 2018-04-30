@@ -59,20 +59,15 @@ ForwardIt2 replace_copy_if(ExecutionPolicy &sep, ForwardIt1 first,
   const T new_val = new_value;
 
   const auto vectorSize = bufI.get_count();
-  const auto localRange =
-      device.get_info<cl::sycl::info::device::max_work_group_size>();
-  const auto globalRange = sep.calculateGlobalSize(vectorSize, localRange);
+  const auto ndRange = sep.calculateNdRange(vectorSize);
 
-  const auto f = [vectorSize, p, new_val, localRange, globalRange, &bufI,
+  const auto f = [vectorSize, p, new_val, ndRange, &bufI,
             &bufO](cl::sycl::handler &h) mutable {
-    cl::sycl::nd_range<1> r{
-        cl::sycl::range<1>{std::max(globalRange, localRange)},
-        cl::sycl::range<1>{localRange}};
 
     const auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
     const auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
-        r, [aI, aO, vectorSize, p, new_val](cl::sycl::nd_item<1> id) {
+        ndRange, [aI, aO, vectorSize, p, new_val](cl::sycl::nd_item<1> id) {
           const auto global_id = id.get_global(0);
           const auto orig_value = aI[global_id];
           if (global_id < vectorSize) {

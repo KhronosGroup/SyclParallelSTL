@@ -55,7 +55,9 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
 
   cl::sycl::queue q(cds);
   auto device = q.get_device();
-  auto local = device.get_info<cl::sycl::info::device::max_work_group_size>();
+  auto local = std::min(
+      device.get_info<cl::sycl::info::device::max_work_group_size>(),
+      device.get_info<cl::sycl::info::device::max_work_item_sizes>()[0]);
   sycl::sycl_execution_policy<class ReduceAlgorithmBench> snp(q);
   auto bufI = sycl::helpers::make_const_buffer(v.begin(), v.end());
   size_t length = N;

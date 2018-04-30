@@ -57,18 +57,14 @@ InputIterator for_each_n(ExecutionPolicy &exec, InputIterator first, Size n,
   if (n > 0) {
     auto last(first + n);
     auto device = q.get_device();
-    size_t local =
-        device.get_info<cl::sycl::info::device::max_work_group_size>();
     auto bufI = sycl::helpers::make_buffer(first, last);
     auto vectorSize = bufI.get_count();
-    size_t global = exec.calculateGlobalSize(vectorSize, local);
-    auto cg = [vectorSize, local, global, &bufI, f](
+    const auto ndRange = exec.calculateNdRange(vectorSize);
+    auto cg = [vectorSize, ndRange, &bufI, f](
         cl::sycl::handler &h) mutable {
-      cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(global, local)},
-                              cl::sycl::range<1>{local}};
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
-          r, [vectorSize, aI, f](cl::sycl::nd_item<1> id) {
+          ndRange, [vectorSize, aI, f](cl::sycl::nd_item<1> id) {
             if (id.get_global(0) < vectorSize) {
               f(aI[id.get_global(0)]);
             }

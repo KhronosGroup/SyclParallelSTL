@@ -128,34 +128,34 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
     auto buf1 = sycl::helpers::make_const_buffer(first1, last1);
     auto buf2 = sycl::helpers::make_const_buffer(first2, last2);
     cl::sycl::buffer<T, 1> bufr((cl::sycl::range<1>(vectorSize)));
-    size_t length = vectorSize;
+    auto length = vectorSize;
     auto ndRange = exec.calculateNdRange(length);
     const auto local = ndRange.get_local()[0];
     int passes = 0;
-    do {
-      auto cg = [passes, length, ndRange, local, &buf1, &buf2, &bufr, op1, op2](
-          cl::sycl::handler &h) mutable {
-        auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
-        auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
-        auto aR =
-            bufr.template get_access<cl::sycl::access::mode::read_write>(h);
-        cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
-                           cl::sycl::access::target::local>
-            scratch(ndRange.get_local(), h);
+    auto cg = [&passes, &length, &ndRange, local, &buf1, &buf2, &bufr, op1, op2](
+        cl::sycl::handler &h) mutable {
+      auto a1 = buf1.template get_access<cl::sycl::access::mode::read>(h);
+      auto a2 = buf2.template get_access<cl::sycl::access::mode::read>(h);
+      auto aR =
+          bufr.template get_access<cl::sycl::access::mode::read_write>(h);
+      cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
+                         cl::sycl::access::target::local>
+          scratch(ndRange.get_local(), h);
 
-        h.parallel_for<typename ExecutionPolicy::kernelName>(
-            ndRange, [a1, a2, aR, scratch, length, local, passes, op1, op2](
-                   cl::sycl::nd_item<1> id) {
-              auto r = ReductionStrategy<T>(local, length, id, scratch);
-              if (passes == 0) {
-                r.workitem_get_from(op2, a1, a2);
-              } else {
-                r.workitem_get_from(aR);
-              }
-              r.combine_threads(op1);
-              r.workgroup_write_to(aR);
-            });  // end kernel
-      };         // end command group
+      h.parallel_for<typename ExecutionPolicy::kernelName>(
+          ndRange, [a1, a2, aR, scratch, length, local, passes, op1, op2](
+                 cl::sycl::nd_item<1> id) {
+            auto r = ReductionStrategy<T>(local, length, id, scratch);
+            if (passes == 0) {
+              r.workitem_get_from(op2, a1, a2);
+            } else {
+              r.workitem_get_from(aR);
+            }
+            r.combine_threads(op1);
+            r.workgroup_write_to(aR);
+          });  // end kernel
+    };         // end command group
+    do {
       q.submit(cg);
       passes++;
       length = length / local;

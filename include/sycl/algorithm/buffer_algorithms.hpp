@@ -87,10 +87,11 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
   size_t max_work_group =
     device.get_info<cl::sycl::info::device::max_compute_units>();
 
-  //maximal number of work item per work group
-  size_t max_work_item = min(
+  const auto max_work_item_sizes =
+    device.get_info<cl::sycl::info::device::max_work_item_sizes>();
+  const auto max_work_item = min(
     device.get_info<cl::sycl::info::device::max_work_group_size>(),
-    device.get_info<cl::sycl::info::device::max_work_item_sizes>()[0]);
+    max_work_item_sizes[0]);
 
   size_t local_mem_size =
     device.get_info<cl::sycl::info::device::local_mem_size>();
@@ -330,31 +331,26 @@ B buffer_map2reduce(ExecutionPolicy &snp,
 sycl_algorithm_descriptor compute_mapscan_descriptor(cl::sycl::device device,
                                               size_t size,
                                               size_t sizeofB) {
-  //std::cout << "size=\t" << size << std::endl;
   using std::min;
   using std::max;
   if (size == 0)
     return sycl_algorithm_descriptor {};
   size_t local_mem_size =
     device.get_info<cl::sycl::info::device::local_mem_size>();
-  //std::cout << "local_mem_size=\t" << local_mem_size << std::endl;
   size_t size_per_work_group = min(size, local_mem_size / sizeofB);
-  //std::cout << "size_per_work_group=\t" << size_per_work_group << std::endl;
   if (size_per_work_group <= 0)
     return sycl_algorithm_descriptor { size };
 
   size_t nb_work_group = up_rounded_division(size, size_per_work_group);
-  //std::cout << "nb_work_group=\t" << nb_work_group << std::endl;
 
-  size_t max_work_item = min(
+  const auto max_work_item_sizes =
+    device.get_info<cl::sycl::info::device::max_work_item_sizes>();
+  const auto max_work_item = min(
     device.get_info<cl::sycl::info::device::max_work_group_size>(),
-    device.get_info<cl::sycl::info::device::max_work_item_sizes>()[0]);
-  //std::cout << "max_work_item=\t" << max_work_item << std::endl;
+    max_work_item_sizes[0]);
   size_t nb_work_item = min(max_work_item, size_per_work_group);
-  //std::cout << "nb_work_item=\t" << nb_work_item << std::endl;
   size_t size_per_work_item =
     up_rounded_division(size_per_work_group, nb_work_item);
-  //std::cout << "size_per_work_item=\t" << size_per_work_item << std::endl;
   return sycl_algorithm_descriptor {
     size,
     size_per_work_group,

@@ -93,27 +93,27 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
   auto current_length = length;
   int passes = 0;
 
-  do {
-    const auto f = [passes, current_length, ndRange, local,
-                    &bufR](cl::sycl::handler& h) mutable {
-      const auto aR =
-          bufR.template get_access<cl::sycl::access::mode::read_write>(h);
-      cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
-                         cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+  const auto f = [&passes, &current_length, &ndRange, local,
+                  &bufR](cl::sycl::handler& h) mutable {
+    const auto aR =
+        bufR.template get_access<cl::sycl::access::mode::read_write>(h);
+    cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
+                       cl::sycl::access::target::local>
+        scratch(ndRange.get_local(), h);
 
-      h.parallel_for<typename ExecutionPolicy::kernelName>(
-          ndRange, [aR, scratch, passes, local,
-              current_length](cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<std::size_t>(local, current_length, id,
-                                                    scratch);
-            r.workitem_get_from(aR);
-            r.combine_threads([](std::size_t x, std::size_t y) {
-              return cl::sycl::min(x, y);
-            });
-            r.workgroup_write_to(aR);
+    h.parallel_for<typename ExecutionPolicy::kernelName>(
+        ndRange, [aR, scratch, passes, local,
+            current_length](cl::sycl::nd_item<1> id) {
+          auto r = ReductionStrategy<std::size_t>(local, current_length, id,
+                                                  scratch);
+          r.workitem_get_from(aR);
+          r.combine_threads([](std::size_t x, std::size_t y) {
+            return cl::sycl::min(x, y);
           });
-    };
+          r.workgroup_write_to(aR);
+        });
+  };
+  do {
     q.submit(f);
     ++passes;
     current_length = current_length / local;

@@ -65,33 +65,33 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
   auto device = q.get_device();
   auto bufI = sycl::helpers::make_const_buffer(first, last);
   cl::sycl::buffer<int, 1> bufR((cl::sycl::range<1>(vectorSize)));
-  size_t length = vectorSize;
+  auto length = vectorSize;
   auto ndRange = exec.calculateNdRange(vectorSize);
   const auto local = ndRange.get_local()[0];
   int passes = 0;
 
-  do {
-    auto f = [passes, length, ndRange, local, &bufI, &bufR, unary_op, binary_op](
-        cl::sycl::handler& h) mutable {
-      auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
-      auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
-      cl::sycl::accessor<int, 1, cl::sycl::access::mode::read_write,
-                         cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+  auto f = [&passes, &length, &ndRange, local, &bufI, &bufR, unary_op, binary_op](
+      cl::sycl::handler& h) mutable {
+    auto aI = bufI.template get_access<cl::sycl::access::mode::read>(h);
+    auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
+    cl::sycl::accessor<int, 1, cl::sycl::access::mode::read_write,
+                       cl::sycl::access::target::local>
+        scratch(ndRange.get_local(), h);
 
-      h.parallel_for<typename ExecutionPolicy::kernelName>(
-          ndRange, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
-                 cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<int>(local, length, id, scratch);
-            if (passes == 0) {
-              r.workitem_get_from(unary_op, aI);
-            } else {
-              r.workitem_get_from(aR);
-            }
-            r.combine_threads(binary_op);
-            r.workgroup_write_to(aR);
-          });  // end kernel
-    };         // end command group
+    h.parallel_for<typename ExecutionPolicy::kernelName>(
+        ndRange, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
+               cl::sycl::nd_item<1> id) {
+          auto r = ReductionStrategy<int>(local, length, id, scratch);
+          if (passes == 0) {
+            r.workitem_get_from(unary_op, aI);
+          } else {
+            r.workitem_get_from(aR);
+          }
+          r.combine_threads(binary_op);
+          r.workgroup_write_to(aR);
+        });  // end kernel
+  };         // end command group
+  do {
     q.submit(f);
     length = length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),

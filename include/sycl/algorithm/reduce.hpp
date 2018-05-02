@@ -69,29 +69,29 @@ typename std::iterator_traits<Iterator>::value_type reduce(
 
   typedef typename std::iterator_traits<Iterator>::value_type type_;
   auto bufI = sycl::helpers::make_const_buffer(b, e);
-  size_t length = vectorSize;
+  auto length = vectorSize;
   auto ndRange = sep.calculateNdRange(length);
   const auto local = ndRange.get_local()[0];
 
-  do {
-    auto f = [length, ndRange, local, &bufI, bop](cl::sycl::handler &h) mutable {
-      auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
-      cl::sycl::accessor<type_, 1, cl::sycl::access::mode::read_write,
-                         cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+  auto f = [&length, &ndRange, local, &bufI, bop](cl::sycl::handler &h) mutable {
+    auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
+    cl::sycl::accessor<type_, 1, cl::sycl::access::mode::read_write,
+                       cl::sycl::access::target::local>
+        scratch(ndRange.get_local(), h);
 
-      h.parallel_for<typename ExecutionPolicy::kernelName>(
-          ndRange, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
-            auto r = ReductionStrategy<T>(local, length, id, scratch);
-            r.workitem_get_from(aI);
-            r.combine_threads(bop);
-            r.workgroup_write_to(aI);
-          });
-    };
+    h.parallel_for<typename ExecutionPolicy::kernelName>(
+        ndRange, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
+          auto r = ReductionStrategy<T>(local, length, id, scratch);
+          r.workitem_get_from(aI);
+          r.combine_threads(bop);
+          r.workgroup_write_to(aI);
+        });
+  };
+  do {
     q.submit(f);
     length = length / local;
-    cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
-                            ndRange.get_local()};
+    ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
+                                    ndRange.get_local()};
   } while (length > 1);
   q.wait_and_throw();
   auto hI = bufI.template get_access<cl::sycl::access::mode::read>();

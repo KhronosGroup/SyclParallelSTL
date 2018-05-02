@@ -67,7 +67,7 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
 
   auto device = q.get_device();
 
-  size_t length = size1;
+  auto length = size1;
   auto ndRange = exec.calculateNdRange(size1);
   const auto local = ndRange.get_local()[0];
 

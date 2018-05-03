@@ -104,10 +104,12 @@ class sycl_execution_policy {
   */
   cl::sycl::nd_range<1> calculateNdRange(size_t problemSize) {
     const auto& d = m_q.get_device();
-    size_t localSize = std::min(problemSize,
+    const cl::sycl::id<3> maxWorkItemSizes =
+      d.template get_info<cl::sycl::info::device::max_work_item_sizes>();
+    const auto localSize = std::min(problemSize,
         std::min(
           d.template get_info<cl::sycl::info::device::max_work_group_size>(),
-          d.template get_info<cl::sycl::info::device::max_work_item_sizes>()[0]
+          maxWorkItemSizes[0]
         ));
 
     size_t globalSize;

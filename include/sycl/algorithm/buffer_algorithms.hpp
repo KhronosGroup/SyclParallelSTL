@@ -87,7 +87,7 @@ sycl_algorithm_descriptor compute_mapreduce_descriptor(cl::sycl::device device,
   size_t max_work_group =
     device.get_info<cl::sycl::info::device::max_compute_units>();
 
-  const auto max_work_item_sizes =
+  const cl::sycl::id<3>max_work_item_sizes =
     device.get_info<cl::sycl::info::device::max_work_item_sizes>();
   const auto max_work_item = min(
     device.get_info<cl::sycl::info::device::max_work_group_size>(),
@@ -343,7 +343,7 @@ sycl_algorithm_descriptor compute_mapscan_descriptor(cl::sycl::device device,
 
   size_t nb_work_group = up_rounded_division(size, size_per_work_group);
 
-  const auto max_work_item_sizes =
+  const cl::sycl::id<3> max_work_item_sizes =
     device.get_info<cl::sycl::info::device::max_work_item_sizes>();
   const auto max_work_item = min(
     device.get_info<cl::sycl::info::device::max_work_group_size>(),

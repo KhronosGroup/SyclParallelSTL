@@ -14,7 +14,7 @@ This technical specification describes _a set of requirements for
 implementations of an interface that computer programs written in the
 C++ programming language may use to invoke algorithms with parallel
 execution_.
-In practice, this specification is aimed at the next C++ standard (C++ 17) and
+In practice, this specification is aimed at the next C++ standard (C++20) and
 offers the opportunity to users to specify _execution policies_ to
 traditional STL algorithms which will enable the execution of
 those algorithms in parallel.

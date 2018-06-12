@@ -156,7 +156,7 @@ benchmark<>::time_units_t benchmark_nbody(const unsigned numReps,
       auto a_bodies =
           d_bodies.get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<class NBodyAlgorithm>(
-          ndRange, [a_bodies, vectorSize](cl::sycl::nd_item<3> id) {
+          ndRange, [a_bodies, vectorSize](cl::sycl::nd_item<1> id) {
             if (id.get_global(0) < vectorSize) {
               for (size_t i = 0; i < vectorSize; i++) {
                 a_bodies[id.get_global(0)].addForce(a_bodies[i]);

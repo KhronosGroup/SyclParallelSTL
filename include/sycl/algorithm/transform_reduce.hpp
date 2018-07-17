@@ -66,7 +66,7 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
   auto bufI = sycl::helpers::make_const_buffer(first, last);
   size_t length = vectorSize;
   auto ndRange = exec.calculateNdRange(vectorSize);
-  const auto local = ndRange.get_local()[0];
+  const auto local = ndRange.get_local_range()[0];
   int passes = 0;
 
   do {
@@ -76,7 +76,7 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
       auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+          scratch(ndRange.get_local_range(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           ndRange, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
@@ -95,7 +95,7 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
     passes++;
     length = length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
-                                    ndRange.get_local()};
+                                    ndRange.get_local_range()};
   } while (length > 1);
   q.wait_and_throw();
   auto hR = bufR.template get_access<cl::sycl::access::mode::read>();

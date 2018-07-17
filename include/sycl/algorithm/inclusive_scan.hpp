@@ -86,7 +86,7 @@ OutputIterator inclusive_scan(ExecutionPolicy &sep, InputIterator b,
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           ndRange, [aI, aO, bop, vectorSize, i](cl::sycl::nd_item<1> id) {
             size_t td = 1 << (i - 1);
-            size_t m_id = id.get_global(0);
+            size_t m_id = id.get_global_id(0);
 
             if (m_id < vectorSize && m_id >= td) {
               aO[m_id] = bop(aI[m_id - td], aI[m_id]);

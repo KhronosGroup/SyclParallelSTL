@@ -65,8 +65,8 @@ OutputIterator transform(ExecutionPolicy &sep, Iterator b, Iterator e,
       auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           ndRange, [aI, aO, op, vectorSize](cl::sycl::nd_item<1> id) {
-            if ((id.get_global(0) < vectorSize)) {
-              aO[id.get_global(0)] = op(aI[id.get_global(0)]);
+            if ((id.get_global_id(0) < vectorSize)) {
+              aO[id.get_global_id(0)] = op(aI[id.get_global_id(0)]);
             }
           });
     };
@@ -104,9 +104,9 @@ OutputIterator transform(ExecutionPolicy &sep, InputIterator first1,
     auto aO = res.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [a1, a2, aO, op, n](cl::sycl::nd_item<1> id) {
-          if (id.get_global(0) < n) {
-            aO[id.get_global(0)] =
-                op(a1[id.get_global(0)], a2[id.get_global(0)]);
+          if (id.get_global_id(0) < n) {
+            aO[id.get_global_id(0)] =
+                op(a1[id.get_global_id(0)], a2[id.get_global_id(0)]);
           }
         });
   };
@@ -144,9 +144,9 @@ OutputIterator transform(ExecutionPolicy &sep, cl::sycl::queue &q,
     auto aO = res.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [a1, a2, aO, op, n](cl::sycl::nd_item<1> id) {
-          if (id.get_global(0) < n) {
-            aO[id.get_global(0)] =
-                op(a1[id.get_global(0)], a2[id.get_global(0)]);
+          if (id.get_global_id(0) < n) {
+            aO[id.get_global_id(0)] =
+                op(a1[id.get_global_id(0)], a2[id.get_global_id(0)]);
           }
         });
   };
@@ -177,9 +177,9 @@ void transform(ExecutionPolicy &sep, cl::sycl::queue &q, Buffer &buf1,
     auto aO = res.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<class TransformAlgorithm>(
         ndRange, [a1, a2, aO, op, n](cl::sycl::nd_item<1> id) {
-          if (id.get_global(0) < n) {
-            aO[id.get_global(0)] =
-                op(a1[id.get_global(0)], a2[id.get_global(0)]);
+          if (id.get_global_id(0) < n) {
+            aO[id.get_global_id(0)] =
+                op(a1[id.get_global_id(0)], a2[id.get_global_id(0)]);
           }
         });
   };

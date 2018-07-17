@@ -67,7 +67,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
   }
 
   auto ndRange = sep.calculateNdRange(vectorSize);
-  const auto local = ndRange.get_local()[0];
+  const auto local = ndRange.get_local_range()[0];
 
   // map across the input testing whether they match the predicate
   // store the result of the predicate and the index in the array of the result
@@ -78,7 +78,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
         ndRange, [aI, aO, vectorSize, p](cl::sycl::nd_item<1> id) {
-          const auto m_id = id.get_global(0);
+          const auto m_id = id.get_global_id(0);
           // store index or the vector length, so that we can find the
           // _first_ index which is true, as opposed to just "one" of them
           if (m_id < vectorSize) {
@@ -99,7 +99,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
           t_buf.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+          scratch(ndRange.get_local_range(), h);
 
       h.parallel_for<
           cl::sycl::helpers::NameGen<1, typename ExecutionPolicy::kernelName> >(
@@ -116,7 +116,7 @@ InputIt find_impl(ExecutionPolicy &sep, InputIt b, InputIt e,
     q.submit(rf);
     length = length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
-                                    ndRange.get_local()};
+                                    ndRange.get_local_range()};
   } while (length > 1);
   q.wait_and_throw();
 

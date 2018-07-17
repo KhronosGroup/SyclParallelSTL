@@ -57,8 +57,8 @@ class ReductionStrategy {
  public:
   ReductionStrategy(int loc, int len, cl::sycl::nd_item<1> i,
                     const local_rw_acc<T>& localmem)
-      : localid_(i.get_local(0)),
-        globalid_(i.get_global(0)),
+      : localid_(i.get_local_id(0)),
+        globalid_(i.get_global_id(0)),
         local_(loc),
         length_(len),
         id_(i),

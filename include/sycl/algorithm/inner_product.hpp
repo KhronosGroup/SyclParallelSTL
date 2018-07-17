@@ -130,7 +130,7 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
     cl::sycl::buffer<T, 1> bufr((cl::sycl::range<1>(vectorSize)));
     auto length = vectorSize;
     auto ndRange = exec.calculateNdRange(length);
-    const auto local = ndRange.get_local()[0];
+    const auto local = ndRange.get_local_range()[0];
     int passes = 0;
     auto cg = [&passes, &length, &ndRange, local, &buf1, &buf2, &bufr, op1, op2](
         cl::sycl::handler &h) mutable {
@@ -140,7 +140,7 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
           bufr.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+          scratch(ndRange.get_local_range(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           ndRange, [a1, a2, aR, scratch, length, local, passes, op1, op2](
@@ -160,7 +160,7 @@ T inner_product(ExecutionPolicy &exec, InputIt1 first1, InputIt1 last1,
       passes++;
       length = length / local;
       ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
-                                      ndRange.get_local()};
+                                      ndRange.get_local_range()};
     } while (length > 1);  // end do-while
     q.wait_and_throw();
     auto hb = bufr.template get_access<cl::sycl::access::mode::read>();

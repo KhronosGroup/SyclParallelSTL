@@ -71,13 +71,13 @@ typename std::iterator_traits<Iterator>::value_type reduce(
   auto bufI = sycl::helpers::make_const_buffer(b, e);
   auto length = vectorSize;
   auto ndRange = sep.calculateNdRange(length);
-  const auto local = ndRange.get_local()[0];
+  const auto local = ndRange.get_local_range()[0];
 
   auto f = [&length, &ndRange, local, &bufI, bop](cl::sycl::handler &h) mutable {
     auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
     cl::sycl::accessor<type_, 1, cl::sycl::access::mode::read_write,
                        cl::sycl::access::target::local>
-        scratch(ndRange.get_local(), h);
+        scratch(ndRange.get_local_range(), h);
 
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [aI, scratch, local, length, bop](cl::sycl::nd_item<1> id) {
@@ -91,7 +91,7 @@ typename std::iterator_traits<Iterator>::value_type reduce(
     q.submit(f);
     length = length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
-                                    ndRange.get_local()};
+                                    ndRange.get_local_range()};
   } while (length > 1);
   q.wait_and_throw();
   auto hI = bufI.template get_access<cl::sycl::access::mode::read>();

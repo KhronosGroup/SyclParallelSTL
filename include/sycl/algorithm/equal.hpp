@@ -69,7 +69,7 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
 
   auto length = size1;
   auto ndRange = exec.calculateNdRange(size1);
-  const auto local = ndRange.get_local()[0];
+  const auto local = ndRange.get_local_range()[0];
 
   auto buf1 = sycl::helpers::make_const_buffer(first1, last1);
   auto buf2 = sycl::helpers::make_const_buffer(first2, last2);
@@ -85,7 +85,7 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
       auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
       cl::sycl::accessor<bool, 1, cl::sycl::access::mode::read_write,
                          cl::sycl::access::target::local>
-          scratch(ndRange.get_local(), h);
+          scratch(ndRange.get_local_range(), h);
 
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           ndRange, [a1, a2, aR, scratch, passes, local, length,
@@ -105,7 +105,7 @@ bool equal(ExecutionPolicy& exec, ForwardIt1 first1, ForwardIt1 last1,
     q.submit(f);
     length = length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
-                                    ndRange.get_local()};
+                                    ndRange.get_local_range()};
     ++passes;
   } while (length > 1);
   q.wait_and_throw();

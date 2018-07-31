@@ -61,7 +61,7 @@ ForwardIt reverse_copy(ExecutionPolicy &sep, BidirIt first, BidirIt last,
     const auto aO = bufO.template get_access<cl::sycl::access::mode::write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [aI, aO, vectorSize](cl::sycl::nd_item<1> id) {
-          const auto global_id = id.get_global(0);
+          const auto global_id = id.get_global_id(0);
           if (global_id < vectorSize) {
             aO[global_id] = aI[vectorSize - global_id - 1];
           }

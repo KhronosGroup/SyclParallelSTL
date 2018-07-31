@@ -67,7 +67,7 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
   cl::sycl::buffer<int, 1> bufR((cl::sycl::range<1>(vectorSize)));
   auto length = vectorSize;
   auto ndRange = exec.calculateNdRange(vectorSize);
-  const auto local = ndRange.get_local()[0];
+  const auto local = ndRange.get_local_range()[0];
   int passes = 0;
 
   auto f = [&passes, &length, &ndRange, local, &bufI, &bufR, unary_op, binary_op](
@@ -76,7 +76,7 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
     auto aR = bufR.template get_access<cl::sycl::access::mode::read_write>(h);
     cl::sycl::accessor<int, 1, cl::sycl::access::mode::read_write,
                        cl::sycl::access::target::local>
-        scratch(ndRange.get_local(), h);
+        scratch(ndRange.get_local_range(), h);
 
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [aI, aR, scratch, passes, local, length, unary_op, binary_op](
@@ -95,7 +95,7 @@ typename std::iterator_traits<InputIterator>::difference_type count_if(
     q.submit(f);
     length = length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(length, local)),
-                                    ndRange.get_local()};
+                                    ndRange.get_local_range()};
     passes++;
   } while (length > 1);
   q.wait_and_throw();

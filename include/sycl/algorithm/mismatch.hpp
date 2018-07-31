@@ -65,7 +65,7 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
 
   const auto length = std::min(size1, size2);
   auto ndRange = exec.calculateNdRange(length);
-  const auto local = ndRange.get_local()[0];
+  const auto local = ndRange.get_local_range()[0];
 
   auto buf1 = sycl::helpers::make_const_buffer(first1, first1 + length);
   auto buf2 = sycl::helpers::make_const_buffer(first2, first2 + length);
@@ -81,7 +81,7 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
     h.parallel_for<
         cl::sycl::helpers::NameGen<0, typename ExecutionPolicy::kernelName> >(
         ndRange, [a1, a2, aR, length, p](cl::sycl::nd_item<1> id) {
-          const auto m_id = id.get_global(0);
+          const auto m_id = id.get_global_id(0);
 
           if (m_id < length) {
             aR[m_id] = p(a1[m_id], a2[m_id]) ? length : m_id;
@@ -99,7 +99,7 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
         bufR.template get_access<cl::sycl::access::mode::read_write>(h);
     cl::sycl::accessor<std::size_t, 1, cl::sycl::access::mode::read_write,
                        cl::sycl::access::target::local>
-        scratch(ndRange.get_local(), h);
+        scratch(ndRange.get_local_range(), h);
 
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [aR, scratch, passes, local,
@@ -118,7 +118,7 @@ std::pair<ForwardIt1, ForwardIt2> mismatch(ExecutionPolicy& exec,
     ++passes;
     current_length = current_length / local;
     ndRange = cl::sycl::nd_range<1>{cl::sycl::range<1>(std::max(current_length, local)),
-                                    ndRange.get_local()};
+                                    ndRange.get_local_range()};
   } while (current_length > 1);
   q.wait_and_throw();
   const auto hR = bufR.get_access<cl::sycl::access::mode::read>(

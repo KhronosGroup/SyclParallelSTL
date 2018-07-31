@@ -56,8 +56,8 @@ void for_each(ExecutionPolicy &sep, Iterator b, Iterator e, UnaryFunction op) {
       auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
       h.parallel_for<typename ExecutionPolicy::kernelName>(
           ndRange, [aI, op, vectorSize](cl::sycl::nd_item<1> id) {
-            if (id.get_global(0) < vectorSize) {
-              op(aI[id.get_global(0)]);
+            if (id.get_global_id(0) < vectorSize) {
+              op(aI[id.get_global_id(0)]);
             }
           });
     };

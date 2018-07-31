@@ -59,8 +59,8 @@ void generate(ExecutionPolicy &sep, ForwardIt first, ForwardIt last,
     const auto aI = bufI.template get_access<cl::sycl::access::mode::read_write>(h);
     h.parallel_for<typename ExecutionPolicy::kernelName>(
         ndRange, [aI, g, vectorSize](cl::sycl::nd_item<1> id) {
-          if (id.get_global(0) < vectorSize) {
-            aI[id.get_global(0)] = g();
+          if (id.get_global_id(0) < vectorSize) {
+            aI[id.get_global_id(0)] = g();
           }
         });
   };

@@ -77,8 +77,8 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
 
         h.parallel_for<class ReduceAlgorithmBench>(
             r, [aI, scratch, local, length](cl::sycl::nd_item<1> id) {
-              size_t globalid = id.get_global(0);
-              size_t localid = id.get_local(0);
+              size_t globalid = id.get_global_id(0);
+              size_t localid = id.get_local_id(0);
 
               if (globalid < length) {
                 scratch[localid] = aI[globalid];

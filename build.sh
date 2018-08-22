@@ -49,7 +49,7 @@ then
   CMAKE_ARGS="$CMAKE_ARGS -DUSE_COMPUTECPP=OFF $@"
 else
   echo "build.sh entering mode: ComputeCpp"
-  CMAKE_ARGS="$CMAKE_ARGS -DCOMPUTECPP_PACKAGE_ROOT_DIR=$(readlink -f $1)"
+  CMAKE_ARGS="$CMAKE_ARGS -DComputeCpp_DIR=$(readlink -f $1)"
   shift
 fi
 

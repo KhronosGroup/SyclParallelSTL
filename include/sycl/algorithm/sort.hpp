@@ -886,11 +886,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
 
      cgh.parallel_for<kernel_bitonic_sort_init<T, Alloc>>(
          ndrange, bitonic_sort_init<T, 4>(g, l));
-   })
-      .wait();
-
-  q.wait_and_throw();
-  return;
+   });
 
   // Execute further stages
   const int num_stages = globalWorkSize / localWorkSize;
@@ -920,8 +916,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
 
        cgh.parallel_for<kernel_bitonic_sort_stage_0<T, Alloc>>(
            ndrange, bitonic_sort_stage_0<T, 4>(g, l, high_stage));
-     })
-        .wait();
+     });
   }
 
   // Perform the bitonic merge
@@ -936,8 +931,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
 
        cgh.parallel_for<kernel_bitonic_sort_merge<T, Alloc>>(
            ndrange, bitonic_sort_merge<T, 4>(g, l, stage, direction));
-     })
-        .wait();
+     });
   }
 
   q.submit([&](handler &cgh) {
@@ -950,8 +944,7 @@ void bitonic_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
 
      cgh.parallel_for<kernel_bitonic_sort_merge_last<T, Alloc>>(
          ndrange, bitonic_sort_merge_last<T, 4>(g, l, direction));
-   })
-      .wait();
+   });
 }
 #else
 /* bitonic_sort.

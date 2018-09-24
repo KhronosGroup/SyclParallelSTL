@@ -57,10 +57,12 @@ T transform_reduce(ExecutionPolicy& exec, InputIterator first,
                    BinaryOperation binary_op) {
   cl::sycl::queue q(exec.get_queue());
   auto vectorSize = sycl::helpers::distance(first, last);
-  cl::sycl::buffer<T, 1> bufR((cl::sycl::range<1>(vectorSize)));
+  
   if (vectorSize < 1) {
     return init;
   }
+
+  cl::sycl::buffer<T, 1> bufR((cl::sycl::range<1>(vectorSize)));
 
   auto device = q.get_device();
   auto bufI = sycl::helpers::make_const_buffer(first, last);

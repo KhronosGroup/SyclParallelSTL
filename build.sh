@@ -53,7 +53,18 @@ else
   shift
 fi
 
-NPROC=$(nproc)
+case $(uname -s) in
+  Darwin)
+    NPROC=$(sysctl -n hw.ncpu)
+  ;;
+  Linux)
+    NPROC=$(nproc)
+  ;;
+  *)
+    echo "Unrecognised platform $(uname -s)"
+    exit 1
+  ;;
+esac
 
 function install_gmock  {(
   REPO="https://github.com/google/googletest.git"

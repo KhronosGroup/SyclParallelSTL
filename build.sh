@@ -49,31 +49,15 @@ then
   CMAKE_ARGS="$CMAKE_ARGS -DUSE_COMPUTECPP=OFF $@"
 else
   echo "build.sh entering mode: ComputeCpp"
-  CMAKE_ARGS="$CMAKE_ARGS -DCOMPUTECPP_PACKAGE_ROOT_DIR=$(readlink -f $1)"
+  CMAKE_ARGS="$CMAKE_ARGS -DComputeCpp_DIR=$(readlink -f $1)"
   shift
 fi
 
 NPROC=$(nproc)
 
-function install_gmock  {(
-  REPO="https://github.com/google/googletest.git"
-  mkdir -p external
-  cd external
-  if [ -d googletest ]
-  then
-    cd googletest
-    $NO_DOWNLOAD git pull
-  else
-    $NO_DOWNLOAD git clone $REPO
-    cd googletest
-  fi
-  cd googlemock/make
-  make -j$NPROC
-)}
-
 function configure  {
   mkdir -p build && pushd build
-  cmake .. $CMAKE_ARGS -DPARALLEL_STL_BENCHMARKS=ON
+  cmake .. $CMAKE_ARGS -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPARALLEL_STL_BENCHMARKS=ON
   popd
 }
 
@@ -89,7 +73,6 @@ function tst {
 }
 
 function main {
-  install_gmock
   configure
   mak
   tst

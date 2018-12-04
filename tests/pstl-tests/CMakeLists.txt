@@ -1,21 +1,41 @@
-find_package(Threads)
 
-function(compile_test source)
-    set(test_name "pstl.${source}")
-    set(source "${source}.cpp")
-    add_executable(${test_name} ${source})
-    target_link_libraries(${test_name} PUBLIC "${gtest_BINARY_DIR}/libgtest.a"
-                                       PUBLIC "${gtest_BINARY_DIR}/libgtest_main.a"
-                                       PUBLIC "${CMAKE_THREAD_LIBS_INIT}")
-    add_dependencies(${test_name} gtest_main)
-    add_dependencies(${test_name} gtest)
-    add_sycl_to_target(${test_name} ${CMAKE_CURRENT_BINARY_DIR}
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/${source})
-    add_test(test.${test_name} ${test_name})
-endfunction()
 
-file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(files 
+  "all_of.cpp"
+  "any_of.cpp"
+  "buffer_unique_ptr.cpp"
+  "count.cpp"
+  "count_if.cpp"
+  "equal.cpp"
+  "exclusive_scan.cpp"
+  "fill.cpp"
+  "fill_n.cpp"
+  "find.cpp"
+  "for_each.cpp"
+  "for_each_n.cpp"
+  "generate.cpp"
+  "generate_n.cpp"
+  "inclusive_scan.cpp"
+  "inner_product.cpp"
+  "invalid_vector_iterators.cpp"
+  "mismatch.cpp"
+  "none_of.cpp"
+  "reduce.cpp"
+  "replace_copy.cpp"
+  "replace_copy_if.cpp"
+  "replace.cpp"
+  "replace_if.cpp"
+  "reverse_copy.cpp"
+  "reverse.cpp"
+  "sort.cpp"
+  "transform.cpp"
+  "transform_reduce.cpp"
+  "vector.cpp"
+  )
+
 foreach (file ${files})
-    get_filename_component(file ${file} NAME_WE)
-    compile_test(${file})
+    build_file(${file})
+    get_filename_component(SOURCE_NAME ${file} NAME_WE)
+    target_link_libraries(${SOURCE_NAME} PUBLIC gtest_main)
+    add_test(${SOURCE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_NAME})
 endforeach()

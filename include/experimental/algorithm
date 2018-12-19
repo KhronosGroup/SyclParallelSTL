@@ -499,6 +499,35 @@ ForwardIt2 replace_copy(ExecutionPolicy &&exec, ForwardIt1 first,
   return exec.replace_copy(first, last, d_first, old_value, new_value);
 }
 
+/** rotate
+ * @brief Performs a left rotation on a range of elements
+ * @tparam ForwardIt must meet the requirements of ValueSwappable
+ * @param exec the execution policy to use
+ * @param first the start of the range to rotate. ``*first`` must meet the requirements of MoveConstructible and MoveAssignable
+ * @param middle the element at the start after rotation
+ * @param last the end of the range to rotate
+ */
+template <class ExecutionPolicy, class ForwardIt>
+ForwardIt rotate(ExecutionPolicy &&exec, ForwardIt first, ForwardIt middle,
+                 ForwardIt last) {
+  return exec.rotate(first, middle, last);
+}
+
+/** rotate_copy
+ * @brief Copies the elements from the range ``[first, last)``, to another range beginning at ``result`` in such a way, that the element ``middle`` becomes the first element of the new range and ``middle - 1`` becomes the last element
+ * @tparam ForwardIt must meet the requirements of ValueSwappable
+ * @param exec the execution policy to use
+ * @param first,last the range of elements to rotate. ``*first`` must meet the requirements of MoveConstructible and MoveAssignable
+ * @param middle an iterator to an element in ``[first, last)`` that should appear at the beginning of the new range
+ * @param result beginning of the destination range
+ */
+template <class ExecutionPolicy, class ForwardIt1, class ForwardIt2>
+ForwardIt2 rotate_copy(ExecutionPolicy &&exec, ForwardIt1 first,
+                       ForwardIt1 middle, ForwardIt1 last,
+                       ForwardIt2 result) {
+  return exec.rotate_copy(first, middle, last, result);
+}
+
 /** all_of
  * @brief Checks if unary predicate ``p`` returns ``true`` for all elements in
  * the range ``[first, last)``.

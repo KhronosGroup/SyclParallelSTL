@@ -61,6 +61,7 @@
 #include <sycl/algorithm/generate.hpp>
 #include <sycl/algorithm/reverse.hpp>
 #include <sycl/algorithm/reverse_copy.hpp>
+#include <sycl/algorithm/rotate_copy.hpp>
 #include <sycl/algorithm/replace_if.hpp>
 #include <sycl/algorithm/replace_copy_if.hpp>
 #include <sycl/algorithm/equal.hpp>
@@ -558,6 +559,34 @@ class sycl_execution_policy {
     return impl::replace_copy_if(*this, first, last, d_first,
                                  [=](T other) { return other == old_val; },
                                  new_value);
+  }
+
+  /** rotate
+   * @brief Performs a left rotation on a range of elements
+   * @tparam ForwardIt must meet the requirements of ValueSwappable
+   * @param exec the execution policy to use
+   * @param first the start of the range to rotate. ``*first`` must meet the requirements of MoveConstructible and MoveAssignable
+   * @param middle the element at the start after rotation
+   * @param last the end of the range to rotate
+   */
+  template <class ForwardIt>
+  ForwardIt rotate(ForwardIt first, ForwardIt middle, ForwardIt last) {
+    impl::rotate_copy(*this, first, middle, last, first);
+    return first + (last - middle);
+  }
+
+  /** rotate_copy
+   * @brief Copies the elements from the range ``[first, last)``, to another range beginning at ``result`` in such a way, that the element ``middle`` becomes the first element of the new range and ``middle - 1`` becomes the last element
+   * @tparam ForwardIt must meet the requirements of ValueSwappable
+   * @param exec the execution policy to use
+   * @param first,last the range of elements to rotate. ``*first`` must meet the requirements of MoveConstructible and MoveAssignable
+   * @param middle an iterator to an element in ``[first, last)`` that should appear at the beginning of the new range
+   * @param result beginning of the destination range
+   */
+  template <class ForwardIt1, class ForwardIt2>
+  ForwardIt2 rotate_copy(ForwardIt1 first, ForwardIt1 middle, ForwardIt1 last,
+                         ForwardIt2 result) {
+    return impl::rotate_copy(*this, first, middle, last, result);
   }
 
   /** all_of

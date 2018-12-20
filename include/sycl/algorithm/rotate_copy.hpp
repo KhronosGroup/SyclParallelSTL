@@ -42,6 +42,9 @@ template <class ExecutionPolicy, class ForwardIt1, class ForwardIt2>
 ForwardIt2 rotate_copy(ExecutionPolicy &sep, ForwardIt1 first,
                        ForwardIt1 middle, ForwardIt1 last,
                        ForwardIt2 result) {
+
+  if (first == last) return result;
+
   using namespace cl::sycl;
   const auto size = sycl::helpers::distance(first, last);
   using value_type = typename std::iterator_traits<ForwardIt1>::value_type;

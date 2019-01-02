@@ -30,7 +30,7 @@
 #define __SYCL_IMPL_ALGORITHM_ROTATE_COPY__
 
 #include <algorithm>
-#include <sycl/helpers/sycl_differences.hpp>
+#include <vector>
 
 namespace sycl {
 namespace impl {
@@ -46,23 +46,22 @@ ForwardIt2 rotate_copy(ExecutionPolicy &sep, ForwardIt1 first,
   if (first == last) return result;
 
   using namespace cl::sycl;
-  const auto size = sycl::helpers::distance(first, last);
   using value_type = typename std::iterator_traits<ForwardIt1>::value_type;
-  value_type *data = new value_type[size];
-  std::copy_n(first, size, data);
+  std::vector<value_type> tmp(first, last);
+  std::copy(first, last, tmp.begin());
 {
-  buffer<value_type> bufI(data, size), bufO(size);
+  buffer<value_type> bufI(tmp.cbegin(), tmp.cend()), bufO(tmp.size());
   bufI.set_final_data(nullptr);
-  bufO.set_final_data(data);
+  bufO.set_final_data(tmp.data());
 
-  const auto rot_n = sycl::helpers::distance(first, middle);
-  sep.get_queue().submit([size, rot_n, &bufI, &bufO](handler &h) {
+  const auto rot_n = std::distance(first, middle);
+  sep.get_queue().submit([rot_n, &tmp, &bufI, &bufO](handler &h) {
 
     auto aI = bufI.template get_access<access::mode::read>(h);
     auto aO = bufO.template get_access<access::mode::discard_write>(h);
     using K = typename ExecutionPolicy::kernelName;
 
-    h.parallel_for<K>(range<1>{size}, [aI, aO, rot_n](item<1> i) {
+    h.parallel_for<K>(range<1>{tmp.size()}, [aI, aO, rot_n](item<1> i) {
       const size_t rotated_id = (i.get_id(0) + rot_n >= i.get_range(0)) ?
                                  i.get_id(0) + rot_n  - i.get_range(0)  :
                                  i.get_id(0) + rot_n;
@@ -71,9 +70,8 @@ ForwardIt2 rotate_copy(ExecutionPolicy &sep, ForwardIt1 first,
   });
 }
 
-  std::copy_n(data, size, result);
-  delete[] data;
-  return std::next(result, size);
+  std::copy(tmp.cbegin(), tmp.cend(), result);
+  return std::next(result, tmp.size());
 }
 
 }  // namespace impl

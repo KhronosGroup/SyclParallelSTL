@@ -25,7 +25,7 @@
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
-#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <algorithm>
 #include <iterator>

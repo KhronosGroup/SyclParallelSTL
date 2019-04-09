@@ -35,7 +35,6 @@
 
 #include <experimental/algorithm>
 #include <sycl/heterogeneous_execution_policy.hpp>
-#include "amd_cpu_selector.hpp"
 
 #include "benchmark.h"
 
@@ -56,7 +55,7 @@ benchmark<>::time_units_t benchmark_transform_heterogeneous(
     res.push_back(i);
   }
   cl::sycl::queue q;
-  amd_cpu_selector cpu_sel;
+  cl::sycl::cpu_selector cpu_sel;
   cl::sycl::queue q2(cpu_sel);
   sycl::sycl_heterogeneous_execution_policy<class TransformAlgorithm1> snp(
       q, q2, ratio);

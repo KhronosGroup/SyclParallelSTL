@@ -181,7 +181,10 @@ class sycl_execution_policy {
     if (impl::isPowerOfTwo(vectorSize)) {
       sycl::impl::bitonic_sort<type_>(q, buf, vectorSize);
     } else {
-      sycl::impl::sequential_sort<type_>(q, buf, vectorSize);
+      auto lTempBuf = std::move(sycl::helpers::make_buffer(b, e));
+      auto rTempBuf = std::move(sycl::helpers::make_buffer(b, e));
+      sycl::impl::sequential_sort<type_>(q, buf, lTempBuf, rTempBuf,
+                                         vectorSize);
     }
   }
 

@@ -76,19 +76,68 @@ class sort_kernel_sequential {
                          cl::sycl::access::target::global_buffer>;
 
   sycl_rw_acc a_;
+  sycl_rw_acc l_;
+  sycl_rw_acc r_;
   size_t vS_;
 
- public:
-  sort_kernel_sequential(sycl_rw_acc a, size_t vectorSize)
-      : a_(a), vS_(vectorSize){};
+ private:
+  void merge_sort(size_t l, size_t m, size_t r) {
+    size_t i, j, k;
+    size_t lMax = m - l + 1;
+    size_t rMax = r - m;
 
-  // Simple sequential sort
+    for (i = 0; i < lMax; i++) {
+      l_[i] = a_[l + i];
+    }
+    for (j = 0; j < rMax; j++) {
+      r_[j] = a_[m + 1 + j];
+    }
+
+    i = 0;
+    j = 0;
+    k = l;
+
+    while (i < lMax && j < rMax) {
+      if (l_[i] <= r_[j]) {
+        a_[k] = l_[i];
+        i++;
+      } else {
+        a_[k] = r_[j];
+        j++;
+      }
+      k++;
+    }
+
+    while (i < lMax) {
+      a_[k] = l_[i];
+      i++;
+      k++;
+    }
+
+    while (j < rMax) {
+      a_[k] = r_[j];
+      j++;
+      k++;
+    }
+  }
+
+ public:
+  sort_kernel_sequential(sycl_rw_acc a, sycl_rw_acc l, sycl_rw_acc r,
+                         size_t vectorSize)
+      : a_(a), l_(l), r_(r), vS_(vectorSize){};
+
+  // Simple merge sort
   void operator()() {
-    for (size_t i = 0; i < vS_; i++) {
-      for (size_t j = 1; j < vS_; j++) {
-        if (a_[j - 1] > a_[j]) {
-          sort_swap<T>(a_[j - 1], a_[j]);
-        }
+    size_t currentSize;
+    size_t leftIndex;
+
+    for (currentSize = 1; currentSize <= vS_ - 1;
+         currentSize = 2 * currentSize) {
+      for (leftIndex = 0; leftIndex <= vS_ - 1; leftIndex += 2 * currentSize) {
+        size_t midIndex = std::min(leftIndex + currentSize - 1, vS_ - 1);
+        size_t rightIndex = std::min(leftIndex + 2 * currentSize - 1, vS_ - 1);
+
+        merge_sort(leftIndex, midIndex, rightIndex);
       }
     }
   }
@@ -152,10 +201,17 @@ inline bool isPowerOfTwo<double>(double num) = delete;
  * Command group to call the sequential sort kernel */
 template <typename T, typename Alloc>
 void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
+                     cl::sycl::buffer<T, 1, Alloc> leftTemp,
+                     cl::sycl::buffer<T, 1, Alloc> rightTemp,
                      size_t vectorSize) {
-  auto f = [buf, vectorSize](cl::sycl::handler &h) mutable {
+  auto f = [buf, leftTemp, rightTemp,
+            vectorSize](cl::sycl::handler &h) mutable {
     auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
-    h.single_task(sort_kernel_sequential<T>(a, vectorSize));
+    auto l =
+        leftTemp.template get_access<cl::sycl::access::mode::read_write>(h);
+    auto r =
+        rightTemp.template get_access<cl::sycl::access::mode::read_write>(h);
+    h.single_task(sort_kernel_sequential<T>(a, l, r, vectorSize));
   };
   q.submit(f);
 }
@@ -318,7 +374,7 @@ void sort(ExecutionPolicy &sep, RandomIt first, RandomIt last, CompareOp comp) {
   auto vectorSize = buf.get_count();
 
   typedef typename buffer_traits<decltype(buf)>::allocator_type allocator_;
-  
+
   if (impl::isPowerOfTwo(vectorSize)) {
     sycl::impl::bitonic_sort<
         type_, allocator_, CompareOp,

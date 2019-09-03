@@ -78,18 +78,46 @@ class sort_kernel_sequential {
   sycl_rw_acc a_;
   size_t vS_;
 
+ private:
+  void buildMaxHeap() {
+    for (size_t i = 1; i < vS_; i++) {
+      if (a_[i] > a_[(i - 1) / 2]) {
+        size_t j = i;
+
+        while (a_[j] > a_[(j - 1) / 2]) {
+          sort_swap<T>(a_[j], a_[(j - 1) / 2]);
+          j = (j - 1) / 2;
+        }
+      }
+    }
+  }
+
  public:
   sort_kernel_sequential(sycl_rw_acc a, size_t vectorSize)
       : a_(a), vS_(vectorSize){};
 
   // Simple sequential sort
   void operator()() {
-    for (size_t i = 0; i < vS_; i++) {
-      for (size_t j = 1; j < vS_; j++) {
-        if (a_[j - 1] > a_[j]) {
-          sort_swap<T>(a_[j - 1], a_[j]);
+    buildMaxHeap();
+
+    for (size_t i = vS_ - 1; i > 0; i--) {
+      sort_swap<T>(a_[0], a_[i]);
+
+      size_t j = 0, index;
+
+      do {
+        index = (2 * j + 1);
+
+        if (a_[index] < a_[index + 1] && index < (i - 1)) {
+          index++;
         }
-      }
+
+        if (a_[j] < a_[index] && index < i) {
+          sort_swap<T>(a_[j], a_[index]);
+        }
+
+        j = index;
+      } while (index < i);
     }
   }
 };  // class sort_kernel
@@ -318,7 +346,7 @@ void sort(ExecutionPolicy &sep, RandomIt first, RandomIt last, CompareOp comp) {
   auto vectorSize = buf.get_count();
 
   typedef typename buffer_traits<decltype(buf)>::allocator_type allocator_;
-  
+
   if (impl::isPowerOfTwo(vectorSize)) {
     sycl::impl::bitonic_sort<
         type_, allocator_, CompareOp,

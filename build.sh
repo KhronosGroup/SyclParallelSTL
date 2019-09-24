@@ -67,7 +67,8 @@ function install_gmock  {(
     $NO_DOWNLOAD git clone $REPO
     cd googletest
   fi
-  cd googlemock/make
+  mkdir -p build && pushd build
+  cmake ..
   make -j$NPROC
 )}
 

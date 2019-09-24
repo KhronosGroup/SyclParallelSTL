@@ -57,17 +57,22 @@ NPROC=$(nproc)
 
 function install_gmock  {(
   REPO="https://github.com/google/googletest.git"
+  # 1.8.1 release of googletest.
+  PINNED_HASH="2fe3bd994b3189899d93f1d5a881e725e046fdc2"
   mkdir -p external
   cd external
   if [ -d googletest ]
   then
     cd googletest
     $NO_DOWNLOAD git pull
+    git checkout $PINNED_HASH
   else
     $NO_DOWNLOAD git clone $REPO
     cd googletest
+    git checkout $PINNED_HASH 
   fi
-  cd googlemock/make
+  mkdir -p build && pushd build
+  cmake ..
   make -j$NPROC
 )}
 

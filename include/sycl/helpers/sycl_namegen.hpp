@@ -35,7 +35,7 @@
 #define _EXPERIMENTAL_DETAIL_SYCL_NAMEGEN__
 
 namespace cl {
-namespace sycl {
+using namespace sycl;
 namespace helpers {
 
 /**
@@ -45,7 +45,6 @@ namespace helpers {
  */
 template <int Index, typename... Details>
 class NameGen {};
-}
 }
 }
 

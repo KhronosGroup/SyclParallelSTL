@@ -155,7 +155,7 @@ void sequential_sort(cl::sycl::queue q, cl::sycl::buffer<T, 1, Alloc> buf,
                      size_t vectorSize) {
   auto f = [buf, vectorSize](cl::sycl::handler &h) mutable {
     auto a = buf.template get_access<cl::sycl::access::mode::read_write>(h);
-    h.single_task(sort_kernel_sequential<T>(a, vectorSize));
+    // h.single_task(sort_kernel_sequential<T>(a, vectorSize));
   };
   q.submit(f);
 }

@@ -56,7 +56,7 @@ benchmark<>::time_units_t benchmark_reduce(const unsigned numReps,
   cl::sycl::queue q(cds);
   auto device = q.get_device();
   const cl::sycl::id<3> maxWorkItemSizes =
-    device.get_info<cl::sycl::info::device::max_work_item_sizes>();
+    device.get_info<cl::sycl::info::device::max_work_item_sizes<3>>();
   const auto local = std::min(
       device.get_info<cl::sycl::info::device::max_work_group_size>(),
       maxWorkItemSizes[0]);

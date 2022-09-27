@@ -3,7 +3,7 @@ project (SyclSTL)
 
 enable_testing()
 
-option(PARALLEL_STL_BENCHMARKS "Build the internal benchmarks" OFF)
+option(PARALLEL_STL_BENCHMARKS "Build the internal benchmarks" ON)
 option(USE_COMPUTECPP "Use ComputeCPP" OFF)
 
 message(STATUS " Path to CMAKE source directory: ${CMAKE_SOURCE_DIR} ")
@@ -39,6 +39,8 @@ add_subdirectory (src)
 add_subdirectory (examples)
 # add_subdirectory (tests)
 
+add_definitions(-fsycl)
+add_link_options(-fsycl)
 if (PARALLEL_STL_BENCHMARKS)
   add_subdirectory (benchmarks)
 endif()

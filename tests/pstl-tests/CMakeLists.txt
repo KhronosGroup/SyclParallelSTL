@@ -11,6 +11,7 @@ function(compile_test source)
     add_dependencies(${test_name} gtest)
     # add_sycl_to_target(${test_name} ${CMAKE_CURRENT_BINARY_DIR}
                                     # ${CMAKE_CURRENT_SOURCE_DIR}/${source})
+    target_compile_options(${test_name} PRIVATE -fsycl)
     add_test(test.${test_name} ${test_name})
 endfunction()
 

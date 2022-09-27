@@ -4,7 +4,7 @@ project (SyclSTL)
 enable_testing()
 
 option(PARALLEL_STL_BENCHMARKS "Build the internal benchmarks" OFF)
-option(USE_COMPUTECPP "Use ComputeCPP" ON)
+option(USE_COMPUTECPP "Use ComputeCPP" OFF)
 
 message(STATUS " Path to CMAKE source directory: ${CMAKE_SOURCE_DIR} ")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
@@ -27,8 +27,8 @@ if (USE_COMPUTECPP)
 
 
 else()
-  message(STATUS " Using triSYCL CMake")
-  include(FindTriSYCL)
+  message(STATUS " Using alternate CMake")
+  # include(FindTriSYCL)
 endif()
 
 
@@ -37,7 +37,7 @@ include_directories("include")
 
 add_subdirectory (src)
 add_subdirectory (examples)
-add_subdirectory (tests)
+# add_subdirectory (tests)
 
 if (PARALLEL_STL_BENCHMARKS)
   add_subdirectory (benchmarks)

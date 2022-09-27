@@ -9,8 +9,8 @@ function(compile_test source)
                                        PUBLIC "${CMAKE_THREAD_LIBS_INIT}")
     add_dependencies(${test_name} gtest_main)
     add_dependencies(${test_name} gtest)
-    add_sycl_to_target(${test_name} ${CMAKE_CURRENT_BINARY_DIR}
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/${source})
+    # add_sycl_to_target(${test_name} ${CMAKE_CURRENT_BINARY_DIR}
+                                    # ${CMAKE_CURRENT_SOURCE_DIR}/${source})
     add_test(test.${test_name} ${test_name})
 endfunction()
 
